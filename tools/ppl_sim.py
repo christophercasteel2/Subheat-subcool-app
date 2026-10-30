@@ -1,0 +1,760 @@
+#!/usr/bin/env python3
+"""A small HP PPL interpreter, just big enough to run SUPERSUB off the
+calculator: it executes the program, renders its screens with Pillow and
+feeds it scripted key presses / touches.  It is a development aid only;
+the real calculator remains the reference (fonts and some edge cases of
+the language differ).
+
+Usage
+  python3 tools/ppl_sim.py            # run the built-in test script,
+                                      # screenshots go to docs/screens/
+"""
+import math
+import os
+import re
+import sys
+
+from PIL import Image, ImageDraw, ImageFont
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+KEYWORDS = {"BEGIN", "END", "IF", "THEN", "ELSE", "FOR", "FROM", "TO", "STEP",
+            "DO", "WHILE", "REPEAT", "UNTIL", "LOCAL", "RETURN", "EXPORT",
+            "AND", "OR", "NOT", "MOD"}
+
+TOKEN_RE = re.compile(r"""
+    (?P<ws>\s+) | (?P<comment>//[^\n]*) | (?P<pragma>\#pragma[^\n]*) |
+    (?P<str>"[^"]*") | (?P<num>\d+\.\d*|\d*\.\d+|\d+) |
+    (?P<id>[A-Za-z_][A-Za-z0-9_]*) |
+    (?P<op>:=|==|<>|<=|>=|[-+*/^(){}\[\],;<>=])
+""", re.X)
+
+
+class PPLError(Exception):
+    pass
+
+
+class StopSim(Exception):
+    pass
+
+
+def tokenize(src):
+    toks, pos, line = [], 0, 1
+    while pos < len(src):
+        m = TOKEN_RE.match(src, pos)
+        if not m:
+            raise PPLError(f"line {line}: bad character {src[pos]!r}")
+        kind = m.lastgroup
+        text = m.group()
+        if kind == "id" and text in KEYWORDS:
+            kind = "kw"
+        if kind not in ("ws", "comment", "pragma"):
+            toks.append((kind, text, line))
+        line += text.count("\n")
+        pos = m.end()
+    toks.append(("eof", "", line))
+    return toks
+
+
+class Parser:
+    def __init__(self, toks):
+        self.t, self.i = toks, 0
+
+    def peek(self, o=0):
+        return self.t[self.i + o]
+
+    def next(self):
+        tok = self.t[self.i]
+        self.i += 1
+        return tok
+
+    def accept(self, text):
+        if self.peek()[1] == text and self.peek()[0] in ("kw", "op"):
+            self.i += 1
+            return True
+        return False
+
+    def expect(self, text):
+        tok = self.next()
+        if tok[1] != text:
+            raise PPLError(f"line {tok[2]}: expected {text!r}, got {tok[1]!r}")
+        return tok
+
+    def ident(self):
+        tok = self.next()
+        if tok[0] != "id":
+            raise PPLError(f"line {tok[2]}: expected a name, got {tok[1]!r}")
+        return tok[1]
+
+    # ---- program ----
+    def program(self):
+        globs, funcs = [], {}
+        while self.peek()[0] != "eof":
+            exported = self.accept("EXPORT")
+            name = self.ident()
+            if self.peek()[1] == "(":
+                self.expect("(")
+                params = []
+                if not self.accept(")"):
+                    params.append(self.ident())
+                    while self.accept(","):
+                        params.append(self.ident())
+                    self.expect(")")
+                self.expect("BEGIN")
+                body = self.block(("END",))
+                self.expect("END")
+                self.expect(";")
+                if name in funcs:
+                    raise PPLError(f"function {name} defined twice")
+                funcs[name] = (params, body, exported)
+            else:
+                self.expect(":=")
+                globs.append((name, self.expr()))
+                self.expect(";")
+        return globs, funcs
+
+    def block(self, enders):
+        out = []
+        while self.peek()[1] not in enders:
+            out.append(self.stmt())
+        return out
+
+    def stmt(self):
+        tok = self.peek()
+        line = tok[2]
+        if self.accept("LOCAL"):
+            decls = []
+            while True:
+                name = self.ident()
+                init = self.expr() if self.accept(":=") else None
+                decls.append((name, init))
+                if not self.accept(","):
+                    break
+            self.expect(";")
+            return ("local", line, decls)
+        if self.accept("IF"):
+            cond = self.expr()
+            self.expect("THEN")
+            a = self.block(("ELSE", "END"))
+            b = []
+            if self.accept("ELSE"):
+                b = self.block(("END",))
+            self.expect("END")
+            self.expect(";")
+            return ("if", line, cond, a, b)
+        if self.accept("FOR"):
+            var = self.ident()
+            self.expect("FROM")
+            lo = self.expr()
+            self.expect("TO")
+            hi = self.expr()
+            step = self.expr() if self.accept("STEP") else ("num", 1)
+            self.expect("DO")
+            body = self.block(("END",))
+            self.expect("END")
+            self.expect(";")
+            return ("for", line, var, lo, hi, step, body)
+        if self.accept("WHILE"):
+            cond = self.expr()
+            self.expect("DO")
+            body = self.block(("END",))
+            self.expect("END")
+            self.expect(";")
+            return ("while", line, cond, body)
+        if self.accept("REPEAT"):
+            body = self.block(("UNTIL",))
+            self.expect("UNTIL")
+            cond = self.expr()
+            self.expect(";")
+            return ("repeat", line, body, cond)
+        if self.accept("RETURN"):
+            val = None if self.peek()[1] == ";" else self.expr()
+            self.expect(";")
+            return ("return", line, val)
+        if tok[0] == "id" and self.peek(1)[1] == ":=":
+            name = self.ident()
+            self.expect(":=")
+            val = self.expr()
+            self.expect(";")
+            return ("assign", line, name, val)
+        e = self.expr()
+        self.expect(";")
+        return ("expr", line, e)
+
+    # ---- expressions ----
+    def expr(self):
+        return self.or_()
+
+    def binary(self, sub, ops):
+        left = sub()
+        while self.peek()[1] in ops and self.peek()[0] in ("op", "kw"):
+            op = self.next()[1]
+            left = ("bin", op, left, sub())
+        return left
+
+    def or_(self):
+        return self.binary(self.and_, ("OR",))
+
+    def and_(self):
+        return self.binary(self.not_, ("AND",))
+
+    def not_(self):
+        if self.accept("NOT"):
+            return ("not", self.not_())
+        return self.cmp()
+
+    def cmp(self):
+        return self.binary(self.add, ("==", "<>", "<", ">", "<=", ">=", "="))
+
+    def add(self):
+        return self.binary(self.mul, ("+", "-"))
+
+    def mul(self):
+        return self.binary(self.unary, ("*", "/", "MOD"))
+
+    def unary(self):
+        if self.accept("-"):
+            return ("neg", self.unary())
+        return self.power()
+
+    def power(self):
+        base = self.postfix()
+        if self.accept("^"):
+            return ("bin", "^", base, self.unary())
+        return base
+
+    def postfix(self):
+        tok = self.next()
+        kind, text, line = tok
+        if kind == "num":
+            return ("num", float(text))
+        if kind == "str":
+            return ("str", text[1:-1])
+        if text == "(":
+            e = self.expr()
+            self.expect(")")
+            return e
+        if text == "{":
+            items = []
+            if not self.accept("}"):
+                items.append(self.expr())
+                while self.accept(","):
+                    items.append(self.expr())
+                self.expect("}")
+            return ("list", items)
+        if text == "[":
+            items = [self.expr()]
+            while self.accept(","):
+                items.append(self.expr())
+            self.expect("]")
+            return ("mat", items)
+        if kind == "id":
+            if self.accept("("):
+                args = []
+                if not self.accept(")"):
+                    args.append(self.expr())
+                    while self.accept(","):
+                        args.append(self.expr())
+                    self.expect(")")
+                return ("call", text, args, line)
+            return ("var", text, line)
+        raise PPLError(f"line {line}: unexpected {text!r}")
+
+
+def walk_calls(node, out):
+    if isinstance(node, tuple):
+        if node and node[0] == "call":
+            out.append((node[1], node[3]))
+        for x in node:
+            walk_calls(x, out)
+    elif isinstance(node, list):
+        for x in node:
+            walk_calls(x, out)
+
+
+# names a program should not reuse: Home/app variables and common CAS commands
+RESERVED = (set("ABCDEFGHIJKLMNOPQRSTUVWXYZ") | {"e", "i"} |
+            {f"{p}{k}" for p in "GLMZFXYRUVCD" for k in range(10)} |
+            {f"{p}{k}" for p in "HS" for k in range(1, 6)} |
+            {"ln", "log", "exp", "sin", "cos", "tan", "max", "min", "abs", "floor",
+             "ceil", "round", "size", "sum", "len", "int", "string", "char", "left",
+             "right", "mid", "dim", "type", "sqrt", "solve", "det", "sign", "mod",
+             "Ans", "Xmin", "Xmax", "Ymin", "Ymax"})
+
+
+def check_names(globs, funcs):
+    names = [(n, "global") for n, _ in globs] + [(n, "function") for n in funcs]
+    for fname, (params, body, _) in funcs.items():
+        names += [(n, f"parameter of {fname}") for n in params]
+        stack = list(body)
+        while stack:
+            st = stack.pop()
+            if isinstance(st, tuple) and st and st[0] == "local":
+                names += [(n, f"local in {fname}") for n, _ in st[2]]
+            if isinstance(st, (tuple, list)):
+                stack.extend(x for x in st if isinstance(x, (tuple, list)))
+    for n, where in names:
+        if n in RESERVED:
+            raise PPLError(f"{where}: name {n!r} clashes with a calculator name")
+
+
+def check_order(funcs):
+    """HP PPL compiles in one pass: a program function has to be defined
+    (or forward declared) above the first function that calls it."""
+    order = list(funcs)
+    for i, name in enumerate(order):
+        calls = []
+        walk_calls(funcs[name][1], calls)
+        for callee, line in calls:
+            if callee in funcs and order.index(callee) > i:
+                raise PPLError(f"line {line}: {name} calls {callee} before it is defined")
+
+
+class Matrix(list):
+    pass
+
+
+class Grob:
+    def __init__(self, w=320, h=240):
+        self.img = Image.new("RGB", (w, h), (255, 255, 255))
+        self.draw = ImageDraw.Draw(self.img)
+
+
+class ReturnSignal(Exception):
+    def __init__(self, value):
+        self.value = value
+
+
+def rgb_tuple(c):
+    c = int(c)
+    return ((c >> 16) & 255, (c >> 8) & 255, c & 255)
+
+
+FONT_FILE = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+_fonts = {}
+
+
+def font(n):
+    n = int(n) or 3
+    if n not in _fonts:
+        _fonts[n] = ImageFont.truetype(FONT_FILE, 8 + 2 * n)
+    return _fonts[n]
+
+
+def ppl_round(x, n=0):
+    m = 10 ** int(n)
+    return math.copysign(math.floor(abs(x) * m + 0.5) / m, x)
+
+
+def ppl_str(v):
+    if isinstance(v, str):
+        return v
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return repr(v)
+
+
+class Interp:
+    def __init__(self, src, events):
+        self.globs, self.funcs = Parser(tokenize(src)).program()
+        check_order(self.funcs)
+        check_names(self.globs, self.funcs)
+        self.events = list(events)
+        self.g = {}
+        self.sysvars = {"HAngle": 0.0}
+        self.grobs = {f"G{k}": Grob() for k in range(10)}
+        self.shots = []
+        self.trace = []
+        for name, e in self.globs:
+            self.g[name] = self.eval(e, {})
+
+    # ---- names ----
+    def lookup(self, name, frame, line):
+        if name in frame:
+            v = frame[name]
+            if v is None:
+                return 0.0
+            return v
+        if name in self.g:
+            return self.g[name]
+        if name in self.sysvars:
+            return self.sysvars[name]
+        if name in self.grobs:
+            return self.grobs[name]
+        raise PPLError(f"line {line}: unknown name {name}")
+
+    def assign(self, name, val, frame, line):
+        if isinstance(val, list):
+            val = type(val)(val)
+        if name in frame:
+            frame[name] = val
+        elif name in self.g:
+            self.g[name] = val
+        elif name in self.sysvars:
+            self.sysvars[name] = val
+        else:
+            raise PPLError(f"line {line}: assignment to undeclared {name}")
+
+    # ---- statements ----
+    def run_block(self, stmts, frame):
+        for s in stmts:
+            self.exec(s, frame)
+
+    def exec(self, s, frame):
+        kind, line = s[0], s[1]
+        if kind == "local":
+            for name, init in s[2]:
+                frame[name] = self.eval(init, frame) if init else 0.0
+        elif kind == "assign":
+            self.assign(s[2], self.eval(s[3], frame), frame, line)
+        elif kind == "expr":
+            self.eval(s[2], frame)
+        elif kind == "if":
+            if self.truth(self.eval(s[2], frame), line):
+                self.run_block(s[3], frame)
+            else:
+                self.run_block(s[4], frame)
+        elif kind == "for":
+            var = s[2]
+            lo, hi, st = (self.eval(e, frame) for e in s[3:6])
+            self.assign(var, lo, frame, line)
+            while self.lookup(var, frame, line) <= hi + 1e-12:
+                self.run_block(s[6], frame)
+                self.assign(var, self.lookup(var, frame, line) + st, frame, line)
+        elif kind == "while":
+            n = 0
+            while self.truth(self.eval(s[2], frame), line):
+                self.run_block(s[3], frame)
+                n += 1
+                if n > 100000:
+                    raise PPLError(f"line {line}: runaway WHILE")
+        elif kind == "repeat":
+            while True:
+                self.run_block(s[2], frame)
+                if self.truth(self.eval(s[3], frame), line):
+                    break
+        elif kind == "return":
+            raise ReturnSignal(self.eval(s[2], frame) if s[2] else 0.0)
+        else:
+            raise PPLError(f"bad statement {kind}")
+
+    def truth(self, v, line):
+        if isinstance(v, (int, float)):
+            return v != 0
+        raise PPLError(f"line {line}: condition is not a number: {v!r}")
+
+    # ---- expressions ----
+    def eval(self, e, frame):
+        kind = e[0]
+        if kind == "num":
+            return e[1]
+        if kind == "str":
+            return e[1]
+        if kind == "var":
+            return self.lookup(e[1], frame, e[2])
+        if kind == "neg":
+            return -self.num(self.eval(e[1], frame))
+        if kind == "not":
+            return 0.0 if self.eval(e[1], frame) else 1.0
+        if kind == "list":
+            return [self.eval(x, frame) for x in e[1]]
+        if kind == "mat":
+            return Matrix(self.eval(x, frame) for x in e[1])
+        if kind == "bin":
+            return self.binop(e[1], self.eval(e[2], frame), self.eval(e[3], frame))
+        if kind == "call":
+            return self.call(e[1], e[2], frame, e[3])
+        raise PPLError(f"bad expression {kind}")
+
+    def num(self, v):
+        if not isinstance(v, (int, float)):
+            raise PPLError(f"number expected, got {v!r}")
+        return v
+
+    def binop(self, op, a, b):
+        if op == "+" and (isinstance(a, str) or isinstance(b, str)):
+            return ppl_str(a) + ppl_str(b)
+        if op in ("==", "=", "<>") and isinstance(a, str) and isinstance(b, str):
+            return float((a == b) == (op != "<>"))
+        a, b = self.num(a), self.num(b)
+        if op == "+": return a + b
+        if op == "-": return a - b
+        if op == "*": return a * b
+        if op == "/":
+            if b == 0:
+                raise PPLError("division by zero")
+            return a / b
+        if op == "^": return a ** b
+        if op == "MOD": return a - b * math.floor(a / b)
+        if op in ("==", "="): return float(a == b)
+        if op == "<>": return float(a != b)
+        if op == "<": return float(a < b)
+        if op == ">": return float(a > b)
+        if op == "<=": return float(a <= b)
+        if op == ">=": return float(a >= b)
+        if op == "AND": return float(bool(a) and bool(b))
+        if op == "OR": return float(bool(a) or bool(b))
+        raise PPLError(f"bad operator {op}")
+
+    def call(self, name, args, frame, line):
+        # by-reference builtins
+        if name in ("INPUT", "CHOOSE"):
+            ref = args[0]
+            if ref[0] != "var":
+                raise PPLError(f"line {line}: {name} needs a variable")
+            vals = [self.eval(a, frame) for a in args[1:]]
+            ok, val = self.dialog(name, vals, self.lookup(ref[1], frame, line))
+            if ok:
+                self.assign(ref[1], val, frame, line)
+            return float(ok)
+        vals = [self.eval(a, frame) for a in args]
+        # indexing a variable
+        if name in frame or name in self.g:
+            obj = self.lookup(name, frame, line)
+            try:
+                for ix in vals:
+                    k = int(ix)
+                    if k < 1 or k > len(obj) or k != ix:
+                        raise PPLError(f"line {line}: {name}: bad index {ix}")
+                    obj = obj[k - 1]
+            except TypeError:
+                raise PPLError(f"line {line}: {name} is not a list")
+            return obj
+        if name in self.funcs:
+            params, body, _ = self.funcs[name]
+            if len(vals) != len(params):
+                raise PPLError(f"line {line}: {name} takes {len(params)} arguments")
+            new = dict(zip(params, vals))
+            try:
+                self.run_block(body, new)
+            except ReturnSignal as r:
+                return r.value
+            return 0.0
+        fn = getattr(self, "b_" + name, None)
+        if fn is None:
+            raise PPLError(f"line {line}: unknown function {name}")
+        return fn(*vals)
+
+    # ---- maths builtins ----
+    def ang_in(self, a):
+        return math.radians(a) if self.sysvars["HAngle"] == 1 else a
+
+    def b_SIN(self, a): return math.sin(self.ang_in(a))
+    def b_COS(self, a): return math.cos(self.ang_in(a))
+
+    def b_ATAN(self, x):
+        r = math.atan(x)
+        return math.degrees(r) if self.sysvars["HAngle"] == 1 else r
+
+    def b_LN(self, x):
+        if x <= 0:
+            raise PPLError(f"LN of {x}")
+        return math.log(x)
+
+    def b_EXP(self, x): return math.exp(x)
+    def b_ABS(self, x): return abs(x)
+    def b_IP(self, x): return float(math.trunc(x))
+    def b_FLOOR(self, x): return float(math.floor(x))
+    def b_CEILING(self, x): return float(math.ceil(x))
+    def b_ROUND(self, x, n=0): return ppl_round(x, n)
+    def b_MAX(self, a, b): return max(a, b)
+    def b_MIN(self, a, b): return min(a, b)
+    def b_IFTE(self, c, a, b): return a if c else b
+    def b_CHAR(self, c): return chr(int(c))
+    def b_DIM(self, s): return float(len(s))
+    def b_SIZE(self, s): return float(len(s))
+    def b_LEFT(self, s, n): return s[:int(n)]
+
+    def b_TYPE(self, v):
+        if isinstance(v, str): return 2.0
+        if isinstance(v, Matrix): return 4.0
+        if isinstance(v, list): return 6.0
+        return 0.0
+
+    def b_RGB(self, r, g, b, a=0):
+        return float((int(r) << 16) | (int(g) << 8) | int(b))
+
+    # ---- graphics builtins ----
+    def grob(self, g):
+        if not isinstance(g, Grob):
+            raise PPLError(f"graphic expected, got {g!r}")
+        return g
+
+    def b_DIMGROB_P(self, g, w, h, c=0xFFFFFF):
+        g = self.grob(g)
+        g.img = Image.new("RGB", (int(w), int(h)), rgb_tuple(c))
+        g.draw = ImageDraw.Draw(g.img)
+
+    def b_BLIT_P(self, dst, src):
+        self.grob(dst).img.paste(self.grob(src).img, (0, 0))
+
+    def b_RECT_P(self, g, x1, y1, x2, y2, edge, fill=None):
+        d = self.grob(g).draw
+        box = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
+        if fill is None:
+            d.rectangle(box, fill=rgb_tuple(edge))
+        else:
+            d.rectangle(box, fill=rgb_tuple(fill), outline=rgb_tuple(edge))
+
+    def b_LINE_P(self, g, x1, y1, x2, y2, c):
+        self.grob(g).draw.line([x1, y1, x2, y2], fill=rgb_tuple(c))
+
+    def b_TRIANGLE_P(self, g, x1, y1, x2, y2, x3, y3, c):
+        self.grob(g).draw.polygon([(x1, y1), (x2, y2), (x3, y3)], fill=rgb_tuple(c))
+
+    def b_TEXTOUT_P(self, s, g, x, y, fnt=0, c=0):
+        s = ppl_str(s)
+        f = font(fnt)
+        w = f.getlength(s)
+        self.grob(g).draw.text((x, y), s, font=f, fill=rgb_tuple(c), anchor="la")
+        return x + w
+
+    # ---- interaction builtins ----
+    def b_WAIT(self, n):
+        while self.events:
+            ev = self.events.pop(0)
+            if isinstance(ev, tuple) and ev[0] == "shot":
+                self.shots.append(ev[1])
+                self.grobs["G0"].img.save(ev[1])
+                continue
+            if isinstance(ev, tuple) and ev[0] == "check":
+                ev[1](self)
+                continue
+            self.trace.append(ev)
+            return ev
+        raise StopSim()
+
+    def dialog(self, kind, vals, cur):
+        ev = self.events.pop(0) if self.events else None
+        if not (isinstance(ev, tuple) and ev[0] == "dialog"):
+            raise PPLError(f"script expected a reply for {kind} {vals[:1]}")
+        self.trace.append((kind, vals[0], ev[1]))
+        if ev[1] is None:
+            return False, cur
+        return True, float(ev[1])
+
+    def b_MSGBOX(self, s):
+        self.trace.append(("MSGBOX", s))
+        return 1.0
+
+    def start(self, name):
+        params, body, _ = self.funcs[name]
+        try:
+            self.run_block(body, {})
+        except ReturnSignal:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# test script
+
+KEY = {"up": 2, "down": 12, "left": 7, "right": 8, "enter": 30, "esc": 4,
+       "plus": 50, "minus": 45, "symb": 1, "num": 11, "help": 3, "plot": 6}
+
+
+def tap(x, y):
+    return [[0, x, y], [2], [3, x, y]]
+
+
+def drag(points):
+    out = [[0] + list(points[0])]
+    out += [[1] + list(p) for p in points[1:]]
+    return out + [[2]]
+
+
+def approx(a, b, tol=0.05):
+    return abs(a - b) <= tol
+
+
+def main():
+    src = open(os.path.join(ROOT, "hp-prime", "SUPERSUB.txt"), encoding="utf-8").read()
+    out = os.path.join(ROOT, "docs", "screens")
+    os.makedirs(out, exist_ok=True)
+    checks = []
+
+    def check(desc, fn):
+        def run(it):
+            ok = fn(it)
+            checks.append((desc, ok))
+        return ("check", run)
+
+    def fn_call(it, name, *args):
+        params, body, _ = it.funcs[name]
+        try:
+            it.run_block(body, dict(zip(params, args)))
+        except ReturnSignal as r:
+            return r.value
+
+    ev = [
+        ("shot", os.path.join(out, "gauges.png")),
+        check("R-410A 118 psig dew = 39.8 F",
+              lambda it: approx(fn_call(it, "tsat", 2.0, 118.0, 0.0), 39.8, 0.1)),
+        check("R-410A 40 F bubble = 118.8 psig",
+              lambda it: approx(fn_call(it, "psat", 2.0, 40.0, 1.0), 118.8, 0.1)),
+        check("R-407C 63.2 psig dew = 40 F",
+              lambda it: approx(fn_call(it, "tsat", 7.0, 63.2, 0.0), 40.0, 0.1)),
+        check("R-134a vacuum -40 F = 14.8 inHg",
+              lambda it: approx(-fn_call(it, "psat", 5.0, -40.0, 0.0) * 2.03602, 14.8, 0.1)),
+        check("fmt1 formats", lambda it: [fn_call(it, "fmt1", v) for v in (0.0, -0.04, 9.96, -12.345, 1184.0)]
+              == ["0.0", "0.0", "10.0", "-12.3", "1184.0"]),
+        # drag the low needle to about 9 o'clock and back up
+        *drag([(30, 96), (20, 80), (40, 40)]),
+        check("dragging low needle sets pressure", lambda it: it.g["gSel"] == 1 and 60 < it.g["gLP"] < 200),
+        # set the high needle by tapping the dial at 12 o'clock -> 400 psig
+        *tap(240, 40),
+        check("tap high dial at top = 400 psig", lambda it: it.g["gSel"] == 3 and it.g["gHP"] == 400),
+        KEY["right"], KEY["up"], KEY["up"],
+        check("liquid temp +2 via keys", lambda it: it.g["gSel"] == 4 and it.g["gLT"] == 92),
+        KEY["enter"], ("dialog", 95),
+        check("typed liquid temp", lambda it: it.g["gLT"] == 95),
+        # slider on the suction side
+        *drag([(130, 193), (140, 193)]),
+        check("suction slider", lambda it: it.g["gSel"] == 2 and it.g["gST"] == round(-40 + 140 * 44 / 58)),
+        KEY["left"], KEY["minus"],
+        # change refrigerant through the chooser
+        *tap(64 * 0 + 30, 230), ("dialog", 7),
+        check("refrigerant chooser", lambda it: it.g["gRef"] == 7),
+        ("shot", os.path.join(out, "gauges_r407c.png")),
+        KEY["help"],
+        ("shot", os.path.join(out, "help.png")),
+        KEY["enter"],
+        # P-T chart
+        KEY["num"],
+        ("shot", os.path.join(out, "ptchart.png")),
+        *drag([(160, 200), (160, 120)]),
+        check("drag scrolls chart", lambda it: it.g["gPTTop"] == 35),
+        *tap(64 + 30, 230),
+        check("step 5", lambda it: it.g["gPTStep"] == 5 and it.g["gPTTop"] == 35),
+        *tap(128 + 30, 230), ("dialog", 2), ("dialog", 63.2),
+        check("look up pressure highlights 40 F", lambda it: approx(it.g["gFindT"], 40, 0.1) and it.g["gPTTop"] == 15),
+        ("shot", os.path.join(out, "ptchart_find.png")),
+        KEY["left"], KEY["left"],
+        check("left/right changes refrigerant", lambda it: it.g["gRef"] == 5),
+        KEY["up"], KEY["up"], KEY["up"], KEY["up"], KEY["up"], KEY["up"], KEY["up"],
+        ("shot", os.path.join(out, "ptchart_r134a.png")),
+        KEY["esc"],
+        check("esc returns to gauges", lambda it: it.g["gScr"] == 1),
+        -1,                       # WAIT timeout is ignored
+        *tap(4 * 64 + 30, 230),   # EXIT
+    ]
+    it = Interp(src, ev)
+    try:
+        it.start("SUPERSUB")
+        finished = True
+    except StopSim:
+        finished = False
+    checks.append(("EXIT button ends the program", finished))
+    checks.append(("angle mode restored", it.sysvars["HAngle"] == 0))
+    bad = 0
+    for desc, ok in checks:
+        print(("ok    " if ok else "FAIL  ") + desc)
+        bad += not ok
+    for t in it.trace:
+        if isinstance(t, tuple) and t[0] == "MSGBOX":
+            print("MSGBOX:", t[1].replace("\n", " | "))
+    print(f"screens written to {out}")
+    sys.exit(1 if bad else 0)
+
+
+if __name__ == "__main__":
+    main()
