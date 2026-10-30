@@ -1,7 +1,10 @@
-# R-448A (Solstice N40) saturation pressures, psig (all at or above atmospheric from -40 F up)
-# Source: Arkema Forane refrigerant P-T chart, 05-2025 (NIST REFPROP 10)
+# R-448A saturation pressures, psig (negative = vacuum)
+# Source: Arkema Forane refrigerant P-T chart, 05-2025 (NIST REFPROP 10), https://forane.arkema.com/files/live/sites/shared_arkema/files/downloads/fluorochemicals/Forane%20Ref%20PT%20Regular%20Chart%20EN
+# inHg vacuum readings converted to negative psig
 # temp_F,bubble_psig,dew_psig
--40,4.9,0.0
+-50,0.4,-1.77
+-45,2.5,-0.93
+-40,4.9,-0.0
 -35,7.5,2.1
 -30,10.4,4.4
 -25,13.5,7.0

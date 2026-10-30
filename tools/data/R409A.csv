@@ -1,0 +1,45 @@
+# R-409A saturation pressures, psig (negative = vacuum)
+# Source: Arkema Forane P-T wall chart (Americas, NIST REFPROP), https://forane.arkema.com/files/live/sites/fluorogases_forane_arkema/files/downloads/literature/general-forane-literature/forane-wall-chart-americas.pdf
+# inHg vacuum readings converted to negative psig
+# temp_F,bubble_psig,dew_psig
+-50,-5.99,-9.18
+-45,-4.72,-8.3
+-40,-3.29,-7.27
+-35,-1.72,-6.14
+-30,-0.0,-4.86
+-25,1.9,-3.44
+-20,4.0,-1.87
+-15,6.3,-0.1
+-10,8.8,1.8
+-5,11.6,4.0
+0,14.6,6.3
+5,17.8,8.8
+10,21.3,11.6
+15,25.1,14.7
+20,29.2,18.0
+25,33.6,21.6
+30,38.4,25.5
+35,43.4,29.7
+40,48.9,34.2
+45,54.7,39.1
+50,60.9,44.3
+55,67.4,49.9
+60,74.5,55.9
+65,81.9,62.3
+70,89.8,69.1
+75,98.2,76.4
+80,107.0,84.2
+85,116.4,92.5
+90,126.2,101.2
+95,136.6,110.5
+100,147.6,120.3
+105,159.1,130.7
+110,171.2,141.7
+115,183.9,153.3
+120,197.2,165.6
+125,211.1,178.5
+130,225.7,192.0
+135,241.0,206.3
+140,257.0,221.3
+145,273.7,237.1
+150,291.1,253.6

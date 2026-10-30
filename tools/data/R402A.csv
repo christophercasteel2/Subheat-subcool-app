@@ -1,0 +1,44 @@
+# R-402A saturation pressures, psig (negative = vacuum)
+# Source: Hudson Technologies P-T chart, https://www.hudsontech.com/pdfs/pt-charts/R-402A-Pressure-Temperature-Chart.pdf
+# inHg vacuum readings converted to negative psig
+# liquid (bubble) column from the chart; dew = bubble x (dew/bubble psia ratio) from National Refrigerants Reference Guide 6th ed. 'Thermodynamic Properties of R-402A'
+# temp_F,bubble_psig,dew_psig
+-40,6.3,4.61
+-35,9.1,7.21
+-30,12.1,10.02
+-25,15.4,13.22
+-20,18.9,16.53
+-15,22.9,20.42
+-10,27.1,24.43
+-5,31.7,28.84
+0,36.7,33.73
+5,42.1,39.03
+10,48.0,44.63
+15,54.2,50.74
+20,60.9,57.33
+25,68.1,64.24
+30,75.8,71.84
+35,84.0,79.84
+40,92.8,88.44
+45,102.0,97.63
+50,112.0,107.43
+55,123.0,118.22
+60,134.0,129.12
+65,146.0,140.92
+70,158.0,152.83
+75,171.0,165.64
+80,185.0,179.53
+85,200.0,194.42
+90,215.0,209.33
+95,232.0,226.21
+100,249.0,243.12
+105,267.0,261.02
+110,286.0,280.01
+115,305.0,298.93
+120,326.0,320.02
+125,347.0,340.93
+130,370.0,364.02
+135,393.0,387.03
+140,418.0,412.23
+145,443.0,436.89
+150,470.0,463.53

@@ -12,7 +12,7 @@ A color, touchscreen superheat and subcooling calculator for the **HP Prime G1**
 - **Touch control.** Drag a needle, or tap anywhere on a dial, to set the pressure. Drag the SUCT and LIQ sliders to set the line temperatures. You can also use the arrow keys, or type an exact value.
 - **Live results.** Superheat and subcooling update as you move the needles and sliders, color-coded green, yellow or red.
 - **P-T chart.** A scrolling table of liquid (bubble) and vapor (dew) pressures with °C, in 1°F or 5°F rows. Vacuum readings show in red as inHg. You can look up a value by temperature or by pressure, and pressure look-ups also report the glide.
-- **Refrigerants:** R-22, R-410A, R-454B, R-32, R-134a, R-404A, R-407C, R-448A.
+- **30 refrigerants, including phased-out ones still found in the field.** See [Refrigerants](#refrigerants) below.
 
 ## Install
 
@@ -55,29 +55,60 @@ Color guide (a reminder only; always use the manufacturer's charging chart):
 | Superheat | 5–20°F | 2–5°F or 20–30°F | below 2°F or above 30°F |
 | Subcooling | 5–15°F | 2–5°F or 15–25°F | below 2°F or above 25°F |
 
+## Refrigerants
+
+The chooser lists them in numeric order with their common trade names. R-410A is selected the first time the program runs.
+
+| Group | Refrigerants |
+|---|---|
+| Current A/C and heat pump | R-32, R-410A, R-454B |
+| Legacy A/C | R-22 |
+| R-22 retrofit blends | R-407A, R-407C, R-417A (NU-22/MO59), R-421A, R-422B (NU-22B), R-422D (MO29), R-427A (FX-100), R-438A (MO99) |
+| Commercial refrigeration | R-404A, R-407F, R-448A (N40), R-449A (XP40), R-452A (XP44), R-507A (AZ-50) |
+| Legacy CFCs | R-12, R-500, R-502 |
+| R-12 and R-502 retrofit blends | R-401A (MP39), R-402A (HP80), R-408A (FX-10), R-409A (FX-56) |
+| Auto and medium temperature | R-134a, R-513A (XP10), R-1234yf |
+| Hydrocarbons | R-290 (propane), R-600a (isobutane) |
+
+R-414B (HotShot) is not included yet. The only table I found for it is from a source that read 3–5 psi high on the other HCFC blends. It can be added once a trustworthy chart is available.
+
+![All refrigerants](docs/screens/all_refrigerants.png)
+
 ## Accuracy and data sources
 
-The program stores the bubble and dew pressure of each refrigerant every 5°F from −40°F to 150°F. Between rows it interpolates in ln(P), which stays within about 0.06 psi of the full equation of state.
+The program stores the bubble and dew pressure of each refrigerant every 5°F from −40°F to 150°F. Between rows it interpolates in ln(P), which stays within about 0.06 psi of the source data. A pressure whose saturation temperature falls well outside that range shows `--` instead of a guess.
 
-| Refrigerants | Source |
-|---|---|
-| R-22, R-32, R-134a, R-404A, R-407C, R-410A | [CoolProp](http://www.coolprop.org), checked against Arkema's NIST REFPROP 10 chart: within 0.15 psi everywhere, 0.07 psi or better for all except R-410A |
-| R-454B | Chemours *Opteon XL41 Thermodynamic Properties* (NIST REFPROP 10) |
-| R-448A | Arkema Forane refrigerant P-T chart, 05-2025 (NIST REFPROP 10) |
+Each refrigerant's data comes from the most authoritative source I could find. Where possible it was cross-checked against a second source:
+
+| Refrigerants | Source | Check |
+|---|---|---|
+| R-12, R-22, R-32, R-134a, R-290, R-600a, R-1234yf, R-404A, R-407C, R-410A, R-507A | [CoolProp](http://www.coolprop.org) reference equations of state | Within 0.15 psi of Arkema's NIST REFPROP 10 chart, where Arkema lists the refrigerant |
+| R-427A, R-448A, R-449A, R-452A, R-513A | Arkema Forane P-T chart (NIST REFPROP 10) | |
+| R-408A, R-409A | Arkema Forane P-T wall chart (NIST REFPROP) | R-408A's vapor side is derived from National Refrigerants' glide (about 1°F) |
+| R-454B | Chemours *Opteon XL41 Thermodynamic Properties* (NIST REFPROP 10) | Matches Arkema within 0.06 psi |
+| R-407A, R-422B, R-500 | National Refrigerants *Refrigerant Reference Guide* | Matches Hudson Technologies' charts within 0.7 psi |
+| R-401A, R-402A, R-422D, R-502 | Hudson Technologies P-T charts | R-402A's and R-502's vapor sides are derived from National Refrigerants' glide |
+| R-438A | IGAS P-T chart | Matches Hudson's liquid pressures within 0.25 psi |
+| R-407F, R-417A, R-421A | CoolProp blend models | Within 0.05 psi (R-407F, R-421A) and 1 psi (R-417A) of Hudson's liquid pressures |
+
+National's full property tables for the HCFC blends (R-401A, R-402A, R-408A, R-409A) read 3–5 psi higher than Arkema's REFPROP data and Hudson's charts. Those tables were not used for these blends.
+
+Every source document is named, with its link, at the top of its CSV in `tools/data/`.
 
 ## Repository layout
 
 ```
 hp-prime/SUPERSUB.txt     the calculator program (HP PPL source)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
-tools/data/*.csv          published tables used for R-454B and R-448A
+tools/data/*.csv          published P-T tables used for the blends
+tools/data/check/         published liquid pressures used to check CoolProp blend models
 tools/ppl_sim.py          small PPL interpreter: runs the program, checks it, renders screenshots
 docs/screens/             screenshots made by the simulator
 ```
 
 ### Adding a refrigerant
 
-1. Add a line to `REFRIGERANTS` in `tools/gen_pt_tables.py`. Give it the display name, a source (a CoolProp fluid name, or a CSV file in `tools/data` with `temp_F,bubble,dew` columns), and a cylinder color.
+1. Add a line to `REFRIGERANTS` in `tools/gen_pt_tables.py`. Give it the display name, a source (a CoolProp fluid name, or a CSV file in `tools/data` with `temp_F,bubble,dew` columns in psia or psig), and a cylinder color.
 2. Run `pip install CoolProp`, then `python3 tools/gen_pt_tables.py --check`.
 3. Run `python3 tools/ppl_sim.py` to re-run the checks and regenerate the screenshots, then copy the updated program to the calculator.
 

@@ -1,0 +1,42 @@
+# R-421A saturated liquid (bubble) pressure, psig - used only to check the CoolProp model
+# Source: Hudson Technologies P-T chart, https://www.hudsontech.com/pdfs/pt-charts/R-421A-Pressure-Temperature-Chart.pdf
+# temp_F,bubble_psig
+-40,0.5
+-35,2.5
+-30,4.8
+-25,7.4
+-20,10.1
+-15,13.2
+-10,16.5
+-5,20.1
+0,24.0
+5,28.2
+10,32.8
+15,37.8
+20,43.1
+25,48.9
+30,55.0
+35,61.7
+40,68.7
+45,76.3
+50,84.3
+55,92.9
+60,102.0
+65,111.7
+70,122.0
+75,132.9
+80,144.4
+85,156.6
+90,169.5
+95,183.1
+100,197.4
+105,212.4
+110,228.3
+115,244.9
+120,262.4
+125,280.8
+130,300.1
+135,320.3
+140,341.5
+145,363.6
+150,386.9

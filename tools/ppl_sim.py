@@ -668,6 +668,10 @@ def approx(a, b, tol=0.05):
 
 def main():
     src = open(os.path.join(ROOT, "hp-prime", "SUPERSUB.txt"), encoding="utf-8").read()
+    names = re.search(r"gRName:=\{(.*?)\};", src).group(1).replace('"', "").split(",")
+
+    def ref(name):
+        return float(names.index(name) + 1)
     out = os.path.join(ROOT, "docs", "screens")
     os.makedirs(out, exist_ok=True)
     checks = []
@@ -688,13 +692,13 @@ def main():
     ev = [
         ("shot", os.path.join(out, "gauges.png")),
         check("R-410A 118 psig dew = 39.8 F",
-              lambda it: approx(fn_call(it, "tsat", 2.0, 118.0, 0.0), 39.8, 0.1)),
+              lambda it: approx(fn_call(it, "tsat", ref("R-410A"), 118.0, 0.0), 39.8, 0.1)),
         check("R-410A 40 F bubble = 118.8 psig",
-              lambda it: approx(fn_call(it, "psat", 2.0, 40.0, 1.0), 118.8, 0.1)),
+              lambda it: approx(fn_call(it, "psat", ref("R-410A"), 40.0, 1.0), 118.8, 0.1)),
         check("R-407C 63.2 psig dew = 40 F",
-              lambda it: approx(fn_call(it, "tsat", 7.0, 63.2, 0.0), 40.0, 0.1)),
+              lambda it: approx(fn_call(it, "tsat", ref("R-407C"), 63.2, 0.0), 40.0, 0.1)),
         check("R-134a vacuum -40 F = 14.8 inHg",
-              lambda it: approx(-fn_call(it, "psat", 5.0, -40.0, 0.0) * 2.03602, 14.8, 0.1)),
+              lambda it: approx(-fn_call(it, "psat", ref("R-134a"), -40.0, 0.0) * 2.03602, 14.8, 0.1)),
         check("fmt1 formats", lambda it: [fn_call(it, "fmt1", v) for v in (0.0, -0.04, 9.96, -12.345, 1184.0)]
               == ["0.0", "0.0", "10.0", "-12.3", "1184.0"]),
         # drag the low needle to about 9 o'clock and back up
@@ -712,8 +716,8 @@ def main():
         check("suction slider", lambda it: it.g["gSel"] == 2 and it.g["gST"] == round(-40 + 140 * 44 / 58)),
         KEY["left"], KEY["minus"],
         # change refrigerant through the chooser
-        *tap(64 * 0 + 30, 230), ("dialog", 7),
-        check("refrigerant chooser", lambda it: it.g["gRef"] == 7),
+        *tap(64 * 0 + 30, 230), ("dialog", ref("R-407C")),
+        check("refrigerant chooser", lambda it: it.g["gRef"] == ref("R-407C")),
         ("shot", os.path.join(out, "gauges_r407c.png")),
         KEY["help"],
         ("shot", os.path.join(out, "help.png")),
@@ -729,9 +733,9 @@ def main():
         check("look up pressure highlights 40 F", lambda it: approx(it.g["gFindT"], 40, 0.1) and it.g["gPTTop"] == 15),
         ("shot", os.path.join(out, "ptchart_find.png")),
         KEY["left"], KEY["left"],
-        check("left/right changes refrigerant", lambda it: it.g["gRef"] == 5),
+        check("left/right changes refrigerant", lambda it: it.g["gRef"] == ref("R-404A")),
         KEY["up"], KEY["up"], KEY["up"], KEY["up"], KEY["up"], KEY["up"], KEY["up"],
-        ("shot", os.path.join(out, "ptchart_r134a.png")),
+        ("shot", os.path.join(out, "ptchart_scroll.png")),
         KEY["esc"],
         check("esc returns to gauges", lambda it: it.g["gScr"] == 1),
         -1,                       # WAIT timeout is ignored
@@ -745,6 +749,16 @@ def main():
         finished = False
     checks.append(("EXIT button ends the program", finished))
     checks.append(("angle mode restored", it.sysvars["HAngle"] == 0))
+
+    # draw the gauge screen for every refrigerant into one contact sheet
+    it.sysvars["HAngle"] = 1
+    sheet = Image.new("RGB", (5 * 320, ((len(names) + 4) // 5) * 240), (0, 0, 0))
+    for k, name in enumerate(names):
+        it.g["gRef"] = float(k + 1)
+        fn_call(it, "drawMain")
+        sheet.paste(it.grobs["G0"].img, ((k % 5) * 320, (k // 5) * 240))
+    sheet.save(os.path.join(out, "all_refrigerants.png"))
+    checks.append((f"gauge screen draws for all {len(names)} refrigerants", True))
     bad = 0
     for desc, ok in checks:
         print(("ok    " if ok else "FAIL  ") + desc)
