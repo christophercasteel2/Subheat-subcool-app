@@ -14,14 +14,20 @@ A color, touchscreen superheat and subcooling calculator for the **HP Prime G1**
 - **P-T chart.** A scrolling table of liquid (bubble) and vapor (dew) pressures with °C, in 1°F or 5°F rows. Vacuum readings show in red as inHg. You can look up a value by temperature or by pressure, and pressure look-ups also report the glide.
 - **30 refrigerants, including phased-out ones still found in the field.** See [Refrigerants](#refrigerants) below.
 
-## Install
+## Install (drag and drop, no typing)
 
-1. Install the free **HP Connectivity Kit** and connect the calculator by USB. To try the program first, you can also use HP's free **HP Prime Virtual Calculator**.
-2. In the Connectivity Kit's *Calculators* pane, right-click **Programs**, choose **New**, and name the program `SUPERSUB`.
-3. Open [`hp-prime/SUPERSUB.txt`](hp-prime/SUPERSUB.txt), copy all of it, paste it into the program editor, and save.
-4. On the calculator, press **Shift + 1 (Program)**, select **SUPERSUB**, and tap **Run**. You can also type `SUPERSUB` on the Home screen. The program needs firmware 2.x, so update older calculators first.
+The ready-made calculator files are in the [`calculator`](calculator) folder.
 
-Your last pressures, temperatures and refrigerant are kept between runs.
+1. **Download** [`SUPERSUB.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/SUPERSUB.zip) and unzip it. On Windows, right-click it and choose **Extract All**; on a Mac, double-click it. You get a folder called `SUPERSUB.hpappdir` and a file called `SUPERSUB.hpprgm`. Drag from the unzipped copy; dragging straight out of the zip often fails.
+2. **Connect** the calculator to the computer with its USB cable, turn it on, and open the free **HP Connectivity Kit**. Your calculator appears in the **Calculators** panel on the left. Click the small arrow next to it to see its contents.
+3. **Drag the `SUPERSUB.hpappdir` folder** onto **Application Library** under your calculator.
+4. On the calculator, press the **Apps** key and tap the **SUPERSUB** icon. It opens straight onto the gauges.
+
+**If the app doesn't appear or won't open:** first update the calculator to the latest firmware. The Connectivity Kit offers this when a calculator is connected; 2.1.14730 was the newest G1 release when this was written. Then try the plain program instead: drag `SUPERSUB.hpprgm` onto **Programs** under your calculator. On the calculator, press **Shift** then **1** (Program), select **SUPERSUB** and tap **Run**.
+
+Install one or the other, not both. To update later, drag the new copy over the old one and accept the replace prompt. Your last pressures, temperatures and refrigerant are kept between runs, but they reset when you install a new version.
+
+To try it without a calculator, drag the same files into HP's free **HP Prime Virtual Calculator**, which appears in the Connectivity Kit too.
 
 ## Using it
 
@@ -98,20 +104,29 @@ Every source document is named, with its link, at the top of its CSV in `tools/d
 ## Repository layout
 
 ```
-hp-prime/SUPERSUB.txt     the calculator program (HP PPL source)
+calculator/               ready-to-install files (built, do not edit by hand)
+  SUPERSUB.hpappdir/        app: drag onto Application Library
+  SUPERSUB.hpprgm           program: drag onto Programs
+  SUPERSUB.zip              both, for one download
+hp-prime/SUPERSUB.txt     the program's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
+tools/build_calc_files.py builds the calculator/ folder from SUPERSUB.txt
+tools/hpapp/              app container template (from the MIT-licensed Xprime project)
 tools/data/*.csv          published P-T tables used for the blends
 tools/data/check/         published liquid pressures used to check CoolProp blend models
 tools/ppl_sim.py          small PPL interpreter: runs the program, checks it, renders screenshots
 docs/screens/             screenshots made by the simulator
 ```
 
+The calculator copy of the program has its comments and indentation removed. The Prime cuts off program files larger than 64 KB, and the full source is over that limit. Edit `hp-prime/SUPERSUB.txt`, then rebuild.
+
 ### Adding a refrigerant
 
-1. Add a line to `REFRIGERANTS` in `tools/gen_pt_tables.py`. Give it the display name, a source (a CoolProp fluid name, or a CSV file in `tools/data` with `temp_F,bubble,dew` columns in psia or psig), and a cylinder color.
+1. Add a line to `REFRIGERANTS` in `tools/gen_pt_tables.py`. Give it the display name, a source (a CoolProp fluid name, or a CSV file in `tools/data` with `temp_F,bubble,dew` columns in psia or psig), a cylinder color and a short description.
 2. Run `pip install CoolProp`, then `python3 tools/gen_pt_tables.py --check`.
-3. Run `python3 tools/ppl_sim.py` to re-run the checks and regenerate the screenshots, then copy the updated program to the calculator.
+3. Run `python3 tools/ppl_sim.py` to re-run the checks and regenerate the screenshots.
+4. Run `python3 tools/build_calc_files.py` to rebuild the files in `calculator/`. It also runs the simulator on the compact app and program copies, and stops if the program would exceed the 64 KB limit. Each extra refrigerant adds about 0.8 KB, so there is room for roughly eight more.
 
 ### Simulator
 
-`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware.
+`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The app and program file formats follow Xprime's documentation and example apps, but they have not been loaded onto a real calculator from here.

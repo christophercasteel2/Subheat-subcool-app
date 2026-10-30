@@ -8,6 +8,7 @@ the language differ).
 Usage
   python3 tools/ppl_sim.py            # run the built-in test script,
                                       # screenshots go to docs/screens/
+  python3 tools/ppl_sim.py FILE OUTDIR   # test another copy of the program
 """
 import math
 import os
@@ -667,12 +668,13 @@ def approx(a, b, tol=0.05):
 
 
 def main():
-    src = open(os.path.join(ROOT, "hp-prime", "SUPERSUB.txt"), encoding="utf-8").read()
+    path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "hp-prime", "SUPERSUB.txt")
+    src = open(path, encoding="utf-8").read()
     names = re.search(r"gRName:=\{(.*?)\};", src).group(1).replace('"', "").split(",")
 
     def ref(name):
         return float(names.index(name) + 1)
-    out = os.path.join(ROOT, "docs", "screens")
+    out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "docs", "screens")
     os.makedirs(out, exist_ok=True)
     checks = []
 
@@ -748,10 +750,19 @@ def main():
     except StopSim:
         finished = False
     checks.append(("EXIT button ends the program", finished))
-    checks.append(("angle mode restored", it.sysvars["HAngle"] == 0))
+    checks.append(("angle setting left alone", it.sysvars["HAngle"] == 0))
+
+    # the dials must come out the same whatever the calculator's angle mode
+    pics = []
+    for mode in (0, 1):
+        it.sysvars["HAngle"] = mode
+        fn_call(it, "angInit")
+        it.g["gBgRef"] = 0
+        fn_call(it, "drawMain")
+        pics.append(it.grobs["G0"].img.tobytes())
+    checks.append(("same picture in radians and degrees mode", pics[0] == pics[1]))
 
     # draw the gauge screen for every refrigerant into one contact sheet
-    it.sysvars["HAngle"] = 1
     sheet = Image.new("RGB", (5 * 320, ((len(names) + 4) // 5) * 240), (0, 0, 0))
     for k, name in enumerate(names):
         it.g["gRef"] = float(k + 1)
