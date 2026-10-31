@@ -800,6 +800,15 @@ def tool_events(out, check, ref, fn_call):
                 and approx(num(r["Cond split"][0]), tc - 70, 0.15)
                 and r["Approach"][0] == "25.0°F")
 
+    def whole_degrees(it):
+        # R-410A 118 psig: dew 39.85 F exact, 40 F read from a chart
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v31=1, v3=80, v4=75, v5=55, v7=180, v36=2)
+        r = calc(it, 1)
+        ok = r["Evap sat"][0] == "40.0°F" and r["Superheat"][0] == "10.0°F" and r["Subcool"][0] == "10.0°F"
+        set_state(it, v36=1)
+        r = calc(it, 1)
+        return ok and r["Superheat"][0] == "10.2°F"
+
     def charge_fixed(it):
         set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v1=1, v2=63, v3=95, v30=3, v29=0)
         fn_call(it, "setAtm")
@@ -930,6 +939,7 @@ def tool_events(out, check, ref, fn_call):
         check("full check: cooling readings vs CoolProp", full_cooling),
         check("full check: diagnosis of the six classic faults", full_diagnosis),
         check("full check: heat pump heating mode", full_heating),
+        check("settings: whole-degree saturation like a P-T chart", whole_degrees),
         check("charge check: fixed orifice target and verdict", charge_fixed),
         check("charge check: TXV subcooling verdict", charge_txv),
         check("system check: TD, split, ratio, coil dT", system),

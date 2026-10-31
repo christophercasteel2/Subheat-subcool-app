@@ -96,7 +96,7 @@ The tools work from the gauge screen's pressures and line temperatures plus a fe
 | **Recovery cylinder** | Water capacity (WC), tare weight (TW), weight now | Maximum refrigerant by the 80% rule (WC × 0.8 × specific gravity) and the gross weight to stop at |
 | **Refrigerant info** | — | Safety class, usual oil, GWP, glide, whether it must be charged as liquid, boiling point, pressures at 40°F and liquid density |
 | **Unit converter** | Kind of value, the number and its unit | Pressure (psig, psia, inHg vacuum, kPa, bar, microns), temperature, capacity (BTU/h, tons, MBH, kW, W), airflow, length and weight |
-| **Settings** | Elevation, charge tolerance | Gauges read against the local air, so saturation temperatures, the P-T chart and the dials are corrected for altitude (12.2 psia at 5,000 ft) |
+| **Settings** | Elevation, charge tolerance, saturation temps | Gauges read against the local air, so saturation temperatures, the P-T chart and the dials are corrected for altitude (12.2 psia at 5,000 ft). **Sat temps: Whole °F** rounds the dew and bubble temperatures used for superheat, subcooling and the checks to the nearest degree, the way a printed P-T chart is read, for tests whose answers come from a chart |
 
 ## Refrigerants
 
@@ -119,7 +119,7 @@ R-414B (HotShot) is not included yet. The only table I found for it is from a so
 
 ## Accuracy and data sources
 
-The program stores the bubble and dew pressure of each refrigerant every 5°F from −60°F to 150°F. Between rows it interpolates in ln(P), which stays within about 0.06 psi of the source data. A pressure whose saturation temperature falls well outside that range shows `--` instead of a guess. Where a published chart stops at −40°F or −50°F, the table is extended with a Clausius-Clapeyron fit of the chart's lowest rows; tested on CoolProp data, that extension is within 0.01°F over 20°F.
+The program stores the bubble and dew pressure of each refrigerant every 5°F from −60°F to 150°F, to 0.001 psi. Between rows it interpolates ln(P) linearly in 1/T (absolute temperature), the shape of a real vapor-pressure curve. Against CoolProp that is within 0.003°F from 0°F to 130°F and 0.007°F over the whole table, for every refrigerant CoolProp has. Blends that come from published charts can only be as exact as those charts. A pressure whose saturation temperature falls well outside that range shows `--` instead of a guess. Where a published chart stops at −40°F or −50°F, the table is extended with a Clausius-Clapeyron fit of the chart's lowest rows; tested on CoolProp data, that extension is within 0.01°F over 20°F.
 
 Each refrigerant's data comes from the most authoritative source I could find. Where possible it was cross-checked against a second source:
 
