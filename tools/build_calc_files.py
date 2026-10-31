@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, HVACELEC):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -96,6 +96,23 @@ def icon_air(path):
     im.resize((38, 38), Image.LANCZOS).save(path)
 
 
+def icon_nec(path):
+    """38 x 38 app icon: NEC in a code-book cover over the tile colours."""
+    from PIL import ImageFont
+    big = 4
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    d.rounded_rectangle([6 * big, 4 * big, 32 * big, 26 * big], 2 * big, fill=(32, 104, 206))
+    d.rectangle([6 * big, 4 * big, 8.5 * big, 26 * big], fill=(20, 70, 150))
+    fnt = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 11 * big)
+    d.text((20.5 * big, 15.5 * big), "NEC", font=fnt, fill=(255, 255, 255), anchor="mm")
+    for k, col in enumerate([(32, 104, 206), (30, 142, 74), (124, 74, 192), (214, 110, 22), (20, 128, 140)]):
+        x = 4 + k * 6.2
+        d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
+    im.resize((38, 38), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -115,6 +132,15 @@ Source and instructions: """ + REPO),
 Open the app and tap a tile. 20 tools: air properties, dew point / sweating, coil capacity, mixed air / economizer, furnace temperature rise, air heat formulas, static pressure, ventilation and ACH, duct sizer, duct check, friction rate (Manual D), grille airflow, fan laws, pulleys and belts, fan power, unit converter, heat loss / gain, cooling load, humidifier sizing and evaporative cooler.
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
+
+Source and instructions: """ + REPO),
+    dict(name="NECCALC", icon=icon_nec,
+         test=os.path.join(ROOT, "tools", "test_neccalc.py"),
+         note="""NECCALC - NEC calculator for electrical classes
+
+Open the app and tap a tile: voltage drop, wire size, ampacity (Table 310.16 raceway or 310.17 free air, every insulation type), breaker size, conduit fill, AWG chart, box fill, Ohm's law, and Learn (short NEC reference pages).
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP shows the rule each tool uses.
 
 Source and instructions: """ + REPO),
     dict(name="HVACELEC", icon=icon_bolt,

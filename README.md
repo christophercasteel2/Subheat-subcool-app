@@ -1,12 +1,13 @@
 # HP Prime HVAC apps
 
-Three color, touchscreen apps for HVAC/R service work on the **HP Prime G1**. All of them also run on the G2.
+Color, touchscreen apps for HVAC/R work on the **HP Prime G1**. All of them also run on the G2.
 
 | App | What it does | Download |
 |---|---|---|
 | **[SUPERSUB](#supersub-superheat-and-subcooling-for-the-hp-prime)** | Superheat and subcooling on draggable manifold gauges, a P-T chart for 30 refrigerants, and service tools for the refrigerant circuit | [`SUPERSUB.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/SUPERSUB.zip) |
 | **[HVACAIR](#hvacair-airside-tools-the-rebuilt-hvac-suite)** | The rebuilt HVAC Suite: 20 airside tools, including psychrometrics, coil capacity, furnace temperature rise, static pressure, duct sizing, fan laws, pulleys and quick loads | [`HVACAIR.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACAIR.zip) |
 | **[HVACELEC](#hvacelec-electrical-tools-for-the-hp-prime)** | 20 electrical tools: Ohm's law, motor and compressor checks, capacitor and thermistor tests, NEC wire and breaker sizing, MCA / MOCP, voltage drop and more | [`HVACELEC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACELEC.zip) |
+| **[NECCALC](#neccalc-nec-calculator-for-electrical-class)** | A study app for electrical class: voltage drop, wire size, ampacity (every insulation type, raceway or free air), breaker size, conduit fill, AWG chart, box fill, Ohm's law and NEC notes. Separate from HVACELEC, so you can delete it after the class | [`NECCALC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/NECCALC.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
@@ -271,6 +272,30 @@ The tables are typed into `tools/gen_elec_tables.py`, which writes them into the
 
 The NEC values are for checking and learning. The equipment nameplate, the manufacturer's instructions and your local code come first. Lock out the power and prove it dead before you test resistance, capacitors or insulation.
 
+# NECCALC: NEC calculator for electrical class
+
+A separate app built for an electrical class, modeled on the tool list of NEC calculator websites: **Voltage drop, Wire size, Ampacity, Breaker size, Conduit fill, AWG chart** and **Learn**, plus **Box fill** and **Ohm's law**. It has the same tap-a-box or type-on-the-keypad entry as HVACELEC. It shares nothing with the other apps, so deleting it from the calculator after the class leaves them untouched.
+
+![Home screen](docs/screens/nec_home.png) ![Ampacity in free air](docs/screens/nec_ampacity_free_air.png)
+
+Download [`NECCALC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/NECCALC.zip), unzip it, and drag `NECCALC.hpappdir` onto **Application Library** (or `NECCALC.hpprgm` onto **Programs**). To remove it later, delete it from the Application Library (or Programs) in the Connectivity Kit or on the calculator.
+
+| Tile | What it does |
+|---|---|
+| **Voltage drop** | VD, % drop and volts at the load for 1- or 3-phase, by K (12.9 Cu, 21.2 Al) or Chapter 9 Table 8 resistance; the smallest wire and longest run for your % limit |
+| **Wire size** | Smallest wire for a load (125% if continuous), after temperature and bundling factors on the insulation column, and checked against the terminal column |
+| **Ampacity** | Any size 18 AWG–2000 kcmil, copper or aluminum, any insulation type (TW, UF, RHW, THHW, THW, THWN, XHHW, USE, ZW, TBS, SA, SIS, FEP, FEPB, MI, RHH, RHW-2, THHN, THW-2, THWN-2, USE-2, XHH, XHHW-2, ZW-2, NM-B), in a raceway or cable (Table 310.16) or **free air (Table 310.17)**; ambient correction (310.15(B)(1), in °C or °F), bundling (310.15(C)(1)), optional terminal limit, and 240.4(D) |
+| **Breaker size** | 125% of continuous + noncontinuous to the next standard size, whether the wire is big enough, and the largest breaker the wire allows |
+| **Conduit fill** | How many wires fit (with Note 7 rounding), or the smallest conduit for your wires (with a second group, such as a ground), for EMT, FMC, IMC, RMC and PVC 40/80; THHN/THWN, XHHW, TW/THW, RHW (no jacket) and FEP areas |
+| **AWG chart** | Circular mils, mm², diameter, Table 8 resistance, 310.16 and 310.17 ampacities in all three columns, your insulation's ampacity and its Table 5 area |
+| **Box fill** | 314.16 counts (wires, clamps, yokes, grounds, fittings) × volume per wire, and whether the box is big enough |
+| **Ohm's law** | Any two of E, I, R, P |
+| **Learn** | Pages on Ohm's law, voltage drop, ampacity steps, terminals, 240.4(D), insulation letters, conduit fill, box fill, breaker sizing and AWG |
+
+**Where the numbers come from.** Tables 310.16 and 310.17 (18 AWG–2000 kcmil) are copied from [Omnicable's reproduction of the NEC ampacity tables](https://www.omnicable.com/docs/default-source/technical-resources/nec-ampacity-data.pdf) (2017 numbering 310.15(B)(16)/(17); same values in 2020 and 2023). The temperature correction factors come from the code's own equation and match the printed table at every row. Chapter 9 Table 5 areas for THHN/THWN and XHHW were checked against a [published Table 5 listing](https://conduit-fill-calc.pages.dev/wire-sizes) from 14 AWG to 500 kcmil, and TW, RHW and FEP at 14–4 AWG. Table 4 areas for EMT, FMC, IMC and RMC (½–2 in) were checked against a [conduit-fill dataset](https://huggingface.co/datasets/anthonymeo/conduitFill), and PVC at several sizes. The tests also reproduce Annex C counts (for example 26 #12 THHN in 1 in EMT). Table 8 copper resistances for 14–6 AWG match a [Mike Holt sample](https://www.mikeholt.com/instructor2/img/product/pdf/1220452413sample.pdf); every value passes resistance × circular mils ≈ 12.9 (Cu) or 21.2 (Al). The larger TW/THW areas and the remaining Table 8 values were not checked against a second source, so compare with your code book if an answer looks off.
+
+Use the app only where your instructor allows calculators with programs or stored tables.
+
 # Development
 
 ## Repository layout
@@ -282,12 +307,15 @@ calculator/               ready-to-install files (built, do not edit by hand)
   SUPERSUB.zip              both, for one download
   HVACELEC.hpappdir/, HVACELEC.hpprgm, HVACELEC.zip   the same for HVACELEC
   HVACAIR.hpappdir/, HVACAIR.hpprgm, HVACAIR.zip      the same for HVACAIR
+  NECCALC.hpappdir/, NECCALC.hpprgm, NECCALC.zip      the same for NECCALC
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
 hp-prime/HVACAIR.txt      HVACAIR's readable source (HP PPL)
+hp-prime/NECCALC.txt      NECCALC's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
 tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
+tools/gen_nec_tables.py   builds the tool, input-box and NEC table block inside NECCALC.txt
 tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
@@ -298,6 +326,7 @@ tools/data/check/         published liquid pressures used to check CoolProp blen
 tools/ppl_sim.py          small PPL interpreter: runs SUPERSUB, checks it, renders screenshots
 tools/test_hvacelec.py    the same for HVACELEC
 tools/test_hvacair.py     the same for HVACAIR (checked against CoolProp)
+tools/test_neccalc.py     the same for NECCALC (checked against published NEC values)
 docs/screens/             screenshots made by the simulator
 ```
 

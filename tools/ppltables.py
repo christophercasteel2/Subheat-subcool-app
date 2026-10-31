@@ -98,11 +98,12 @@ def slot_functions(tools, choices, units_id, kind_slot):
     for k, t in enumerate(tools, 1):
         out.append(f"  IF t=={k} THEN RETURN {plist(t[4])}; END;")
     out += ["  RETURN {};", "END;", "",
-            f"// fixed choice lists ({units_id} = the converter's units)",
+            f"// fixed choice lists ({units_id} = the converter's units)" if units_id
+            else "// choice lists",
             "choiceList(c)", "BEGIN"]
     for c in sorted(choices):
         out.append(f"  IF c=={c} THEN RETURN {plist(choices[c])}; END;")
-    out += [f"  RETURN convUnits(gV({kind_slot}));", "END;"]
+    out += [f"  RETURN convUnits(gV({kind_slot}));" if units_id else "  RETURN {};", "END;"]
     return out
 
 
