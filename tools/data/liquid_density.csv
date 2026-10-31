@@ -1,0 +1,18 @@
+# Saturated liquid density, lb/ft^3, for refrigerants CoolProp cannot model.
+# Every other refrigerant takes its density from CoolProp, which agrees with
+# the Hudson charts below within 0.4 % wherever both are available.
+# Sources:
+#   hudson: Hudson Technologies P-T charts, "Liquid Density" table,
+#           https://www.hudsontech.com/pressure-temperature-charts/
+#   nri:    National Refrigerants Reference Guide 6th ed., "Thermodynamic
+#           Properties of R-409A" (liquid density column)
+# R-407F: CoolProp's blend model fails near 120 F; Hudson fills that point.
+# name,d0F,d40F,d80F,d120F,source
+R-401A,82.75,78.53,73.88,68.55,hudson
+R-402A,82.74,77.36,71.04,62.85,hudson
+R-408A,75.62,71.01,65.71,59.15,hudson
+R-409A,83.90,79.61,74.85,69.38,nri
+R-438A,81.9,76.9,71.1,64.0,hudson
+R-500,80.5,76.3,71.8,66.6,hudson
+R-502,86.7,81.5,75.5,68.0,hudson
+R-407F,80.0,75.0,69.3,62.1,hudson

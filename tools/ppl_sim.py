@@ -179,6 +179,13 @@ class Parser:
             self.expect(";")
             return ("assign", line, name, val)
         e = self.expr()
+        if self.accept(":="):
+            # element assignment L(i):=v (or M(r,c):=v)
+            if e[0] != "call":
+                raise PPLError(f"line {line}: cannot assign to that")
+            val = self.expr()
+            self.expect(";")
+            return ("setidx", line, e[1], e[2], val)
         self.expect(";")
         return ("expr", line, e)
 
@@ -280,7 +287,13 @@ RESERVED = (set("ABCDEFGHIJKLMNOPQRSTUVWXYZ") | {"e", "i"} |
             {"ln", "log", "exp", "sin", "cos", "tan", "max", "min", "abs", "floor",
              "ceil", "round", "size", "sum", "len", "int", "string", "char", "left",
              "right", "mid", "dim", "type", "sqrt", "solve", "det", "sign", "mod",
-             "Ans", "Xmin", "Xmax", "Ymin", "Ymax"})
+             "Ans", "Xmin", "Xmax", "Ymin", "Ymax",
+             # more CAS commands that make poor variable names
+             "row", "col", "cat", "base", "part", "head", "tail", "sort", "trn",
+             "rank", "normal", "eval", "approx", "exact", "frac", "re", "im",
+             "conj", "arg", "subst", "expand", "factor", "simplify", "series",
+             "limit", "diff", "mean", "median", "zeros", "concat", "inv", "ins",
+             "out", "id", "count"})
 
 
 def check_names(globs, funcs):
@@ -357,6 +370,7 @@ def ppl_str(v):
 
 class Interp:
     def __init__(self, src, events):
+        self.src = src
         self.globs, self.funcs = Parser(tokenize(src)).program()
         check_order(self.funcs)
         check_names(self.globs, self.funcs)
@@ -410,6 +424,26 @@ class Interp:
             self.assign(s[2], self.eval(s[3], frame), frame, line)
         elif kind == "expr":
             self.eval(s[2], frame)
+        elif kind == "setidx":
+            name, idx = s[2], [self.eval(x, frame) for x in s[3]]
+            val = self.eval(s[4], frame)
+            obj = self.lookup(name, frame, line)
+            if not isinstance(obj, list):
+                raise PPLError(f"line {line}: {name} is not a list")
+            new = type(obj)(list(x) if isinstance(x, list) else x for x in obj)
+            target = new
+            for depth, ix in enumerate(idx):
+                k = int(ix)
+                if k != ix or k < 1 or k > len(target) + (1 if depth == len(idx) - 1 else 0):
+                    raise PPLError(f"line {line}: {name}: bad index {ix}")
+                if depth == len(idx) - 1:
+                    if k == len(target) + 1:
+                        target.append(val)          # storing at SIZE+1 appends
+                    else:
+                        target[k - 1] = val
+                else:
+                    target = target[k - 1]
+            self.assign(name, new, frame, line)
         elif kind == "if":
             if self.truth(self.eval(s[2], frame), line):
                 self.run_block(s[3], frame)
@@ -667,6 +701,221 @@ def approx(a, b, tol=0.05):
     return abs(a - b) <= tol
 
 
+# ---------------------------------------------------------------------------
+# tools screen tests: every number is compared with an independent
+# calculation (CoolProp, CoolProp humid air, Murphy-Koop ice, gas law)
+
+def rows(it):
+    """{label: (value, note)} of the current tool's result rows."""
+    out = {}
+    for l, v, n in zip(it.g["gRL"], it.g["gRV"], it.g["gRN"]):
+        out.setdefault(l, (v, n))
+    return out
+
+
+def num(text):
+    m = re.search(r"-?\d+(?:\.\d+)?", text)
+    return float(m.group()) if m else None
+
+
+def set_state(it, ref_name=None, **g):
+    names = re.search(r'gRName:=\{(.*?)\};', it.src).group(1).replace('"', "").split(",")
+    if ref_name:
+        it.g["gRef"] = float(names.index(ref_name) + 1)
+    for k, v in g.items():
+        if k.startswith("v"):
+            it.g["gV"][int(k[1:]) - 1] = float(v)
+        else:
+            it.g[k] = float(v)
+    it.g["gBgRef"] = 0.0
+
+
+def tool_events(out, check, ref, fn_call):
+    import CoolProp.CoolProp as CP
+
+    def f2k(t):
+        return (t - 32) / 1.8 + 273.15
+
+    def coolprop_sat_f(fluid, psig, q):
+        return (CP.PropsSI("T", "P", (psig + 14.696) * 6894.757, "Q", q, fluid) - 273.15) * 1.8 + 32
+
+    def calc(it, tool):
+        fn_call(it, "toolCalc", float(tool))
+        return rows(it)
+
+    def charge_fixed(it):
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v1=1, v2=63, v3=95, v30=3, v29=0)
+        fn_call(it, "setAtm")
+        r = calc(it, 1)
+        te = coolprop_sat_f("R410A", 118, 1)
+        return (r["Charge"][0] == "ADD refrigerant" and r["Superheat"][1] == "target 7.0"
+                and approx(num(r["Superheat"][0]), 50 - te, 0.15)
+                and r["Likely"][0] == "Underfeeding: charge/meter")
+
+    def charge_txv(it):
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v1=2, v6=10)
+        r = calc(it, 1)
+        tc = coolprop_sat_f("R410A", 319, 0)
+        ok1 = r["Charge"][0] == "OK" and approx(num(r["Subcooling"][0]), tc - 90, 0.15)
+        set_state(it, gLT=95)
+        r = calc(it, 1)
+        return ok1 and r["Charge"][0] == "ADD refrigerant" and r["Likely"][0] == "Possibly low charge"
+
+    def system(it):
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v3=95, v4=75, v5=55, v7=180)
+        r = calc(it, 2)
+        te = coolprop_sat_f("R410A", 118, 1)
+        tc = coolprop_sat_f("R410A", 319, 0)
+        return (approx(num(r["Evap TD"][0]), 75 - te, 0.15)
+                and approx(num(r["Cond split"][0]), tc - 95, 0.15)
+                and r["Comp. ratio"][0] == "2.51 : 1" and r["Coil ΔT"][0] == "20.0°F")
+
+    def capacity(it):
+        set_state(it, v9=1200, v10=3, v4=75, v2=63, v5=55, v8=53, v29=0)
+        fn_call(it, "setAtm")
+        r = calc(it, 3)
+        h = lambda db, wb: CP.HAPropsSI("H", "T", f2k(db), "B", f2k(wb), "P", 101325) / 2326
+        tot = 4.5 * 1200 * (h(75, 63) - h(55, 53))
+        rh = CP.HAPropsSI("R", "T", f2k(75), "B", f2k(63), "P", 101325) * 100
+        sen = 1.08 * 1200 * 20
+        return (abs(num(r["Total"][0]) / tot - 1) < 0.015 and abs(num(r["Return air"][0]) - rh) <= 1.5
+                and num(r["Sensible"][0]) == round(sen))
+
+    def lineset(it):
+        set_state(it, "R-410A", gLT=90, v11=3, v12=25, v13=15, v14=0)
+        r = calc(it, 4)
+        rho = CP.PropsSI("D", "T", f2k(90), "Q", 0, "R410A") * 0.0624280
+        ozft = rho * 3.14159265 * 0.311 ** 2 / 4 * 12 / 1728 * 16
+        return (abs(num(r["Charge per ft"][0]) / ozft - 1) < 0.02
+                and abs(num(r["Add charge"][0]) / (10 * ozft) - 1) < 0.02)
+
+    def nitrogen(it):
+        set_state(it, v15=300, v16=75, v17=70, v18=297, v29=0)
+        fn_call(it, "setAtm")
+        r = calc(it, 5)
+        expected = (300 + 14.696) * (70 + 459.67) / (75 + 459.67) - 14.696
+        ok1 = approx(num(r["Expected now"][0]), expected, 0.05) and r["Result"][0] == "HOLDING"
+        set_state(it, v18=290)
+        r = calc(it, 5)
+        return ok1 and r["Result"][0] == "LOST 7.1 psi"
+
+    def vacuum(it):
+        set_state(it, v19=500, v20=400, v21=600, v22=10)
+        r = calc(it, 6)
+        # Murphy & Koop (2005) vapour pressure of ice, solved for 500 microns
+        pa = 500 / 1000 * 133.322
+        lo, hi = 200.0, 273.16
+        for _ in range(60):
+            t = (lo + hi) / 2
+            p = math.exp(9.550426 - 5723.265 / t + 3.53068 * math.log(t) - 0.00728332 * t)
+            lo, hi = (t, hi) if p < pa else (lo, t)
+        tf = (t - 273.15) * 1.8 + 32
+        return approx(num(r["Water boils"][0]), tf, 0.6) and r["Decay test"][0] == "Rose: moisture?"
+
+    def cylinder(it):
+        set_state(it, "R-22", v23=47.7, v24=33, v25=80)
+        r = calc(it, 7)
+        sg = CP.PropsSI("D", "T", f2k(77), "Q", 0, "R22") * 0.0624280 / 62.4
+        mx = 47.7 * 0.8 * sg
+        return (abs(num(r["Max refrigerant"][0]) - mx) <= 0.15
+                and abs(num(r["Max gross wt"][0]) - (33 + mx)) <= 0.15
+                and r["Room left"][1] == "OVERFILLED")
+
+    def info(it):
+        set_state(it, "R-410A")
+        r = calc(it, 8)
+        ok1 = r["Safety class"][0] == "A1" and r["GWP (AR4)"][0] == "2088" and num(r["Glide"][0]) < 0.5
+        set_state(it, "R-454B")
+        r = calc(it, 8)
+        return ok1 and r["Safety class"][0] == "A2L" and r["Charge as"][0] == "liquid only"
+
+    def converter(it):
+        set_state(it, v26=1, v27=100, v28=1, v29=0)
+        fn_call(it, "setAtm")
+        r = calc(it, 9)
+        ok1 = r["psia"][0] == "114.7" and r["kPa gauge"][0] == "689.5" and r["bar gauge"][0] == "6.89"
+        set_state(it, v26=2, v27=0, v28=2)
+        r = calc(it, 9)
+        ok2 = r["°F"][0] == "32.00" and r["K"][0] == "273.2" and r["°C"][0] == "0"
+        set_state(it, v26=3, v27=1, v28=2)
+        r = calc(it, 9)
+        return ok1 and ok2 and r["BTU/h"][0] == "12000" and r["kW"][0] == "3.52"
+
+    def settings(it):
+        set_state(it, "R-410A", v29=0)
+        fn_call(it, "setAtm")
+        sea = fn_call(it, "tsat", ref("R-410A"), 118.0, 0.0)
+        set_state(it, v29=5000)
+        fn_call(it, "setAtm")
+        hi = fn_call(it, "tsat", ref("R-410A"), 118.0, 0.0)
+        r = calc(it, 10)
+        atm = 14.696 * (1 - 6.8754e-6 * 5000) ** 5.2559
+        te = (CP.PropsSI("T", "P", (118 + atm) * 6894.757, "Q", 1, "R410A") - 273.15) * 1.8 + 32
+        ok = (approx(it.g["gAtm"], atm, 0.005) and approx(hi, te, 0.15) and sea - hi > 1
+              and abs(num(r["Water boils"][0]) - 203.0) < 1.0)
+        set_state(it, v29=0)
+        fn_call(it, "setAtm")
+        return ok
+
+    def every_refrigerant(it):
+        names = re.search(r'gRName:=\{(.*?)\};', it.src).group(1).replace('"', "").split(",")
+        for n in names:
+            set_state(it, n, gLP=60, gHP=200, gST=50, gLT=90)
+            for tool in range(1, 11):
+                fn_call(it, "toolCalc", float(tool))
+                if not it.g["gRL"]:
+                    return False
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90)
+        return True
+
+    shot = lambda name: ("shot", os.path.join(out, name))
+    return [
+        check("charge check: fixed orifice target and verdict", charge_fixed),
+        check("charge check: TXV subcooling verdict", charge_txv),
+        check("system check: TD, split, ratio, coil dT", system),
+        check("capacity check vs CoolProp humid air", capacity),
+        check("line set charge vs CoolProp density", lineset),
+        check("nitrogen test: gas law and leak verdict", nitrogen),
+        check("vacuum: boiling point vs Murphy-Koop ice", vacuum),
+        check("recovery cylinder: 80% fill vs CoolProp SG", cylinder),
+        check("refrigerant info: class, GWP, glide", info),
+        check("unit converter: pressure, temperature, capacity", converter),
+        check("settings: altitude correction", settings),
+        check("every tool runs for every refrigerant", every_refrigerant),
+        # drive the screens: TOOLS button, pick a tool, edit boxes
+        *tap(2 * 64 + 30, 230), ("dialog", 1),
+        check("TOOLS opens the charge check", lambda it: it.g["gScr"] == 3 and it.g["gTool"] == 1),
+        *tap(100, 30), ("dialog", 2),
+        check("tap a choice box", lambda it: it.g["gV"][0] == 2),
+        KEY["right"], KEY["up"],
+        check("Right selects, Up steps a box", lambda it: it.g["gTSel"] == 2 and it.g["gV"][5] == 11),
+        *tap(64 + 30, 230), ("dialog", 10),
+        check("EDIT types into the selected box", lambda it: it.g["gV"][5] == 10),
+        shot("tool_charge.png"),
+        *tap(4 * 64 + 30, 230),
+        shot("tool_help.png"),
+        KEY["enter"],
+        *tap(2 * 64 + 30, 230), ("dialog", 2), shot("tool_system.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 3), shot("tool_capacity.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 4), shot("tool_lineset.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 5), shot("tool_nitrogen.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 6), shot("tool_vacuum.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 7), shot("tool_cylinder.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 8), shot("tool_info.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 9), shot("tool_converter.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 10), shot("tool_settings.png"),
+        *tap(100, 30), ("dialog", 5280),
+        check("elevation box updates the atmosphere", lambda it: approx(it.g["gAtm"], 12.1, 0.1)),
+        *tap(100, 30), ("dialog", 0),
+        *tap(3 * 64 + 30, 230),
+        check("GAUGES returns to the gauge screen", lambda it: it.g["gScr"] == 1),
+        # tap a reading twice to type a value
+        KEY["right"], KEY["right"],
+        *tap(40, 178), *tap(40, 178), ("dialog", 120),
+        check("second tap on a reading types a value", lambda it: it.g["gLP"] == 120 and it.g["gSel"] == 1),
+    ]
+
+
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "hp-prime", "SUPERSUB.txt")
     src = open(path, encoding="utf-8").read()
@@ -741,6 +990,7 @@ def main():
         KEY["esc"],
         check("esc returns to gauges", lambda it: it.g["gScr"] == 1),
         -1,                       # WAIT timeout is ignored
+        *tool_events(out, check, ref, fn_call),
         *tap(4 * 64 + 30, 230),   # EXIT
     ]
     it = Interp(src, ev)

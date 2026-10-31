@@ -1,9 +1,11 @@
 # R-449A saturation pressures, psig (negative = vacuum)
 # Source: Arkema Forane refrigerant P-T chart, 05-2025 (NIST REFPROP 10), https://forane.arkema.com/files/live/sites/shared_arkema/files/downloads/fluorochemicals/Forane%20Ref%20PT%20Regular%20Chart%20EN
-# inHg vacuum readings converted to negative psig
+# Vacuum: this column of the Arkema chart prints vacuum in psi below
+# atmosphere (unlike its other columns, which use inHg; checked against
+# CoolProp and the Hudson chart); stored here as negative psig.
 # temp_F,bubble_psig,dew_psig
--50,0.1,-1.77
--45,2.2,-0.93
+-50,0.1,-3.6
+-45,2.2,-1.89
 -40,4.5,-0.0
 -35,7.1,2.1
 -30,9.9,4.4
