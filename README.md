@@ -1,3 +1,14 @@
+# HP Prime HVAC apps
+
+Two color, touchscreen apps for HVAC/R service work on the **HP Prime G1**. Both also run on the G2.
+
+| App | What it does | Download |
+|---|---|---|
+| **[SUPERSUB](#supersub-superheat-and-subcooling-for-the-hp-prime)** | Superheat and subcooling on draggable manifold gauges, a P-T chart for 30 refrigerants, and service tools for the refrigerant circuit | [`SUPERSUB.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/SUPERSUB.zip) |
+| **[HVACELEC](#hvacelec-electrical-tools-for-the-hp-prime)** | 20 electrical tools: Ohm's law, motor and compressor checks, capacitor and thermistor tests, NEC wire and breaker sizing, MCA / MOCP, voltage drop and more | [`HVACELEC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACELEC.zip) |
+
+Both install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have both on the calculator at once.
+
 # SUPERSUB: superheat and subcooling for the HP Prime
 
 A color, touchscreen superheat and subcooling calculator for the **HP Prime G1** (it also runs on the G2). It is built around a pair of analog manifold gauges that you set by dragging the needles, plus a full pressure-temperature (P-T) chart and a set of service tools for the refrigerant circuit.
@@ -135,6 +146,79 @@ The tools use these extra properties:
 
 Every source document is named, with its link, at the top of its CSV in `tools/data/`.
 
+# HVACELEC: electrical tools for the HP Prime
+
+An electrical calculator for HVAC/R service: 20 tools behind one colorful home screen, from Ohm's law to NEC motor-circuit sizing. Every tool works the same way. The input boxes are at the top, and the answers underneath update as soon as you change anything, colored green (OK), yellow (check it) or red (problem).
+
+![Home screen](docs/screens/elec_home.png) ![Motor NEC sizing](docs/screens/elec_10_motor_nec_sizing.png)
+
+![Capacitor test](docs/screens/elec_07_capacitor_test.png) ![Unit MCA / MOCP](docs/screens/elec_12_unit_mca_mocp.png)
+
+## Installing HVACELEC
+
+Follow the [SUPERSUB steps](#install-drag-and-drop-no-typing) with the HVACELEC files. Download [`HVACELEC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACELEC.zip) and unzip it. Then, in the Connectivity Kit, drag the `HVACELEC.hpappdir` folder onto **Application Library** under your calculator. If the app doesn't show up, drag `HVACELEC.hpprgm` onto **Programs** instead. On the calculator, press **Apps** and tap **HVACELEC**.
+
+## Using HVACELEC
+
+| Action | Touch | Keys |
+|---|---|---|
+| Open a tool | Tap its tile | Arrows, then Enter. Menu lists every tool |
+| Change a value | Tap its box. A number box opens a number entry, a list opens a chooser, and a two-way choice (1-phase / 3-phase) just flips | Select the box with Left/Right, type the number on the keypad, press Enter |
+| Step a value | | Up / Down |
+| Fix typing | | Del erases a digit, Esc cancels, − makes it negative |
+| Put the example values back | **RESET** | |
+| Next or previous tool | **NEXT >** / **< PREV** | |
+| How the tool works | **HELP** (top right) | Help |
+| Back to the tiles / quit | **HOME** / **EXIT** | Esc |
+
+A box showing `--` is optional and is ignored while it is 0. In Ohm's law, `?` marks the values to work out. Your values are kept between runs.
+
+## HVACELEC tools
+
+| Tile | Inputs | What you get |
+|---|---|---|
+| **Ohm's law** | Any two of volts, amps, ohms and watts | The other two, and the formulas used |
+| **Power** | Volts, amps, phase, power factor, efficiency | Watts, VA, VAR, BTU/h and motor output HP |
+| **Load amps** | A load in W, kW, HP (motor output) or BTU/h; volts, phase, PF, efficiency | Amps, input watts and VA, the 125% continuous-load figure and the copper wire for it |
+| **Series / parallel** | Up to four resistors or capacitors, and the source voltage | Total resistance or capacitance. For resistors: the current, power, and each part's volts or amps. For capacitors in series: the volts on each |
+| **Amp check** | Nameplate voltage, measured volts, RLA or FLA, clamp reading, wraps through the clamp | The allowed voltage range (nameplate ±10%: 187–253 V for 208-230 V), a voltage verdict, the running amps and the % of rated load |
+| **3-phase balance** | Three line voltages and three line currents | % voltage unbalance (NEMA method), the NEMA derating factor, % current unbalance, and the high and low legs |
+| **Capacitor test** | Rated µF and tolerance; a meter reading, or the running amps through and volts across the capacitor | Measured µF (2652 × A ÷ V at 60 Hz), GOOD / WEAK / HIGH against the tolerance, % off rating, and the amps a good capacitor draws |
+| **Winding check** | 1- or 3-phase, ohms between each pair of terminals, winding temperature | Single phase: which terminal is common, run and start, whether C-R + C-S equals S-R, and the open-overload and open-winding patterns. Three phase: whether the windings match. Readings corrected to 77°F for comparing with the spec |
+| **Megohm test** | 1-minute reading and winding temperature; optional 10-minute and 30-second readings | The reading corrected to 40°C and checked against the IEEE 43 minimum (5 MΩ for windings under 1000 V), the polarization index and the dielectric absorption ratio |
+| **Motor NEC sizing** | HP, phase, voltage, nameplate FLA, service factor | Table full-load current (NEC 430.248 / 430.250), the 125% wire size, the largest breaker and fuses (430.52, next standard size up), the disconnect (115%) and the overload setting (430.32) |
+| **Motor LRA and RPM** | Code letter, HP, volts, phase, nameplate RPM, Hz | Locked-rotor kVA per HP and the LRA range (NEC 430.7(B)), poles, synchronous speed and slip |
+| **Unit MCA / MOCP** | Largest motor's RLA, the other motors' FLAs, electric heat amps | MCA = 1.25 × largest + other motors + 1.25 × heat. MOCP = 2.25 × largest + the rest, rounded down to a standard size but never below the MCA. Copper wire at 60°C and 75°C, and the disconnect rating |
+| **Voltage drop** | Amps, one-way length, wire size and material, phase, source volts, allowed % | Volts and % dropped, volts at the load, the smallest wire within the limit, and the wire's ampacity |
+| **Wire ampacity** | Size, copper or aluminum, insulation and terminal ratings, ambient temperature, number of current-carrying wires, rooftop exposure | The Table 310.16 ampacity, the ambient and bundling factors, the derated and terminal-limited ampacity, and the largest breaker (240.4(B) and (D)) |
+| **Transformer** | VA, phase, primary and secondary volts, measured secondary amps | Turns ratio, primary and secondary full-load amps, % loaded, and the largest primary fuse (NEC 450.3(B)) |
+| **Wye / delta** | Hookup, line volts, line amps | Line-to-neutral or phase voltage, phase current, kVA, and the high leg of a center-tapped delta |
+| **Electric heat** | Rated kW and volts, applied volts, phase, measured amps, temperature rise | Output at the applied voltage (kW goes with V²), BTU/h, amps, element resistance, measured kW, airflow (CFM = BTU/h ÷ (1.08 × rise)) and the 125% circuit amps |
+| **Thermistor check** | Curve (10K Type II, 10K Type III, or custom R at 77°F and Beta), reading in kΩ, actual temperature | The temperature the reading means, the resistance it should have, the difference, and the curve's resistance at 32°F, 77°F and 100°F |
+| **Energy cost** | Volts, amps, phase, PF, $/kWh, hours a day, optional cooling capacity | kW, and the cost per hour, day, month and year. With the capacity: EER, COP and kW per ton |
+| **Unit converter** | Kind of value, the number and its unit | Power (W, kW, HP, BTU/h, MBH, tons), energy, current, voltage, resistance, capacitance (MFD = µF) and temperature |
+
+## HVACELEC code tables and sources
+
+The tables are typed into `tools/gen_elec_tables.py`, which writes them into the program. The tests check spot values copied from the sources separately.
+
+| Data | Used by | Checked against |
+|---|---|---|
+| NEC Table 430.248 and 430.250, motor full-load current | Motor NEC sizing | [Elliott Electric's 430.248 table](https://elliottelectric.com/StaticPages/ElectricalReferences/ElectricalTables/Amperes_Single_Phase_Alternate.aspx), [Transcat's full-load current reference](https://www.transcat.ca/media/pdf/FullLoadCurrent.pdf) (both tables), [VoltageLab](https://www.voltagelab.com/?p=10433) |
+| NEC Table 310.16 ampacity, copper and aluminum, 60/75/90°C, 14 AWG to 500 kcmil | Every wire size, Wire ampacity | [Cerrowire's ampacity chart](https://www.cerrowire.com/products/resources/tables-calculators/ampacity-charts/) and [Omnicable's NEC ampacity data](https://www.omnicable.com/docs/default-source/technical-resources/nec-ampacity-data.pdf). Both reproduce the 2017 table, which has the same values as 2020/2023 Table 310.16 |
+| NEC Chapter 9 Table 8 conductor areas; K = 12.9 (copper), 21.2 (aluminum) | Voltage drop | |
+| NEC 240.6(A) standard sizes, 240.4(D) small-conductor limits | Breaker and fuse sizes | |
+| NEC Table 430.7(B) code letters | Motor LRA | A–P and V from [EEPower](https://eepower.com/technical-articles/the-meaning-behind-motor-and-multi-motor-marking/); R–U fill the gap between them |
+| NEMA MG 1 voltage-unbalance derating curve: 1.00 up to 1%, then 0.95 at 2%, 0.88 at 3%, 0.82 at 4% and 0.75 at 5% | 3-phase balance | Approximate. Published copies of the curve differ by about 0.01 ([electrical-engineering-portal](https://electrical-engineering-portal.com/voltage-unbalance-nema-motor-performance)) |
+| Ambient correction from the NEC 310.15(B) equation | Wire ampacity | Gives the code's correction-factor tables (for example 0.91 for 90°C wire at 104°F) |
+| 10K Type III thermistor, Steinhart-Hart | Thermistor check | Within 0.02°F of BAPI's 10K-3 table from −39°F to 187°F (`tools/data/thermistor_10k3_bapi.csv`) |
+| 10K Type II thermistor, Steinhart-Hart (32,650 Ω at 32°F) | Thermistor check | Within 0.1% of published 10K Type II charts from 32°F to 68°F |
+| IEEE 43 temperature correction, 5 MΩ minimum and PI guide | Megohm test | |
+
+The NEC values are for checking and learning. The equipment nameplate, the manufacturer's instructions and your local code come first. Lock out the power and prove it dead before you test resistance, capacitors or insulation.
+
+# Development
+
 ## Repository layout
 
 ```
@@ -142,18 +226,23 @@ calculator/               ready-to-install files (built, do not edit by hand)
   SUPERSUB.hpappdir/        app: drag onto Application Library
   SUPERSUB.hpprgm           program: drag onto Programs
   SUPERSUB.zip              both, for one download
-hp-prime/SUPERSUB.txt     the program's readable source (HP PPL)
+  HVACELEC.hpappdir/, HVACELEC.hpprgm, HVACELEC.zip   the same for HVACELEC
+hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
+hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
-tools/build_calc_files.py builds the calculator/ folder from SUPERSUB.txt
+tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
+tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
 tools/hpapp/              format templates for the program and app files
-tools/data/*.csv          published P-T tables used for the blends, and liquid densities
+tools/data/*.csv          published P-T tables used for the blends, liquid densities,
+                          and BAPI's 10K-3 thermistor table
 tools/data/check/         published liquid pressures used to check CoolProp blend models
-tools/ppl_sim.py          small PPL interpreter: runs the program, checks it, renders screenshots
+tools/ppl_sim.py          small PPL interpreter: runs SUPERSUB, checks it, renders screenshots
+tools/test_hvacelec.py    the same for HVACELEC
 docs/screens/             screenshots made by the simulator
 ```
 
-The calculator files contain the full readable source, so you can also read and edit the program on the calculator. To change it here, edit `hp-prime/SUPERSUB.txt`, then rebuild.
+The calculator files contain the full readable source, so you can also read and edit the programs on the calculator. To change one here, edit its file in `hp-prime/`, then rebuild with `python3 tools/build_calc_files.py`. For HVACELEC's tools, input boxes and tables, edit `tools/gen_elec_tables.py` and run it first; it writes the table block into `hp-prime/HVACELEC.txt`.
 
 ### Adding a refrigerant
 
@@ -164,4 +253,4 @@ The calculator files contain the full readable source, so you can also read and 
 
 ### Simulator
 
-`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow, and checks every tool's answers against an independent calculation (CoolProp refrigerant and humid-air properties, the Murphy-Koop ice vapor pressure equation and the gas law). It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The program and app files use the same format the Connectivity Kit writes: the builder reproduces existing Connectivity Kit files byte for byte when given their contents.
+`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow, and checks every tool's answers against an independent calculation (CoolProp refrigerant and humid-air properties, the Murphy-Koop ice vapor pressure equation and the gas law). `tools/test_hvacelec.py` uses the same interpreter for HVACELEC. It checks each tool against its own calculation or values copied from the published tables, and plays through the tiles, typed entry, dialogs and buttons. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The program and app files use the same format the Connectivity Kit writes: the builder reproduces existing Connectivity Kit files byte for byte when given their contents.

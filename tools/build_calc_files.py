@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Build the ready-to-install calculator files from hp-prime/SUPERSUB.txt.
+"""Build the ready-to-install calculator files for every app in hp-prime/.
 
-  calculator/SUPERSUB.hpappdir/   app folder: drag onto the Connectivity
-                                  Kit's Application Library
-  calculator/SUPERSUB.hpprgm      plain program: drag onto Programs
-  calculator/SUPERSUB.zip         both of the above, for one download
+For each app NAME (SUPERSUB, HVACELEC):
+  calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
+                              Kit's Application Library
+  calculator/NAME.hpprgm      plain program: drag onto Programs
+  calculator/NAME.zip         both of the above, for one download
 
 The program files use the record format that current firmware and the
 Connectivity Kit use (see tools/hpfile.py), with the full readable source.
 Files in the older plain format (a 20-byte header and the source) did
-not show up on a G1 running firmware 2.4.2.  See tools/hpapp/README.md for the template files.
+not show up on a G1 running firmware 2.4.2.  See tools/hpapp/README.md for
+the template files.
 
 Usage: python3 tools/build_calc_files.py
 """
@@ -28,38 +30,11 @@ import hpfile
 from ppl_sim import Parser, tokenize
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SOURCE = os.path.join(ROOT, "hp-prime", "SUPERSUB.txt")
 OUT = os.path.join(ROOT, "calculator")
-NAME = "SUPERSUB"
 REPO = "github.com/christophercasteel2/Subheat-subcool-app"
 
-APP_START = """
-// runs when the app is opened from the Application Library
-EXPORT START()
-BEGIN
-  SUPERSUB();
-END;
-"""
 
-NOTE = """SUPERSUB - superheat and subcooling with manifold gauges
-
-Open the app to start. Tap HELP inside the app for the controls.
-
-Drag a needle or tap a dial to set pressure. Drag the SUCT and LIQ sliders to set the line temperatures. Up/Down change the selected value, Enter types an exact one.
-
-Superheat uses the dew point at suction pressure; subcooling uses the bubble point at liquid pressure.
-
-Source and instructions: """ + REPO
-
-
-def program_file(text):
-    """The program in the calculator's file format, listing every function
-    in source order as the Connectivity Kit does."""
-    _, funcs = Parser(tokenize(text)).program()
-    return hpfile.build(text, [(n, f[2], len(f[0])) for n, f in funcs.items()])
-
-
-def icon(path):
+def icon_gauges(path):
     """38 x 38 app icon: a blue and a red gauge."""
     big = 4
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
@@ -81,48 +56,111 @@ def icon(path):
     im.resize((38, 38), Image.LANCZOS).save(path)
 
 
-def main():
-    src = open(SOURCE, encoding="utf-8").read()
-    app_src = src + APP_START
-    if os.path.isdir(OUT):
-        shutil.rmtree(OUT)
-    appdir = os.path.join(OUT, NAME + ".hpappdir")
+def icon_bolt(path):
+    """38 x 38 app icon: a yellow lightning bolt over the app's five tile
+    colours."""
+    big = 4
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    tiles = [(32, 104, 206), (214, 110, 22), (30, 142, 74), (196, 52, 52), (124, 74, 192)]
+    for k, col in enumerate(tiles):
+        x = 4 + k * 6.2
+        d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
+    # the same bolt the app draws in its title bar, scaled up
+    pts = [(7, 0), (1, 9), (6, 9), (4, 16), (11, 6), (6, 6)]
+    s, ox, oy = 1.62, 10.1, 2.5
+    d.polygon([((ox + x * s) * big, (oy + y * s) * big) for x, y in pts], fill=(255, 210, 0))
+    im.resize((38, 38), Image.LANCZOS).save(path)
+
+
+APPS = [
+    dict(name="SUPERSUB", icon=icon_gauges,
+         test=os.path.join(ROOT, "tools", "ppl_sim.py"),
+         note="""SUPERSUB - superheat and subcooling with manifold gauges
+
+Open the app to start. Tap HELP inside the app for the controls.
+
+Drag a needle or tap a dial to set pressure. Drag the SUCT and LIQ sliders to set the line temperatures. Up/Down change the selected value, Enter types an exact one.
+
+Superheat uses the dew point at suction pressure; subcooling uses the bubble point at liquid pressure.
+
+Source and instructions: """ + REPO),
+    dict(name="HVACELEC", icon=icon_bolt,
+         test=os.path.join(ROOT, "tools", "test_hvacelec.py"),
+         note="""HVACELEC - electrical calculator for HVAC/R service
+
+Open the app and tap a tile. 20 tools: Ohm's law, power, load amps, series / parallel, amp check, 3-phase balance, capacitor test, winding check, megohm test, motor NEC sizing, motor LRA and RPM, unit MCA / MOCP, voltage drop, wire ampacity, transformer, wye / delta, electric heat, thermistor check, energy cost and unit converter.
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
+
+Source and instructions: """ + REPO),
+]
+
+APP_START = """
+// runs when the app is opened from the Application Library
+EXPORT START()
+BEGIN
+  {name}();
+END;
+"""
+
+
+def program_file(text):
+    """The program in the calculator's file format, listing every function
+    in source order as the Connectivity Kit does."""
+    _, funcs = Parser(tokenize(text)).program()
+    return hpfile.build(text, [(n, f[2], len(f[0])) for n, f in funcs.items()])
+
+
+def build(app):
+    name = app["name"]
+    src = open(os.path.join(ROOT, "hp-prime", name + ".txt"), encoding="utf-8").read()
+    app_src = src + APP_START.format(name=name)
+    appdir = os.path.join(OUT, name + ".hpappdir")
     os.makedirs(appdir)
 
     prgm = program_file(src)
     app_prgm = program_file(app_src)
-    with open(os.path.join(OUT, NAME + ".hpprgm"), "wb") as fh:
+    with open(os.path.join(OUT, name + ".hpprgm"), "wb") as fh:
         fh.write(prgm)
-    with open(os.path.join(appdir, NAME + ".hpappprgm"), "wb") as fh:
+    with open(os.path.join(appdir, name + ".hpappprgm"), "wb") as fh:
         fh.write(app_prgm)
     shutil.copyfile(os.path.join(ROOT, "tools", "hpapp", "template.hpapp"),
-                    os.path.join(appdir, NAME + ".hpapp"))
-    with open(os.path.join(appdir, NAME + ".hpappnote"), "wb") as fh:
-        fh.write(NOTE.encode("utf-16-le") + b"\0\0")
-    icon(os.path.join(appdir, "icon.png"))
+                    os.path.join(appdir, name + ".hpapp"))
+    with open(os.path.join(appdir, name + ".hpappnote"), "wb") as fh:
+        fh.write(app["note"].encode("utf-16-le") + b"\0\0")
+    app["icon"](os.path.join(appdir, "icon.png"))
 
-    with zipfile.ZipFile(os.path.join(OUT, NAME + ".zip"), "w", zipfile.ZIP_DEFLATED) as z:
-        z.write(os.path.join(OUT, NAME + ".hpprgm"), NAME + ".hpprgm")
+    with zipfile.ZipFile(os.path.join(OUT, name + ".zip"), "w", zipfile.ZIP_DEFLATED) as z:
+        z.write(os.path.join(OUT, name + ".hpprgm"), name + ".hpprgm")
         for f in sorted(os.listdir(appdir)):
-            z.write(os.path.join(appdir, f), f"{NAME}.hpappdir/{f}")
+            z.write(os.path.join(appdir, f), f"{name}.hpappdir/{f}")
 
     # check: the files decode back to exactly what we meant to write,
-    # and both versions of the program pass the simulator's tests
+    # and both versions of the program pass the app's simulator tests
     for blob, text in ((prgm, src), (app_prgm, app_src)):
         back, names = hpfile.read(blob)
-        assert back == text and "SUPERSUB" in names
-    sim = os.path.join(ROOT, "tools", "ppl_sim.py")
+        assert back == text and name in names
     with tempfile.TemporaryDirectory() as tmp:
         for label, text in (("program", src), ("app", app_src)):
             path = os.path.join(tmp, label + ".txt")
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write(text)
-            res = subprocess.run([sys.executable, sim, path, tmp], capture_output=True, text=True)
+            res = subprocess.run([sys.executable, app["test"], path, tmp], capture_output=True, text=True)
             if res.returncode:
-                sys.exit(f"simulator failed on the {label} file:\n{res.stdout}{res.stderr}")
-    print(f"{NAME}.hpprgm      {len(prgm):6d} bytes")
-    print(f"{NAME}.hpappprgm   {len(app_prgm):6d} bytes")
-    print(f"written to {OUT}; both copies pass the simulator")
+                sys.exit(f"{name}: simulator failed on the {label} file:\n{res.stdout}{res.stderr}")
+    print(f"{name}.hpprgm      {len(prgm):6d} bytes")
+    print(f"{name}.hpappprgm   {len(app_prgm):6d} bytes")
+
+
+def main():
+    if os.path.isdir(OUT):
+        shutil.rmtree(OUT)
+    os.makedirs(OUT)
+    for app in APPS:
+        build(app)
+    print(f"written to {OUT}; every program and app copy passes its simulator tests")
 
 
 if __name__ == "__main__":

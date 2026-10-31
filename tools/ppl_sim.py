@@ -599,6 +599,7 @@ class Interp:
     def b_DIM(self, s): return float(len(s))
     def b_SIZE(self, s): return float(len(s))
     def b_LEFT(self, s, n): return s[:int(n)]
+    def b_RIGHT(self, s, n): return s[len(s) - int(n):] if int(n) > 0 else ""
 
     def b_TYPE(self, v):
         if isinstance(v, str): return 2.0
