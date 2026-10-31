@@ -27,7 +27,7 @@ A color, touchscreen superheat and subcooling calculator for the **HP Prime G1**
 - **Touch control.** Drag a needle, or tap anywhere on a dial, to set the pressure. Drag the SUCT and LIQ sliders to set the line temperatures. You can also use the arrow keys, or type an exact value.
 - **Live results.** Superheat and subcooling update as you move the needles and sliders, color-coded green, yellow or red.
 - **P-T chart.** A scrolling table of liquid (bubble) and vapor (dew) pressures with °C, in 1°F or 5°F rows. Vacuum readings show in red as inHg. You can look up a value by temperature or by pressure, and pressure look-ups also report the glide.
-- **Service tools.** Charge check, system check, capacity check, line set charge, nitrogen test, vacuum, recovery cylinder, refrigerant info, unit converter and an altitude setting. See [Tools](#tools) below.
+- **Service tools.** Full check (every reading on one screen, A/C cooling or heat pump heating), charge check, system check, capacity check, line set charge, nitrogen test, vacuum, recovery cylinder, refrigerant info, unit converter and an altitude setting. See [Tools](#tools) below.
 - **30 refrigerants, including phased-out ones still found in the field.** See [Refrigerants](#refrigerants) below.
 
 ## Install (drag and drop, no typing)
@@ -86,6 +86,7 @@ The tools work from the gauge screen's pressures and line temperatures plus a fe
 
 | Tool | Inputs | What you get |
 |---|---|---|
+| **Full check** | Mode (A/C cooling or heat pump heating), suction and head pressure, SLT, LLT, DLT, return, supply and outdoor air | Every reading on one screen: evaporator saturation (dew at suction), condensing saturation (bubble at head), superheat (SLT − dew), subcooling (bubble − LLT), discharge superheat (DLT − dew at head), air ΔT, evaporator TD, condenser split, approach, compression ratio, and the likely problem from superheat, subcooling, suction and head together (low charge, overcharge, restriction, weak compressor, low indoor airflow, dirty condenser). In heating mode the indoor coil is the condenser, so the split and approach use return air and the evaporator TD uses outdoor air. Suction, head, SLT and LLT are the same values as on the gauge screen. Supply and return are air temperatures, not dew or bubble points |
 | **Charge check** | Metering device, target subcooling, return air wet bulb, outdoor dry bulb | Fixed orifice: target superheat from the standard charging chart, (3 × return WB − 80 − outdoor DB) ÷ 2, valid for 50–76°F WB and 55–115°F outdoor. TXV/EEV: target subcooling from the data plate. An ADD / REMOVE / OK verdict (±3°F by default), the likely cause from the superheat and subcooling pattern, and the evaporator and condensing saturation temperatures |
 | **System check** | Return and supply dry bulb, outdoor dry bulb, discharge line temperature | Evaporator TD, condenser split, approach, coil ΔT, compression ratio, and a discharge temperature check (keep under 225°F) |
 | **Capacity check** | Airflow, rated tons, return and supply dry bulb and wet bulb | Total, sensible and latent BTU/h, SHR, CFM per ton, % of rated capacity, and the relative humidity and enthalpy of both airstreams (ASHRAE psychrometrics, corrected for elevation) |

@@ -758,10 +758,52 @@ def tool_events(out, check, ref, fn_call):
         fn_call(it, "toolCalc", float(tool))
         return rows(it)
 
+    def full_cooling(it):
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v31=1, v3=80, v4=75, v5=55, v7=180)
+        r = calc(it, 1)
+        te = coolprop_sat_f("R410A", 118, 1)
+        tc = coolprop_sat_f("R410A", 319, 0)
+        td = coolprop_sat_f("R410A", 319, 1)
+        return (approx(num(r["Superheat"][0]), 50 - te, 0.15)
+                and approx(num(r["Subcool"][0]), tc - 90, 0.15)
+                and approx(num(r["Disch. SH"][0]), 180 - td, 0.15)
+                and approx(num(r["Evap TD"][0]), 75 - te, 0.15)
+                and approx(num(r["Cond split"][0]), tc - 80, 0.15)
+                and r["Air ΔT"][0] == "20.0°F" and r["Approach"][0] == "10.0°F"
+                and r["Comp. ratio"][0] == "2.51 : 1" and it.g["gRV"][-1] == "Readings look normal")
+
+    def full_diagnosis(it):
+        # R-22, return 75 F, outdoor 95 F: normal evap TD 30-40, split 10-30
+        cases = [  # suction, head, SLT, LLT -> likely
+            (55, 200, 60, 99, "Low charge: leak check"),      # SH high, SC low, both pressures low
+            (80, 300, 48, 100, "Overcharged"),               # SH low, SC high, both high
+            (50, 260, 60, 95, "Restriction: drier/meter"),   # SH high, SC high
+            (80, 190, 60, 95, "Weak compressor (valves)"),   # suction high, head low
+            (50, 220, 34, 100, "Low indoor airflow"),        # suction low, SH low
+            (75, 300, 50, 120, "Dirty condenser / low air"), # head high, SC low
+        ]
+        for lp, hp, st, lt, want in cases:
+            set_state(it, "R-22", gLP=lp, gHP=hp, gST=st, gLT=lt, v31=1, v3=95, v4=75, v5=55, v7=180)
+            calc(it, 1)
+            if it.g["gRV"][-1] != want:
+                print("full check", lp, hp, st, lt, "->", it.g["gRV"][-1], "wanted", want)
+                return False
+        return True
+
+    def full_heating(it):
+        # heat pump heating: outdoor 35 F, return 70 F, supply 95 F
+        set_state(it, "R-410A", gLP=90, gHP=380, gST=35, gLT=95, v31=2, v3=35, v4=70, v5=95, v7=190)
+        r = calc(it, 1)
+        te = coolprop_sat_f("R410A", 90, 1)
+        tc = coolprop_sat_f("R410A", 380, 0)
+        return (r["Air ΔT"][0] == "25.0°F" and approx(num(r["Evap TD"][0]), 35 - te, 0.15)
+                and approx(num(r["Cond split"][0]), tc - 70, 0.15)
+                and r["Approach"][0] == "25.0°F")
+
     def charge_fixed(it):
         set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v1=1, v2=63, v3=95, v30=3, v29=0)
         fn_call(it, "setAtm")
-        r = calc(it, 1)
+        r = calc(it, 2)
         te = coolprop_sat_f("R410A", 118, 1)
         return (r["Charge"][0] == "ADD refrigerant" and r["Superheat"][1] == "target 7.0"
                 and approx(num(r["Superheat"][0]), 50 - te, 0.15)
@@ -769,16 +811,16 @@ def tool_events(out, check, ref, fn_call):
 
     def charge_txv(it):
         set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v1=2, v6=10)
-        r = calc(it, 1)
+        r = calc(it, 2)
         tc = coolprop_sat_f("R410A", 319, 0)
         ok1 = r["Charge"][0] == "OK" and approx(num(r["Subcooling"][0]), tc - 90, 0.15)
         set_state(it, gLT=95)
-        r = calc(it, 1)
+        r = calc(it, 2)
         return ok1 and r["Charge"][0] == "ADD refrigerant" and r["Likely"][0] == "Possibly low charge"
 
     def system(it):
         set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v3=95, v4=75, v5=55, v7=180)
-        r = calc(it, 2)
+        r = calc(it, 3)
         te = coolprop_sat_f("R410A", 118, 1)
         tc = coolprop_sat_f("R410A", 319, 0)
         return (approx(num(r["Evap TD"][0]), 75 - te, 0.15)
@@ -788,7 +830,7 @@ def tool_events(out, check, ref, fn_call):
     def capacity(it):
         set_state(it, v9=1200, v10=3, v4=75, v2=63, v5=55, v8=53, v29=0)
         fn_call(it, "setAtm")
-        r = calc(it, 3)
+        r = calc(it, 4)
         h = lambda db, wb: CP.HAPropsSI("H", "T", f2k(db), "B", f2k(wb), "P", 101325) / 2326
         tot = 4.5 * 1200 * (h(75, 63) - h(55, 53))
         rh = CP.HAPropsSI("R", "T", f2k(75), "B", f2k(63), "P", 101325) * 100
@@ -798,7 +840,7 @@ def tool_events(out, check, ref, fn_call):
 
     def lineset(it):
         set_state(it, "R-410A", gLT=90, v11=3, v12=25, v13=15, v14=0)
-        r = calc(it, 4)
+        r = calc(it, 5)
         rho = CP.PropsSI("D", "T", f2k(90), "Q", 0, "R410A") * 0.0624280
         ozft = rho * 3.14159265 * 0.311 ** 2 / 4 * 12 / 1728 * 16
         return (abs(num(r["Charge per ft"][0]) / ozft - 1) < 0.02
@@ -807,16 +849,16 @@ def tool_events(out, check, ref, fn_call):
     def nitrogen(it):
         set_state(it, v15=300, v16=75, v17=70, v18=297, v29=0)
         fn_call(it, "setAtm")
-        r = calc(it, 5)
+        r = calc(it, 6)
         expected = (300 + 14.696) * (70 + 459.67) / (75 + 459.67) - 14.696
         ok1 = approx(num(r["Expected now"][0]), expected, 0.05) and r["Result"][0] == "HOLDING"
         set_state(it, v18=290)
-        r = calc(it, 5)
+        r = calc(it, 6)
         return ok1 and r["Result"][0] == "LOST 7.1 psi"
 
     def vacuum(it):
         set_state(it, v19=500, v20=400, v21=600, v22=10)
-        r = calc(it, 6)
+        r = calc(it, 7)
         # Murphy & Koop (2005) vapour pressure of ice, solved for 500 microns
         pa = 500 / 1000 * 133.322
         lo, hi = 200.0, 273.16
@@ -829,7 +871,7 @@ def tool_events(out, check, ref, fn_call):
 
     def cylinder(it):
         set_state(it, "R-22", v23=47.7, v24=33, v25=80)
-        r = calc(it, 7)
+        r = calc(it, 8)
         sg = CP.PropsSI("D", "T", f2k(77), "Q", 0, "R22") * 0.0624280 / 62.4
         mx = 47.7 * 0.8 * sg
         return (abs(num(r["Max refrigerant"][0]) - mx) <= 0.15
@@ -838,22 +880,22 @@ def tool_events(out, check, ref, fn_call):
 
     def info(it):
         set_state(it, "R-410A")
-        r = calc(it, 8)
+        r = calc(it, 9)
         ok1 = r["Safety class"][0] == "A1" and r["GWP (AR4)"][0] == "2088" and num(r["Glide"][0]) < 0.5
         set_state(it, "R-454B")
-        r = calc(it, 8)
+        r = calc(it, 9)
         return ok1 and r["Safety class"][0] == "A2L" and r["Charge as"][0] == "liquid only"
 
     def converter(it):
         set_state(it, v26=1, v27=100, v28=1, v29=0)
         fn_call(it, "setAtm")
-        r = calc(it, 9)
+        r = calc(it, 10)
         ok1 = r["psia"][0] == "114.7" and r["kPa gauge"][0] == "689.5" and r["bar gauge"][0] == "6.89"
         set_state(it, v26=2, v27=0, v28=2)
-        r = calc(it, 9)
+        r = calc(it, 10)
         ok2 = r["°F"][0] == "32.00" and r["K"][0] == "273.2" and r["°C"][0] == "0"
         set_state(it, v26=3, v27=1, v28=2)
-        r = calc(it, 9)
+        r = calc(it, 10)
         return ok1 and ok2 and r["BTU/h"][0] == "12000" and r["kW"][0] == "3.52"
 
     def settings(it):
@@ -863,7 +905,7 @@ def tool_events(out, check, ref, fn_call):
         set_state(it, v29=5000)
         fn_call(it, "setAtm")
         hi = fn_call(it, "tsat", ref("R-410A"), 118.0, 0.0)
-        r = calc(it, 10)
+        r = calc(it, 11)
         atm = 14.696 * (1 - 6.8754e-6 * 5000) ** 5.2559
         te = (CP.PropsSI("T", "P", (118 + atm) * 6894.757, "Q", 1, "R410A") - 273.15) * 1.8 + 32
         ok = (approx(it.g["gAtm"], atm, 0.005) and approx(hi, te, 0.15) and sea - hi > 1
@@ -876,7 +918,7 @@ def tool_events(out, check, ref, fn_call):
         names = re.search(r'gRName:=\{(.*?)\};', it.src).group(1).replace('"', "").split(",")
         for n in names:
             set_state(it, n, gLP=60, gHP=200, gST=50, gLT=90)
-            for tool in range(1, 11):
+            for tool in range(1, 12):
                 fn_call(it, "toolCalc", float(tool))
                 if not it.g["gRL"]:
                     return False
@@ -885,6 +927,9 @@ def tool_events(out, check, ref, fn_call):
 
     shot = lambda name: ("shot", os.path.join(out, name))
     return [
+        check("full check: cooling readings vs CoolProp", full_cooling),
+        check("full check: diagnosis of the six classic faults", full_diagnosis),
+        check("full check: heat pump heating mode", full_heating),
         check("charge check: fixed orifice target and verdict", charge_fixed),
         check("charge check: TXV subcooling verdict", charge_txv),
         check("system check: TD, split, ratio, coil dT", system),
@@ -898,8 +943,8 @@ def tool_events(out, check, ref, fn_call):
         check("settings: altitude correction", settings),
         check("every tool runs for every refrigerant", every_refrigerant),
         # drive the screens: TOOLS button, pick a tool, edit boxes
-        *tap(2 * 64 + 30, 230), ("dialog", 1),
-        check("TOOLS opens the charge check", lambda it: it.g["gScr"] == 3 and it.g["gTool"] == 1),
+        *tap(2 * 64 + 30, 230), ("dialog", 2),
+        check("TOOLS opens the charge check", lambda it: it.g["gScr"] == 3 and it.g["gTool"] == 2),
         *tap(100, 30), ("dialog", 2),
         check("tap a choice box", lambda it: it.g["gV"][0] == 2),
         KEY["right"], KEY["up"],
@@ -910,15 +955,25 @@ def tool_events(out, check, ref, fn_call):
         *tap(4 * 64 + 30, 230),
         shot("tool_help.png"),
         KEY["enter"],
-        *tap(2 * 64 + 30, 230), ("dialog", 2), shot("tool_system.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 3), shot("tool_capacity.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 4), shot("tool_lineset.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 5), shot("tool_nitrogen.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 6), shot("tool_vacuum.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 7), shot("tool_cylinder.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 8), shot("tool_info.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 9), shot("tool_converter.png"),
-        *tap(2 * 64 + 30, 230), ("dialog", 10), shot("tool_settings.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 3), shot("tool_system.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 4), shot("tool_capacity.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 5), shot("tool_lineset.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 6), shot("tool_nitrogen.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 7), shot("tool_vacuum.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 8), shot("tool_cylinder.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 9), shot("tool_info.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 10), shot("tool_converter.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 11), shot("tool_settings.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 1),
+        *tap(100, 24 + 1 * 21 + 8), ("dialog", 121),
+        check("full check: typing suction moves the gauge", lambda it: it.g["gLP"] == 121 and it.g["gTool"] == 1),
+        *tap(100, 24 + 5 * 21 + 8), ("dialog", 185),
+        check("full check: DLT box", lambda it: it.g["gV"][6] == 185),
+        shot("tool_full.png"),
+        *tap(4 * 64 + 30, 230),
+        shot("tool_full_help.png"),
+        KEY["enter"],
+        *tap(2 * 64 + 30, 230), ("dialog", 11),
         *tap(100, 30), ("dialog", 5280),
         check("elevation box updates the atmosphere", lambda it: approx(it.g["gAtm"], 12.1, 0.1)),
         *tap(100, 30), ("dialog", 0),

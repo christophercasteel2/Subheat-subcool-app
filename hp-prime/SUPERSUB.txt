@@ -7,7 +7,9 @@
 //               saturation temperature ring for the chosen refrigerant,
 //               line temperature sliders, live superheat and subcooling.
 //   P-T chart : scrolling bubble/dew pressure table with look-up.
-//   Tools     : charge check, system check, capacity check, line set
+//   Tools     : full check (every reading on one screen, cooling or
+//               heat pump heating), charge check, system check,
+//               capacity check, line set
 //               charge, nitrogen test, vacuum, recovery cylinder,
 //               refrigerant info, unit converter and settings.
 //
@@ -139,7 +141,7 @@ gPTStep:=1;     // P-T chart row step, F
 gFindT:=-999;   // highlighted P-T chart rows: last look-up dew and
 gFindB:=-999;   // bubble temperatures
 gK:=1;          // degrees -> the calculator's angle unit (set by angInit)
-gTool:=1;       // tool shown on the tools screen
+gTool:=1;       // tool shown on the tools screen (1 = full check)
 gTSel:=1;       // selected input box on the tools screen
 gWasSel:=0;     // the touched readout was already selected (tap again = edit)
 gAtm:=14.696;   // local atmospheric pressure, psia (Settings: elevation)
@@ -183,17 +185,20 @@ cHit:=RGB(80,70,20);
 // 13 length in factory charge        14 manual oz/ft  15-18 nitrogen test
 // 19-22 vacuum and decay test        23-25 recovery cylinder
 // 26-28 unit converter               29 elevation     30 charge tolerance
-gV:={2,63,95,75,55,10,180,53,1200,3,3,25,15,0,300,75,70,297,500,400,600,10,47.7,33,33,1,100,1,0,3};
-gSL:={"Metering","Return WB","Outdoor DB","Return DB","Supply DB","Target SC","Discharge","Supply WB","Airflow","Nominal","Liquid line","Line length","Incl. length","Mfr oz/ft","Start","Start temp","Temp now","Press. now","Vacuum","Decay start","Decay end","Decay time","Water cap.","Tare wt","Gross now","Convert","Value","From","Elevation","Tolerance"};
-gSU:={"","°F","°F","°F","°F","°F","°F","°F","CFM","tons","","ft","ft","oz/ft","psig","°F","°F","psig","micron","micron","micron","min","lb","lb","lb","","","","ft","°F"};
+// 31 full check mode (cooling / heat pump heating)
+// 32-35 suction psig, head psig, suction line, liquid line: copies of the
+//       gauge screen readings (setSlot writes them back)
+gV:={2,63,95,75,55,10,180,53,1200,3,3,25,15,0,300,75,70,297,500,400,600,10,47.7,33,33,1,100,1,0,3,1,118,319,50,90};
+gSL:={"Metering","Return WB","Outdoor DB","Return DB","Supply DB","Target SC","Discharge","Supply WB","Airflow","Nominal","Liquid line","Line length","Incl. length","Mfr oz/ft","Start","Start temp","Temp now","Press. now","Vacuum","Decay start","Decay end","Decay time","Water cap.","Tare wt","Gross now","Convert","Value","From","Elevation","Tolerance","Mode","Suction","Head","SLT","LLT"};
+gSU:={"","°F","°F","°F","°F","°F","°F","°F","CFM","tons","","ft","ft","oz/ft","psig","°F","°F","psig","micron","micron","micron","min","lb","lb","lb","","","","ft","°F","","psig","psig","°F","°F"};
 // decimals shown, Up/Down step, lowest and highest value allowed
-gSD:={0,1,1,1,1,1,0,1,0,1,0,0,0,2,0,0,0,0,0,0,0,0,1,1,1,0,2,0,0,0};
-gSS:={1,1,1,1,1,1,5,1,25,0.5,1,1,1,0.05,5,1,1,1,50,50,50,1,0.5,0.5,0.5,1,1,1,100,1};
-gSLo:={1,20,-20,30,20,0,0,20,0,0.5,1,0,0,0,0,-40,-40,-14,1,1,1,0.1,1,0,0,1,-1000000,1,-1000,1};
-gSHi:={2,90,130,120,100,40,350,90,20000,100,5,500,100,5,1000,150,150,1000,30000,30000,30000,600,1000,1000,2000,6,1000000000,7,15000,10};
+gSD:={0,1,1,1,1,1,0,1,0,1,0,0,0,2,0,0,0,0,0,0,0,0,1,1,1,0,2,0,0,0,0,1,1,1,1};
+gSS:={1,1,1,1,1,1,5,1,25,0.5,1,1,1,0.05,5,1,1,1,50,50,50,1,0.5,0.5,0.5,1,1,1,100,1,1,1,1,1,1};
+gSLo:={1,20,-20,30,20,0,0,20,0,0.5,1,0,0,0,0,-40,-40,-14,1,1,1,0.1,1,0,0,1,-1000000,1,-1000,1,1,-14,-14,-60,-60};
+gSHi:={2,90,130,120,100,40,350,90,20000,100,5,500,100,5,1000,150,150,1000,30000,30000,30000,600,1000,1000,2000,6,1000000000,7,15000,10,2,700,900,200,200};
 // choice list for a slot (see choiceList), 0 = a number
-gSC:={1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,4,0,0};
-gTName:={"Charge check","System check","Capacity check","Line set charge","Nitrogen test","Vacuum / evacuation","Recovery cylinder","Refrigerant info","Unit converter","Settings","Help"};
+gSC:={1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,4,0,0,5,0,0,0,0};
+gTName:={"Full check","Charge check","System check","Capacity check","Line set charge","Nitrogen test","Vacuum / evacuation","Recovery cylinder","Refrigerant info","Unit converter","Settings","Help"};
 
 // ================= number formatting =================
 
@@ -749,6 +754,7 @@ BEGIN
   IF c==1 THEN RETURN {"Fixed orifice","TXV / EEV"}; END;
   IF c==2 THEN RETURN {"1/4 in","5/16 in","3/8 in","1/2 in","5/8 in"}; END;
   IF c==3 THEN RETURN {"Pressure","Temperature","Capacity","Airflow","Length","Weight"}; END;
+  IF c==5 THEN RETURN {"A/C cooling","HP heating"}; END;
   RETURN convUnits(gV(26));
 END;
 
@@ -803,7 +809,12 @@ BEGIN
     "Number to convert",
     "Unit of that number",
     "Elevation above sea level, ft",
-    "Charge verdict band, plus or minus F"};
+    "Charge verdict band, plus or minus F",
+    "A/C cooling, or heat pump heating mode",
+    "Low side (suction) gauge, psig",
+    "High side (head / liquid) gauge, psig",
+    "Suction line temp at the service valve",
+    "Liquid line temp at the service valve"};
   RETURN h(s);
 END;
 
@@ -814,6 +825,11 @@ BEGIN
   IF s==26 THEN gV(28):=1; END;
   IF s==28 THEN gV(28):=MIN(gV(28),SIZE(convUnits(gV(26)))); END;
   IF s==29 THEN setAtm(); END;
+  // the gauge readings: write back to the gauge screen
+  IF s==32 THEN setVal(1,gV(32)); END;
+  IF s==33 THEN setVal(3,gV(33)); END;
+  IF s==34 THEN setVal(2,gV(34)); END;
+  IF s==35 THEN setVal(4,gV(35)); END;
 END;
 
 // Up/Down: step a number, or move through a choice list
@@ -880,8 +896,8 @@ BEGIN
     " + / - : 10 at a time     Symb: refrigerant",
     " Num: P-T chart   Menu: TOOLS   Esc: quit",
     "TOOLS",
-    " Charge, system and capacity checks, line set,",
-    " nitrogen, vacuum, cylinder, info, converter.",
+    " Full check (all readings at once), charge,",
+    " system, capacity, line set, nitrogen, vacuum ...",
     " Tap a box to change it. HELP explains each tool.",
     "HOW IT IS FIGURED",
     " Superheat = suction line temp - DEW temp",
@@ -893,6 +909,22 @@ toolHelp(t)
 BEGIN
   LOCAL h:={" No notes."};
   IF t==1 THEN h:={
+    "FULL CHECK: EVERY READING ON ONE SCREEN",
+    " Suction, head, SLT and LLT are the gauge screen",
+    " readings. Supply and return are AIR temps at the",
+    " indoor unit; they are not dew or bubble.",
+    " DEW = saturation temp at the suction pressure",
+    " BUBBLE = saturation temp at the head pressure",
+    " Superheat = SLT - dew   Subcool = bubble - LLT",
+    " Disch. SH = DLT - dew temp at the head pressure",
+    " Air dT = return - supply (heating: supply - return)",
+    " Evap TD = return - evap sat (heating: outdoor)",
+    " Cond split = cond sat - outdoor (heating: return)",
+    " Approach = LLT - outdoor (heating: - return)",
+    " Comp. ratio = (head + 14.7) / (suction + 14.7)",
+    " Likely: from superheat, subcool, suction, head.",
+    " Heat pump heating: the indoor coil condenses."}; END;
+  IF t==2 THEN h:={
     "USES THE GAUGE SCREEN READINGS",
     " FIXED ORIFICE: target superheat from the",
     " standard chart, (3 x return WB - 80 - outdoor",
@@ -905,7 +937,7 @@ BEGIN
     " Run 15 minutes and recheck after each change.",
     " Use the unit's own chart when it has one.",
     " LIKELY is a starting point, not a diagnosis."}; END;
-  IF t==2 THEN h:={
+  IF t==3 THEN h:={
     "USES THE GAUGE SCREEN READINGS",
     " Evap TD = return DB - evaporator sat temp",
     " Cond split = condensing sat temp - outdoor DB",
@@ -919,7 +951,7 @@ BEGIN
     " Typical comfort-cooling values; high-efficiency",
     " units run a smaller condenser split. Always",
     " check the manufacturer's data."}; END;
-  IF t==3 THEN h:={
+  IF t==4 THEN h:={
     "MEASURE",
     " Airflow (CFM), and dry bulb and wet bulb of",
     " the return and supply air.",
@@ -931,7 +963,7 @@ BEGIN
     "ACCURACY",
     " A field estimate: the airflow measurement is",
     " usually the biggest source of error."}; END;
-  IF t==4 THEN h:={
+  IF t==5 THEN h:={
     "HOW IT IS FIGURED",
     " Adjust = (line length - length included in the",
     " factory charge) x ounces per foot.",
@@ -941,7 +973,7 @@ BEGIN
     " Enter the install manual's oz/ft to use it.",
     " The vapor line holds very little; it is ignored.",
     " Many residential units include 15 ft of line."}; END;
-  IF t==5 THEN h:={
+  IF t==6 THEN h:={
     "HOW IT IS FIGURED",
     " Gas pressure follows temperature:",
     " expected psia = start psia x (now F + 460)",
@@ -951,7 +983,7 @@ BEGIN
     "SAFETY",
     " Use a regulator and never exceed the test",
     " pressure on the unit's data plate."}; END;
-  IF t==6 THEN h:={
+  IF t==7 THEN h:={
     "VACUUM",
     " Water boils at the temperature shown for that",
     " vacuum; 500 microns is about -12 F.",
@@ -961,7 +993,7 @@ BEGIN
     " Rises, then levels off: moisture, keep pulling.",
     " Keeps rising toward atmosphere: a leak.",
     " Follow the manufacturer's micron target."}; END;
-  IF t==7 THEN h:={
+  IF t==8 THEN h:={
     "80 PERCENT RULE",
     " Never fill a recovery cylinder past 80% full.",
     " Max refrigerant = WC x 0.8 x specific gravity",
@@ -969,7 +1001,7 @@ BEGIN
     " WC and TW are stamped on the cylinder collar.",
     " Stop filling at the max gross weight.",
     " Some companies use a lower limit: follow yours."}; END;
-  IF t==8 THEN h:={
+  IF t==9 THEN h:={
     "SAFETY CLASS",
     " A1 not flammable, A2L mildly flammable,",
     " A3 flammable.",
@@ -979,13 +1011,13 @@ BEGIN
     " 400-series blends must be charged as liquid.",
     " Oil is the usual lubricant: check the",
     " compressor tag and retrofit guidelines."}; END;
-  IF t==9 THEN h:={
+  IF t==10 THEN h:={
     "UNIT CONVERTER",
     " Pick what to convert, the number and its unit;",
     " every equivalent is listed.",
     " Gauge units (psig, kPa gauge, bar gauge, inHg)",
     " use the local atmosphere from Settings."}; END;
-  IF t==10 THEN h:={
+  IF t==11 THEN h:={
     "ELEVATION",
     " Gauges read against the local air pressure, so",
     " saturation temperatures are corrected for",
@@ -1108,22 +1140,23 @@ END;
 // input slots of each tool, laid out two per row
 toolIns(t)
 BEGIN
-  IF t==1 THEN RETURN {1,6,2,3}; END;
-  IF t==2 THEN RETURN {4,5,3,7}; END;
-  IF t==3 THEN RETURN {9,10,4,2,5,8}; END;
-  IF t==4 THEN RETURN {11,14,12,13}; END;
-  IF t==5 THEN RETURN {15,16,18,17}; END;
-  IF t==6 THEN RETURN {19,22,20,21}; END;
-  IF t==7 THEN RETURN {23,24,25}; END;
-  IF t==9 THEN RETURN {26,28,27}; END;
-  IF t==10 THEN RETURN {29,30}; END;
+  IF t==1 THEN RETURN {31,32,33,34,35,7,4,5,3}; END;
+  IF t==2 THEN RETURN {1,6,2,3}; END;
+  IF t==3 THEN RETURN {4,5,3,7}; END;
+  IF t==4 THEN RETURN {9,10,4,2,5,8}; END;
+  IF t==5 THEN RETURN {11,14,12,13}; END;
+  IF t==6 THEN RETURN {15,16,18,17}; END;
+  IF t==7 THEN RETURN {19,22,20,21}; END;
+  IF t==8 THEN RETURN {23,24,25}; END;
+  IF t==10 THEN RETURN {26,28,27}; END;
+  IF t==11 THEN RETURN {29,30}; END;
   RETURN {};
 END;
 
 // tools whose answer depends on the refrigerant
 toolRef(t)
 BEGIN
-  RETURN t==1 OR t==2 OR t==4 OR t==7 OR t==8;
+  RETURN t==1 OR t==2 OR t==3 OR t==5 OR t==8 OR t==9;
 END;
 
 hilo(v,lo,hi)
@@ -1145,7 +1178,7 @@ BEGIN
   IF a==1 AND b==-1 THEN RETURN "Low charge: leak check"; END;
   IF a==-1 AND b==1 THEN RETURN "Overcharged"; END;
   IF a==1 AND b==1 THEN RETURN "Restriction: drier/meter"; END;
-  IF a==-1 AND b==-1 THEN RETURN "Low airflow or weak comp."; END;
+  IF a==-1 AND b==-1 THEN RETURN "Low airflow over evap coil"; END;
   IF a==1 THEN RETURN "Underfeeding: charge/meter"; END;
   IF a==-1 THEN RETURN "Overfeeding or low airflow"; END;
   IF b==-1 THEN RETURN "Possibly low charge"; END;
@@ -1156,6 +1189,75 @@ END;
 gaugesOK()
 BEGIN
   RETURN inRange(tsat(gRef,gLP,0)) AND inRange(tsat(gRef,gHP,1));
+END;
+
+// full check diagnosis from suction (s), head (h), superheat (a) and
+// subcooling (b) status, each -1 low, 0 normal, 1 high; ht = heating mode
+diagFull(s,h,a,b,ht)
+BEGIN
+  IF s==0 AND h==0 AND a==0 AND b==0 THEN RETURN "Readings look normal"; END;
+  IF s==1 AND h==-1 THEN RETURN "Weak compressor (valves)"; END;
+  IF a==1 AND b==-1 THEN RETURN "Low charge: leak check"; END;
+  IF a==-1 AND b==1 THEN RETURN "Overcharged"; END;
+  IF a==1 AND b==1 THEN RETURN "Restriction: drier/meter"; END;
+  IF s==-1 AND a<=0 THEN RETURN IFTE(ht,"Low outdoor air / iced coil","Low indoor airflow"); END;
+  IF h==1 AND b<=0 THEN RETURN IFTE(ht,"Low indoor airflow (heat)","Dirty condenser / low air"); END;
+  IF h==1 AND b==1 THEN RETURN "Overcharge / noncondensables"; END;
+  IF a==1 THEN RETURN "Underfeeding: charge/meter"; END;
+  IF a==-1 THEN RETURN "Overfeeding: TXV/charge"; END;
+  IF b==-1 THEN RETURN "Possibly low charge"; END;
+  IF b==1 THEN RETURN "Possibly overcharged"; END;
+  IF h==-1 THEN RETURN "Low head: charge/compressor"; END;
+  IF h==1 THEN RETURN "High head: condenser/charge"; END;
+  IF s==-1 THEN RETURN "Low suction: airflow/charge"; END;
+  IF s==1 THEN RETURN "High suction: comp/charge"; END;
+  RETURN "Check pressures vs chart";
+END;
+
+// every reading on one screen; heating (heat pump) swaps which air
+// stream each coil works against
+calcFull()
+BEGIN
+  LOCAL ht:=gV(31)==2;
+  LOCAL te:=tsat(gRef,gLP,0);
+  LOCAL tc:=tsat(gRef,gHP,1);
+  LOCAL td:=tsat(gRef,gHP,0);
+  LOCAL sh:=gST-te;
+  LOCAL sc:=tc-gLT;
+  LOCAL ds:=gV(7)-td;
+  LOCAL dt:=IFTE(gV(31)==2,gV(5)-gV(4),gV(4)-gV(5));
+  LOCAL et:=IFTE(gV(31)==2,gV(3),gV(4))-te;
+  LOCAL cs:=tc-IFTE(gV(31)==2,gV(4),gV(3));
+  LOCAL ap:=gLT-IFTE(gV(31)==2,gV(4),gV(3));
+  LOCAL cr:=(gHP+gAtm)/(gLP+gAtm);
+  LOCAL ss, hs, s3, s4;
+  IF gaugesOK()==0 THEN
+    addRow("Gauges","off the chart","check pressures",cBad);
+    RETURN 0;
+  END;
+  // suction status from the evaporator TD, head status from the split
+  IF ht THEN
+    ss:=-hilo(et,15,30);
+    hs:=hilo(cs,20,50);
+  ELSE
+    ss:=-hilo(et,30,40);
+    hs:=hilo(cs,10,30);
+  END;
+  s3:=hilo(sh,5,20);
+  s4:=hilo(sc,5,15);
+  addRow("Evap sat",fmt1(te)+"°F","DEW at "+fmtP(gLP),cText);
+  addRow("Cond sat",fmt1(tc)+"°F","BUBBLE at "+fmtP(gHP),cText);
+  addRow("Superheat",fmt1(sh)+"°F","SLT - dew",rateC(1,sh));
+  addRow("Subcool",fmt1(sc)+"°F","bubble - LLT",rateC(2,sc));
+  addRow("Disch. SH",fmt1(ds)+"°F","DLT - dew at head",IFTE(gV(7)>225,cBad,IFTE(ds<20,cWarn,cText)));
+  addRow("Air ΔT",fmt1(dt)+"°F",IFTE(ht,"supply - return","return - supply"),IFTE(ht,band(dt,15,30),band(dt,16,22)));
+  addRow("Evap TD",fmt1(et)+"°F",IFTE(ht,"outdoor - evap sat","return - evap sat"),IFTE(ht,band(et,15,30),band(et,30,40)));
+  addRow("Cond split",fmt1(cs)+"°F",IFTE(ht,"cond sat - return","cond sat - outdoor"),IFTE(ht,band(cs,20,50),band(cs,10,30)));
+  addRow("Approach",fmt1(ap)+"°F",IFTE(ht,"LLT - return","LLT - outdoor"),cText);
+  addRow("Comp. ratio",fmtN(cr,2)+" : 1","psia / psia",IFTE(cr<=4,cGood,IFTE(cr<=6,cWarn,cBad)));
+  addRow("Likely","","",cDim);
+  addRow("",diagFull(ss,hs,s3,s4,ht),"",IFTE(ss==0 AND hs==0 AND s3==0 AND s4==0,cGood,cWarn));
+  RETURN 1;
 END;
 
 calcCharge()
@@ -1420,16 +1522,17 @@ END;
 toolCalc(t)
 BEGIN
   clearRows();
-  IF t==1 THEN calcCharge(); END;
-  IF t==2 THEN calcSystem(); END;
-  IF t==3 THEN calcCap(); END;
-  IF t==4 THEN calcLine(); END;
-  IF t==5 THEN calcN2(); END;
-  IF t==6 THEN calcVac(); END;
-  IF t==7 THEN calcCyl(); END;
-  IF t==8 THEN calcInfo(); END;
-  IF t==9 THEN calcConv(); END;
-  IF t==10 THEN calcSet(); END;
+  IF t==1 THEN calcFull(); END;
+  IF t==2 THEN calcCharge(); END;
+  IF t==3 THEN calcSystem(); END;
+  IF t==4 THEN calcCap(); END;
+  IF t==5 THEN calcLine(); END;
+  IF t==6 THEN calcN2(); END;
+  IF t==7 THEN calcVac(); END;
+  IF t==8 THEN calcCyl(); END;
+  IF t==9 THEN calcInfo(); END;
+  IF t==10 THEN calcConv(); END;
+  IF t==11 THEN calcSet(); END;
 END;
 
 drawTool()
@@ -1437,6 +1540,11 @@ BEGIN
   LOCAL sl:=toolIns(gTool);
   LOCAL n:=SIZE(sl);
   LOCAL k, s, x0, y, txt, big;
+  LOCAL fl:={"Mode","Suction","Head","SLT suction","LLT liquid","DLT disch.","Return air","Supply air","Outdoor air"};
+  gV(32):=gLP;
+  gV(33):=gHP;
+  gV(34):=gST;
+  gV(35):=gLT;
   toolCalc(gTool);
   RECT_P(G1,0,0,319,239,cBg);
   IF toolRef(gTool) THEN
@@ -1444,6 +1552,33 @@ BEGIN
   ELSE
     RECT_P(G1,0,0,319,20,cPanel);
     TEXTOUT_P(gTName(gTool),G1,5,4,2,cText);
+  END;
+  IF gTool==1 THEN
+    // full check: inputs down the left, results down the right
+    FOR k FROM 1 TO n DO
+      s:=sl(k);
+      y:=24+(k-1)*21;
+      TEXTOUT_P(fl(k),G1,4,y+4,1,cDim);
+      RECT_P(G1,66,y,157,y+18,IFTE(k==gTSel,cSelc,cEdge),cPanel);
+      txt:=slotText(s);
+      big:=DIM(txt)<=11;
+      TEXTOUT_P(txt,G1,70,y+IFTE(big,2,4),IFTE(big,2,1),cText);
+    END;
+    LINE_P(G1,160,22,160,217,cEdge);
+    y:=24;
+    FOR k FROM 1 TO SIZE(gRL) DO
+      IF (k MOD 2)==0 THEN RECT_P(G1,161,y,319,y+14,cRow); END;
+      IF gRL(k)=="" THEN
+        TEXTOUT_P(gRV(k),G1,165,y+2,1,gRC(k));
+      ELSE
+        TEXTOUT_P(gRL(k),G1,165,y+2,1,cDim);
+        rtext(gRV(k),316,y+1,2,gRC(k));
+      END;
+      y:=y+15;
+    END;
+    drawMenu({"REFRIG","EDIT","TOOLS","GAUGES","HELP"});
+    BLIT_P(G0,G1);
+    RETURN 0;
   END;
   // input boxes, two per row; tap one (or Enter) to change it
   FOR k FROM 1 TO n DO
@@ -1630,7 +1765,11 @@ BEGIN
       END;
       rw:=IP((my-24)/20);
       idx:=rw*2+IP(mx/160)+1;
-      IF my>=24 AND rw<IP((n+1)/2) AND idx<=n THEN
+      IF gTool==1 THEN
+        rw:=IP((my-24)/21);
+        idx:=IFTE(mx<160,rw+1,0);
+      END;
+      IF my>=24 AND idx>=1 AND idx<=n AND (gTool==1 OR rw<IP((n+1)/2)) THEN
         gTSel:=idx;
         editSlot(sl(idx));
       END;
