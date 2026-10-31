@@ -296,7 +296,13 @@ RESERVED = (set("ABCDEFGHIJKLMNOPQRSTUVWXYZ") | {"e", "i"} |
              "rank", "normal", "eval", "approx", "exact", "frac", "re", "im",
              "conj", "arg", "subst", "expand", "factor", "simplify", "series",
              "limit", "diff", "mean", "median", "zeros", "concat", "inv", "ins",
-             "out", "id", "count"})
+             "out", "id", "count",
+             # language words, which the calculator does not let you reuse
+             # in lower case either
+             "begin", "end", "if", "then", "else", "for", "from", "to", "step",
+             "do", "while", "repeat", "until", "local", "return", "export",
+             "and", "or", "not", "xor", "mod", "case", "default", "break",
+             "continue", "kill", "iferr", "pi", "in"})
 
 
 def check_names(globs, funcs):
@@ -590,6 +596,11 @@ class Interp:
         return math.log(x)
 
     def b_EXP(self, x): return math.exp(x)
+
+    def b_LOG(self, x):
+        if x <= 0:
+            raise PPLError(f"LOG of {x}")
+        return math.log10(x)
     def b_ABS(self, x): return abs(x)
     def b_IP(self, x): return float(math.trunc(x))
     def b_FLOOR(self, x): return float(math.floor(x))

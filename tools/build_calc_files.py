@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACELEC):
+For each app NAME (SUPERSUB, HVACAIR, HVACELEC):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -74,6 +74,28 @@ def icon_bolt(path):
     im.resize((38, 38), Image.LANCZOS).save(path)
 
 
+def icon_air(path):
+    """38 x 38 app icon: three moving-air arrows over the app's tile colours."""
+    big = 4
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    tiles = [(32, 104, 206), (30, 142, 74), (124, 74, 192), (196, 52, 52), (214, 110, 22)]
+    for k, col in enumerate(tiles):
+        x = 4 + k * 6.2
+        d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
+    # the same mark the app draws in its title bar, scaled up
+    s, ox, oy = 1.55, 7.5, 4.5
+    for x0, y0, length in ((0, 2, 10), (3, 7, 8), (0, 12, 7)):
+        d.rectangle([(ox + x0 * s) * big, (oy + y0 * s) * big,
+                     (ox + (x0 + length) * s) * big, (oy + (y0 + 1.4) * s) * big], fill=(120, 200, 255))
+        tip = x0 + length
+        d.polygon([((ox + tip * s) * big, (oy + (y0 - 2) * s) * big),
+                   ((ox + tip * s) * big, (oy + (y0 + 3.4) * s) * big),
+                   ((ox + (tip + 4) * s) * big, (oy + (y0 + 0.7) * s) * big)], fill=(120, 200, 255))
+    im.resize((38, 38), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -84,6 +106,15 @@ Open the app to start. Tap HELP inside the app for the controls.
 Drag a needle or tap a dial to set pressure. Drag the SUCT and LIQ sliders to set the line temperatures. Up/Down change the selected value, Enter types an exact one.
 
 Superheat uses the dew point at suction pressure; subcooling uses the bubble point at liquid pressure.
+
+Source and instructions: """ + REPO),
+    dict(name="HVACAIR", icon=icon_air,
+         test=os.path.join(ROOT, "tools", "test_hvacair.py"),
+         note="""HVACAIR - airside calculator for HVAC/R service (the rebuilt HVAC Suite)
+
+Open the app and tap a tile. 20 tools: air properties, dew point / sweating, coil capacity, mixed air / economizer, furnace temperature rise, air heat formulas, static pressure, ventilation and ACH, duct sizer, duct check, friction rate (Manual D), grille airflow, fan laws, pulleys and belts, fan power, unit converter, heat loss / gain, cooling load, humidifier sizing and evaporative cooler.
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
 
 Source and instructions: """ + REPO),
     dict(name="HVACELEC", icon=icon_bolt,

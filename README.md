@@ -1,13 +1,14 @@
 # HP Prime HVAC apps
 
-Two color, touchscreen apps for HVAC/R service work on the **HP Prime G1**. Both also run on the G2.
+Three color, touchscreen apps for HVAC/R service work on the **HP Prime G1**. All of them also run on the G2.
 
 | App | What it does | Download |
 |---|---|---|
 | **[SUPERSUB](#supersub-superheat-and-subcooling-for-the-hp-prime)** | Superheat and subcooling on draggable manifold gauges, a P-T chart for 30 refrigerants, and service tools for the refrigerant circuit | [`SUPERSUB.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/SUPERSUB.zip) |
+| **[HVACAIR](#hvacair-airside-tools-the-rebuilt-hvac-suite)** | The rebuilt HVAC Suite: 20 airside tools, including psychrometrics, coil capacity, furnace temperature rise, static pressure, duct sizing, fan laws, pulleys and quick loads | [`HVACAIR.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACAIR.zip) |
 | **[HVACELEC](#hvacelec-electrical-tools-for-the-hp-prime)** | 20 electrical tools: Ohm's law, motor and compressor checks, capacitor and thermistor tests, NEC wire and breaker sizing, MCA / MOCP, voltage drop and more | [`HVACELEC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACELEC.zip) |
 
-Both install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have both on the calculator at once.
+They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
 # SUPERSUB: superheat and subcooling for the HP Prime
 
@@ -146,6 +147,59 @@ The tools use these extra properties:
 
 Every source document is named, with its link, at the top of its CSV in `tools/data/`.
 
+# HVACAIR: airside tools (the rebuilt HVAC Suite)
+
+HVACAIR replaces the HVAC Suite with something a service tech can use on every call. It covers the same ground (psychrometrics, loads, air processes, ducts and fans), but each job is its own tool with a handful of boxes, the same way HVACELEC works. The answers update as you type, colored green (OK), yellow (check it) or red (problem). It has a different name, so installing it does not replace your old HVAC Suite; delete that one when you no longer need it.
+
+![Home screen](docs/screens/air_home.png) ![Coil capacity](docs/screens/air_03_coil_capacity.png)
+
+![Furnace temp rise](docs/screens/air_05_furnace_temp_rise.png) ![Duct sizer](docs/screens/air_09_duct_sizer.png)
+
+## Installing HVACAIR
+
+Download [`HVACAIR.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACAIR.zip), unzip it, and drag the `HVACAIR.hpappdir` folder onto **Application Library** under your calculator in the Connectivity Kit. If the app doesn't show up, drag `HVACAIR.hpprgm` onto **Programs** instead. On the calculator, press **Apps** and tap **HVACAIR**. It is used exactly like HVACELEC (see [Using HVACELEC](#using-hvacelec)). One extra: the **Elevation** box is shared, so set it once and every moist-air tool corrects for the thinner air.
+
+## HVACAIR tools
+
+| Tile | Inputs | What you get |
+|---|---|---|
+| **Air properties** | Dry bulb plus RH, wet bulb or dew point; elevation | RH, wet bulb, dew point, grains, enthalpy, specific volume, density, air pressure, and the 1.08 / 4.5 factors at that elevation |
+| **Dew point / sweating** | Air temperature, RH, surface temperature | Dew point, the margin, WILL SWEAT / close / OK, and the humidity at which that surface starts to sweat |
+| **Coil capacity** | CFM, nominal tons, return and supply dry and wet bulb | Total, sensible and latent BTU/h, tons and % of rated, SHR, split, CFM per ton, and condensate in gal/h |
+| **Mixed air / economizer** | Outside and return temperature and RH, % outside air or the measured mixed temperature, CFM | Mixed temperature or % outside air, outside CFM, mixed RH, wet bulb and enthalpy, and whether outside air can help cool |
+| **Furnace temp rise** | Input BTU/h, efficiency, return and supply temperature, the plate's rise range | Output, rise checked against the range, CFM = output ÷ (1.08 × rise), and the CFM at mid-range |
+| **Air heat formulas** | Find BTU/h, CFM or ΔT; the other two; optional grains difference | Sensible (1.08), latent (0.68) and total heat, corrected for elevation |
+| **Static pressure** | Supply and return static, rated ESP, optional filter and coil drops | Total external static, % of rated, and how much each part uses |
+| **Ventilation and ACH** | Floor area, bedrooms, ceiling height, fan CFM | ASHRAE 62.2-2016 rate (0.03 × ft² + 7.5 × (bedrooms + 1)), air changes per hour, run time |
+| **Duct sizer** | CFM, friction rate, material, rectangular height | Exact and next standard round size, a rectangular size of that height, velocity, friction and aspect ratio |
+| **Duct check / traverse** | Round or rectangular size, CFM, material, measured velocity | Area, velocity, velocity pressure, friction, equal round diameter, and CFM from a traverse |
+| **Friction rate (Manual D)** | Blower static, coil, filter, register, grille and other drops, total effective length | Available static and the design friction rate (ASP × 100 ÷ TEL), checked against Manual D's 0.06–0.18 band |
+| **Grille airflow** | Face velocity, Ak factor or size and free area, number of grilles | CFM per grille and in total |
+| **Fan laws** | CFM, RPM, static and BHP now; the new RPM or CFM; motor HP | New CFM, RPM, static and BHP, and whether the motor is overloaded |
+| **Pulleys and belts** | Motor RPM, both pulley diameters, center distance, target RPM | Blower RPM, ratio, belt pitch length, belt speed, deflection, and the pulley for a target speed |
+| **Fan power** | CFM, total static, fan and motor efficiency | Air HP, brake HP, motor watts, watts per CFM and the motor size |
+| **Unit converter** | Kind, number, unit | Airflow, pressure (in.wc, Pa, psi, inHg), velocity, heat, temperature, humidity and area |
+| **Heat loss / gain** | Indoor and outdoor temperature; wall, ceiling and window areas and R-values | Conduction through each (area × ΔT ÷ R), total, and UA |
+| **Cooling load** | Indoor and outdoor temperature and RH, people, appliance watts, outside air CFM, other gains | Walls (from Heat loss / gain), people (230 + 200 BTU/h each), appliances, outside air sensible and latent, total, tons, SHR and airflow |
+| **Humidifier sizing** | Floor area, ceiling, air changes, indoor temperature and target RH, outdoor temperature and RH | Air leaking in, the water needed in lb/h and gal/day, and the indoor dew point |
+| **Evaporative cooler** | Outside dry and wet bulb, pad effectiveness, CFM | Leaving temperature and RH, cooling BTU/h, and water evaporated |
+
+Compared with the old HVAC Suite, this version leaves out the engineering-design parts: multi-zone hourly loads, duct networks with static regain and critical paths, the fitting library, Pareto optimization, NC/RC acoustics and SI input. Ask if you want any of them back.
+
+## HVACAIR sources
+
+| Data | Used by | Source / check |
+|---|---|---|
+| Moist-air relations (Hyland-Wexler saturation pressure, wet-bulb equation, enthalpy, volume) | Every air tool | ASHRAE Fundamentals, I-P. The tests compare humidity ratio, wet bulb, dew point, RH and volume with CoolProp's humid-air model at several states and elevations |
+| Standard atmosphere pressure from elevation | Elevation box | Same formula as SUPERSUB's settings |
+| Duct friction: Darcy-Weisbach with the Colebrook friction factor, standard air; equal-friction rectangular diameter 1.30 (ab)^0.625 / (a+b)^0.25 | Duct sizer, duct check | ASHRAE Fundamentals, Duct Design. Roughness: galvanized 0.0003 ft ([ASHRAE](https://www.ashrae.org/news/esociety/determining-the-absolute-roughness-of-phenolic-duct)), duct board 0.003 ft, flex pulled tight 0.01 ft. Checked against a separate Colebrook solution; the older Wright equation (rougher duct) reads 6–9% higher |
+| Duct velocity limits: 900 fpm supply, 700 fpm return | Duct colors | ACCA Manual D maximums ([Energy Vanguard](https://energyvanguard.com/blog/duct-design-5-sizing-ducts)) |
+| Friction rate = ASP × 100 / TEL, design band 0.06–0.18 | Friction rate | ACCA Manual D ([ACCA](https://hvac-blog.acca.org/definitive-design-accas-manual-d-revised/)) |
+| Ventilation 0.03 × floor area + 7.5 × (bedrooms + 1) | Ventilation | ASHRAE 62.2-2016 ([ACCA](https://hvac-blog.acca.org/2016-update-ashrae-62-2/)) |
+| 230 sensible + 200 latent BTU/h per person | Cooling load | ACCA Manual J ([Green Building Advisor](https://www.greenbuildingadvisor.com/article/understanding-manual-j-occupant-loads)) |
+
+The cooling load is a quick estimate for checking and for class work, not a Manual J. The maker's data and your local code come first.
+
 # HVACELEC: electrical tools for the HP Prime
 
 An electrical calculator for HVAC/R service: 20 tools behind one colorful home screen, from Ohm's law to NEC motor-circuit sizing. Every tool works the same way. The input boxes are at the top, and the answers underneath update as soon as you change anything, colored green (OK), yellow (check it) or red (problem).
@@ -227,10 +281,14 @@ calculator/               ready-to-install files (built, do not edit by hand)
   SUPERSUB.hpprgm           program: drag onto Programs
   SUPERSUB.zip              both, for one download
   HVACELEC.hpappdir/, HVACELEC.hpprgm, HVACELEC.zip   the same for HVACELEC
+  HVACAIR.hpappdir/, HVACAIR.hpprgm, HVACAIR.zip      the same for HVACAIR
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
+hp-prime/HVACAIR.txt      HVACAIR's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
+tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
+tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
 tools/hpapp/              format templates for the program and app files
@@ -239,10 +297,11 @@ tools/data/*.csv          published P-T tables used for the blends, liquid densi
 tools/data/check/         published liquid pressures used to check CoolProp blend models
 tools/ppl_sim.py          small PPL interpreter: runs SUPERSUB, checks it, renders screenshots
 tools/test_hvacelec.py    the same for HVACELEC
+tools/test_hvacair.py     the same for HVACAIR (checked against CoolProp)
 docs/screens/             screenshots made by the simulator
 ```
 
-The calculator files contain the full readable source, so you can also read and edit the programs on the calculator. To change one here, edit its file in `hp-prime/`, then rebuild with `python3 tools/build_calc_files.py`. For HVACELEC's tools, input boxes and tables, edit `tools/gen_elec_tables.py` and run it first; it writes the table block into `hp-prime/HVACELEC.txt`.
+The calculator files contain the full readable source, so you can also read and edit the programs on the calculator. To change one here, edit its file in `hp-prime/`, then rebuild with `python3 tools/build_calc_files.py`. For HVACELEC's and HVACAIR's tools, input boxes and tables, edit `tools/gen_elec_tables.py` or `tools/gen_air_tables.py` and run it first; it writes the table block into the program.
 
 ### Adding a refrigerant
 
@@ -253,4 +312,4 @@ The calculator files contain the full readable source, so you can also read and 
 
 ### Simulator
 
-`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow, and checks every tool's answers against an independent calculation (CoolProp refrigerant and humid-air properties, the Murphy-Koop ice vapor pressure equation and the gas law). `tools/test_hvacelec.py` uses the same interpreter for HVACELEC. It checks each tool against its own calculation or values copied from the published tables, and plays through the tiles, typed entry, dialogs and buttons. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The program and app files use the same format the Connectivity Kit writes: the builder reproduces existing Connectivity Kit files byte for byte when given their contents.
+`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow, and checks every tool's answers against an independent calculation (CoolProp refrigerant and humid-air properties, the Murphy-Koop ice vapor pressure equation and the gas law). `tools/test_hvacelec.py` and `tools/test_hvacair.py` use the same interpreter for the other two apps; HVACAIR's moist-air answers are compared with CoolProp's humid-air model. The simulator also rejects a `LOCAL` with more than 8 names, which the calculator refuses. It checks each tool against its own calculation or values copied from the published tables, and plays through the tiles, typed entry, dialogs and buttons. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The program and app files use the same format the Connectivity Kit writes: the builder reproduces existing Connectivity Kit files byte for byte when given their contents.
