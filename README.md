@@ -23,7 +23,7 @@ The ready-made calculator files are in the [`calculator`](calculator) folder.
 3. **Drag the `SUPERSUB.hpappdir` folder** onto **Application Library** under your calculator.
 4. On the calculator, press the **Apps** key and tap the **SUPERSUB** icon. It opens straight onto the gauges.
 
-**If the app doesn't appear or won't open:** first update the calculator to the latest firmware. The Connectivity Kit offers this when a calculator is connected; 2.1.14730 was the newest G1 release when this was written. Then try the plain program instead: drag `SUPERSUB.hpprgm` onto **Programs** under your calculator. On the calculator, press **Shift** then **1** (Program), select **SUPERSUB** and tap **Run**.
+**If the app doesn't appear or won't open:** try the plain program instead. Drag `SUPERSUB.hpprgm` onto **Programs** under your calculator, then on the calculator press **Shift** then **1** (Program), select **SUPERSUB** and tap **Run**. The files are built for current firmware (2.4 and later); if your calculator is older, update it through the Connectivity Kit first.
 
 Install one or the other, not both. To update later, drag the new copy over the old one and accept the replace prompt. Your last pressures, temperatures and refrigerant are kept between runs, but they reset when you install a new version.
 
@@ -111,22 +111,23 @@ calculator/               ready-to-install files (built, do not edit by hand)
 hp-prime/SUPERSUB.txt     the program's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/build_calc_files.py builds the calculator/ folder from SUPERSUB.txt
-tools/hpapp/              app container template (from the MIT-licensed Xprime project)
+tools/hpfile.py           writes the calculator's program-file format
+tools/hpapp/              format templates for the program and app files
 tools/data/*.csv          published P-T tables used for the blends
 tools/data/check/         published liquid pressures used to check CoolProp blend models
 tools/ppl_sim.py          small PPL interpreter: runs the program, checks it, renders screenshots
 docs/screens/             screenshots made by the simulator
 ```
 
-The calculator copy of the program has its comments and indentation removed. The Prime cuts off program files larger than 64 KB, and the full source is over that limit. Edit `hp-prime/SUPERSUB.txt`, then rebuild.
+The calculator files contain the full readable source, so you can also read and edit the program on the calculator. To change it here, edit `hp-prime/SUPERSUB.txt`, then rebuild.
 
 ### Adding a refrigerant
 
 1. Add a line to `REFRIGERANTS` in `tools/gen_pt_tables.py`. Give it the display name, a source (a CoolProp fluid name, or a CSV file in `tools/data` with `temp_F,bubble,dew` columns in psia or psig), a cylinder color and a short description.
 2. Run `pip install CoolProp`, then `python3 tools/gen_pt_tables.py --check`.
 3. Run `python3 tools/ppl_sim.py` to re-run the checks and regenerate the screenshots.
-4. Run `python3 tools/build_calc_files.py` to rebuild the files in `calculator/`. It also runs the simulator on the compact app and program copies, and stops if the program would exceed the 64 KB limit. Each extra refrigerant adds about 0.8 KB, so there is room for roughly eight more.
+4. Run `python3 tools/build_calc_files.py` to rebuild the files in `calculator/`. It checks that the files read back correctly and runs the simulator on both the app and the program.
 
 ### Simulator
 
-`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The app and program file formats follow Xprime's documentation and example apps, but they have not been loaded onto a real calculator from here.
+`tools/ppl_sim.py` runs the real program source with scripted key presses and touches. It checks the saturation math, the controls and the screen flow. It also enforces two PPL rules: functions must be defined before they are used, and names must not clash with calculator variables. It is a development aid. The calculator itself is the final test, so please report anything that behaves differently on real hardware. The program and app files use the same format the Connectivity Kit writes: the builder reproduces existing Connectivity Kit files byte for byte when given their contents.

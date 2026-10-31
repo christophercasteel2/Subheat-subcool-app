@@ -1,26 +1,21 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files from hp-prime/SUPERSUB.txt.
 
-  calculator/SUPERSUB.hpappdir/   app folder: drag into the Connectivity
+  calculator/SUPERSUB.hpappdir/   app folder: drag onto the Connectivity
                                   Kit's Application Library
-  calculator/SUPERSUB.hpprgm      plain program: drag into Programs
+  calculator/SUPERSUB.hpprgm      plain program: drag onto Programs
   calculator/SUPERSUB.zip         both of the above, for one download
 
-The calculator copy of the program is compacted (comments, indentation
-and blank lines removed) because the Prime truncates program files over
-64 KB.  The readable source stays in hp-prime/SUPERSUB.txt.
+The program files use the record format that current firmware and the
+Connectivity Kit use (see tools/hpfile.py), with the full readable source.
+Files in the older plain format (a 20-byte header and the source) did
+not show up on a G1 running firmware 2.4.2.  See tools/hpapp/README.md for the template files.
 
-Files use the original (G1) program format: a 20-byte header (0x0C, 15
-zero bytes, then the UTF-16 byte count) followed by the UTF-16LE source
-with a 2-byte terminator.  See tools/hpapp/README.md for the .hpapp file.
-
-Usage: python3 tools/build_calc_files.py   (then run tools/ppl_sim.py on
-calculator/SUPERSUB-compact.txt, which the build does for you)
+Usage: python3 tools/build_calc_files.py
 """
 import math
 import os
 import shutil
-import struct
 import subprocess
 import sys
 import tempfile
@@ -28,11 +23,14 @@ import zipfile
 
 from PIL import Image, ImageDraw
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import hpfile
+from ppl_sim import Parser, tokenize
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(ROOT, "hp-prime", "SUPERSUB.txt")
 OUT = os.path.join(ROOT, "calculator")
 NAME = "SUPERSUB"
-LIMIT = 65536            # bytes; the Prime truncates larger program files
 REPO = "github.com/christophercasteel2/Subheat-subcool-app"
 
 APP_START = """
@@ -54,40 +52,11 @@ Superheat uses the dew point at suction pressure; subcooling uses the bubble poi
 Source and instructions: """ + REPO
 
 
-def strip_comment(line):
-    """Remove a // comment that is not inside a string."""
-    quoted = False
-    for i, ch in enumerate(line):
-        if ch == '"':
-            quoted = not quoted
-        elif not quoted and line.startswith("//", i):
-            return line[:i]
-    return line
-
-
-def compact(src):
-    lines = src.split("\n")
-    out = [lines[0], "// SUPERSUB, readable source: " + REPO]
-    for line in lines[1:]:
-        line = strip_comment(line).strip()
-        if line:
-            out.append(line)
-    return "\n".join(out) + "\n"
-
-
-def g1_program(text):
-    data = text.encode("utf-16-le") + b"\0\0"
-    if len(data) + 20 >= LIMIT:
-        sys.exit(f"program is {len(data)} bytes, over the {LIMIT}-byte calculator limit")
-    return b"\x0c" + bytes(15) + struct.pack("<I", len(data)) + data
-
-
-def read_g1_program(blob):
-    """Inverse of g1_program, used to check what was written."""
-    assert blob[0] == 0x0C and blob[1:16] == bytes(15)
-    size = struct.unpack("<I", blob[16:20])[0]
-    assert size == len(blob) - 20
-    return blob[20:-2].decode("utf-16-le")
+def program_file(text):
+    """The program in the calculator's file format, listing every function
+    in source order as the Connectivity Kit does."""
+    _, funcs = Parser(tokenize(text)).program()
+    return hpfile.build(text, [(n, f[2], len(f[0])) for n, f in funcs.items()])
 
 
 def icon(path):
@@ -114,14 +83,14 @@ def icon(path):
 
 def main():
     src = open(SOURCE, encoding="utf-8").read()
-    small = compact(src)
+    app_src = src + APP_START
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     appdir = os.path.join(OUT, NAME + ".hpappdir")
     os.makedirs(appdir)
 
-    prgm = g1_program(small)
-    app_prgm = g1_program(small + APP_START.lstrip("\n"))
+    prgm = program_file(src)
+    app_prgm = program_file(app_src)
     with open(os.path.join(OUT, NAME + ".hpprgm"), "wb") as fh:
         fh.write(prgm)
     with open(os.path.join(appdir, NAME + ".hpappprgm"), "wb") as fh:
@@ -139,19 +108,19 @@ def main():
 
     # check: the files decode back to exactly what we meant to write,
     # and both versions of the program pass the simulator's tests
-    assert read_g1_program(prgm) == small
-    app_src = read_g1_program(app_prgm)
-    assert app_src == small + APP_START.lstrip("\n")
+    for blob, text in ((prgm, src), (app_prgm, app_src)):
+        back, names = hpfile.read(blob)
+        assert back == text and "SUPERSUB" in names
     sim = os.path.join(ROOT, "tools", "ppl_sim.py")
     with tempfile.TemporaryDirectory() as tmp:
-        for label, text in (("program", small), ("app", app_src)):
+        for label, text in (("program", src), ("app", app_src)):
             path = os.path.join(tmp, label + ".txt")
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write(text)
             res = subprocess.run([sys.executable, sim, path, tmp], capture_output=True, text=True)
             if res.returncode:
                 sys.exit(f"simulator failed on the {label} file:\n{res.stdout}{res.stderr}")
-    print(f"{NAME}.hpprgm      {len(prgm):6d} bytes (limit {LIMIT})")
+    print(f"{NAME}.hpprgm      {len(prgm):6d} bytes")
     print(f"{NAME}.hpappprgm   {len(app_prgm):6d} bytes")
     print(f"written to {OUT}; both copies pass the simulator")
 
