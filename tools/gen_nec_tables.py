@@ -15,7 +15,11 @@ NEC tables (2020/2023 numbering; values unchanged from the 2017 edition)
   Chapter 9 Table 1 (fill %), Table 4 (raceway area), Table 5 (conductor
           area), Table 8 (circular mils, dc resistance at 75 C)
   240.6(A) standard ratings, 240.4(D) small conductors
-  314.16(B) box fill volume per conductor
+  314.16(A) box volumes, 314.16(B) volume per conductor
+  250.122 equipment grounding conductors, 250.66 grounding electrode
+          conductors, 310.12 (83% dwelling services and feeders)
+  The appliance guide, NEMA list and state electric rates follow
+  electricalcalctools.com, with wire sizes checked against 310.16.
 """
 import math
 import os
@@ -122,6 +126,126 @@ STD_SIZES = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 125, 150,
              2000, 2500, 3000, 4000, 5000, 6000]
 BOX_SIZES = ["18 AWG", "16 AWG", "14 AWG", "12 AWG", "10 AWG", "8 AWG", "6 AWG"]
 BOX_VOL = [1.5, 1.75, 2.0, 2.25, 2.5, 3.0, 5.0]       # Table 314.16(B), in3
+# Table 314.16(A) metal boxes: name, volume in3
+BOXES = [("Custom volume", 0), ("4x1-1/4 rnd/oct", 12.5), ("4x1-1/2 rnd/oct", 15.5),
+         ("4x2-1/8 rnd/oct", 21.5), ("4x1-1/4 square", 18.0), ("4x1-1/2 square", 21.0),
+         ("4x2-1/8 square", 30.3), ("4-11/16x1-1/4 sq", 25.5), ("4-11/16x1-1/2 sq", 29.5),
+         ("4-11/16x2-1/8 sq", 42.0), ("3x2x1-1/2 device", 7.5), ("3x2x2 device", 10.0),
+         ("3x2x2-1/4 device", 10.5), ("3x2x2-1/2 device", 12.5), ("3x2x2-3/4 device", 14.0),
+         ("3x2x3-1/2 device", 18.0), ("4x2-1/8x1-1/2 dev", 10.3), ("4x2-1/8x1-7/8 dev", 13.0),
+         ("4x2-1/8x2-1/8 dev", 14.5), ("3-3/4x2x2-1/2 mas", 14.0), ("3-3/4x2x3-1/2 mas", 21.0)]
+
+# systems: label, volts, phase (1 or 3)
+SYSTEMS = [("120V 1-ph", 120, 1), ("208V 1-ph", 208, 1), ("240V 1-ph", 240, 1),
+           ("277V 1-ph", 277, 1), ("208V 3-ph", 208, 3), ("240V 3-ph", 240, 3),
+           ("480V 3-ph", 480, 3), ("600V 3-ph", 600, 3)]
+
+# Table 250.122 equipment grounding conductors: OCPD up to, Cu size, Al size
+EGC = [(15, "14", "12"), (20, "12", "10"), (60, "10", "8"), (100, "8", "6"), (200, "6", "4"),
+       (300, "4", "2"), (400, "3", "1"), (500, "2", "1/0"), (600, "1", "2/0"),
+       (800, "1/0", "3/0"), (1000, "2/0", "4/0"), (1200, "3/0", "250"), (1600, "4/0", "350"),
+       (2000, "250", "400"), (2500, "350", "600"), (3000, "400", "600"),
+       (4000, "500", "750")]
+# Table 250.66 grounding electrode conductor: largest service conductor up to
+# (circular mils for Cu, for Al) -> GEC Cu, Al
+GEC = [(66360, 105600, "8", "6"), (105600, 167800, "6", "4"), (167800, 250000, "4", "2"),
+       (350000, 500000, "2", "1/0"), (600000, 900000, "1/0", "3/0"),
+       (1100000, 1750000, "2/0", "4/0"), (10 ** 9, 10 ** 9, "3/0", "250")]
+
+# average residential rates used by the site's cost calculator, $/kWh
+STATE_RATES = [("Alabama", 0.136), ("Alaska", 0.237), ("Arizona", 0.130), ("Arkansas", 0.111),
+    ("California", 0.259), ("Colorado", 0.137), ("Connecticut", 0.246), ("Delaware", 0.134),
+    ("Florida", 0.129), ("Georgia", 0.130), ("Hawaii", 0.390), ("Idaho", 0.102),
+    ("Illinois", 0.135), ("Indiana", 0.143), ("Iowa", 0.116), ("Kansas", 0.137),
+    ("Kentucky", 0.116), ("Louisiana", 0.108), ("Maine", 0.214), ("Maryland", 0.152),
+    ("Massachusetts", 0.252), ("Michigan", 0.176), ("Minnesota", 0.144), ("Mississippi", 0.119),
+    ("Missouri", 0.115), ("Montana", 0.108), ("Nebraska", 0.110), ("Nevada", 0.116),
+    ("New Hampshire", 0.228), ("New Jersey", 0.175), ("New Mexico", 0.133), ("New York", 0.210),
+    ("North Carolina", 0.121), ("North Dakota", 0.102), ("Ohio", 0.133), ("Oklahoma", 0.107),
+    ("Oregon", 0.117), ("Pennsylvania", 0.153), ("Rhode Island", 0.248),
+    ("South Carolina", 0.135), ("South Dakota", 0.115), ("Tennessee", 0.122), ("Texas", 0.132),
+    ("Utah", 0.108), ("Vermont", 0.213), ("Virginia", 0.132), ("Washington", 0.106),
+    ("West Virginia", 0.131), ("Wisconsin", 0.149), ("Wyoming", 0.094), ("Washington DC", 0.152)]
+
+# NEMA configurations: name, volts, amps, wires, typical use
+NEMA = [("1-15", "125 V", 15, "hot + neutral, no ground", "old 2-prong outlets"),
+        ("5-15", "125 V", 15, "hot, neutral, ground", "standard household outlet"),
+        ("5-20", "125 V", 20, "hot, neutral, ground", "kitchen, garage (T slot)"),
+        ("5-30", "125 V", 30, "hot, neutral, ground", "RV, heavy 120 V tools"),
+        ("5-50", "125 V", 50, "hot, neutral, ground", "large 120 V equipment"),
+        ("6-15", "250 V", 15, "2 hots, ground", "small 240 V tools, A/C"),
+        ("6-20", "250 V", 20, "2 hots, ground", "window A/C, shop tools"),
+        ("6-30", "250 V", 30, "2 hots, ground", "welders, compressors"),
+        ("6-50", "250 V", 50, "2 hots, ground", "welders, EV chargers"),
+        ("10-30", "125/250 V", 30, "2 hots, neutral, NO ground", "old dryers (existing only)"),
+        ("10-50", "125/250 V", 50, "2 hots, neutral, NO ground", "old ranges (existing only)"),
+        ("14-20", "125/250 V", 20, "2 hots, neutral, ground", "small 120/240 V loads"),
+        ("14-30", "125/250 V", 30, "2 hots, neutral, ground", "electric dryers"),
+        ("14-50", "125/250 V", 50, "2 hots, neutral, ground", "ranges, EV chargers, RVs"),
+        ("14-60", "125/250 V", 60, "2 hots, neutral, ground", "large ranges, EVSE"),
+        ("15-50", "250 V 3-ph", 50, "3 hots, ground", "3-phase equipment"),
+        ("L5-20", "125 V", 20, "hot, neutral, ground", "locking 120 V equipment"),
+        ("L5-30", "125 V", 30, "hot, neutral, ground", "locking: RV, marine"),
+        ("L6-20", "250 V", 20, "2 hots, ground", "locking 240 V equipment"),
+        ("L6-30", "250 V", 30, "2 hots, ground", "locking: compressors, UPS"),
+        ("L14-20", "125/250 V", 20, "2 hots, neutral, ground", "locking: small generators"),
+        ("L14-30", "125/250 V", 30, "2 hots, neutral, ground", "generator inlets"),
+        ("L15-30", "250 V 3-ph", 30, "3 hots, ground", "locking 3-phase equipment")]
+
+
+def wire_for(amps, metal, brk, col=75, start=2):
+    """smallest size from SIZES[start:] with a 310.16 ampacity of at least
+    amps that breaker brk may protect (240.4(D) for small wire)"""
+    small = {"Cu": {"14": 15, "12": 20, "10": 30}, "Al": {"12": 15, "10": 25}}[metal]
+    t = T16[(metal, col)]
+    for i in range(start, len(SIZES)):
+        if t[i] and t[i] >= amps and small.get(SIZES[i], 10 ** 6) >= brk:
+            return SIZES[i], t[i]
+    return None, None
+
+
+def awg(sz):
+    if "/" in sz:
+        return f"{sz} AWG"
+    return f"#{sz} AWG" if sz in SIZES[:15] else f"{sz} kcmil"
+
+
+def ev_row(evse):
+    brk = next(s for s in STD_SIZES if s >= 1.25 * evse)
+    cu, cua = wire_for(1.25 * evse, "Cu", brk)
+    al, ala = wire_for(1.25 * evse, "Al", brk, start=3)
+    return (f"EV charger {evse} A", f"240V, {evse} A continuous", f"{brk} A 2-pole (125%)",
+            f"{awg(cu)} ({cua} A at 75°C)", f"{awg(al)} ({ala} A at 75°C)",
+            "14-50 or hardwired" if brk <= 50 else "hardwired", "625.40, 625.42", "")
+
+
+# appliance guides: name, circuit, breaker, copper, aluminum, outlet, NEC, note
+APPLIANCES = [
+    ("15A receptacles", "120V general outlets", "15 A 1-pole", "#14 AWG", "-", "5-15", "210.19, 240.4(D)", ""),
+    ("20A receptacles", "120V kitchen, bath, garage", "20 A 1-pole", "#12 AWG", "#10 AWG Al", "5-20", "210.11(C), 210.52", ""),
+    ("Electric dryer", "240V, 4-wire", "30 A 2-pole", "#10 AWG (35 A at 75°C)", "#8 AWG (40 A)", "14-30", "220.54, 250.140", "dryer load 5000 W min."),
+    ("Range up to 12 kW", "120/240V, 4-wire", "50 A 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "14-50", "220.55, 210.19(A)(3)", "8.75 kW+: 40 A min."),
+    ("Range under 8.75 kW", "120/240V, 4-wire", "40 A 2-pole", "#8 AWG (50 A)", "#6 AWG (50 A)", "14-50", "220.55", ""),
+    ("Wall oven 5-7 kW", "240V", "30 A 2-pole", "#10 AWG", "#8 AWG", "hardwired", "422.10, nameplate", ""),
+    ("Cooktop 7-9 kW", "240V", "40 A 2-pole", "#8 AWG", "#6 AWG", "hardwired", "422.10, nameplate", ""),
+    ("Water heater 4500W", "240V, 18.75 A", "30 A 2-pole", "#10 AWG", "#8 AWG", "hardwired", "422.13 (125%)", "18.75 x 1.25 = 23.4 A"),
+    ("Water heater 5500W", "240V, 22.9 A", "30 A 2-pole", "#10 AWG", "#8 AWG", "hardwired", "422.13 (125%)", "22.9 x 1.25 = 28.6 A"),
+    ("Tankless 18 kW", "240V, 2 heating circuits", "2 x 40 A 2-pole", "2 runs of #8 AWG", "-", "hardwired", "422.13", ""),
+    ("Tankless 27 kW", "240V, 3 heating circuits", "3 x 40 A 2-pole", "3 runs of #8 AWG", "-", "hardwired", "422.13", "check the service size"),
+    ("Tankless 36 kW", "240V, 4 heating circuits", "4 x 40 A 2-pole", "4 runs of #8 AWG", "-", "hardwired", "422.13", "check the service size"),
+    ("Hot tub 50 A", "120/240V, 4-wire", "50 A GFCI 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "spa disconnect", "Article 680", "disconnect in sight, 5 ft+ away"),
+    ("Hot tub 60 A", "120/240V, 4-wire", "60 A GFCI 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "spa disconnect", "Article 680", "long runs: #4 Cu"),
+    ev_row(16), ev_row(24), ev_row(32), ev_row(40), ev_row(48), ev_row(80),
+    ("Mini-split 9-12k BTU", "115V or 230V", "15-20 A", "#14 or #12 AWG", "-", "disconnect", "440.22, 440.32", "use plate MCA / MOCP"),
+    ("Mini-split 18-24k BTU", "230V", "20-25 A", "#12 or #10 AWG", "-", "disconnect", "440.22, 440.32", "use plate MCA / MOCP"),
+    ("Mini-split 36k+ BTU", "230V multi-zone", "30-40 A", "#10 or #8 AWG", "-", "disconnect", "440.22, 440.32", "use plate MCA / MOCP"),
+    ("Central A/C example", "MCA 19.7 A, MOCP 35 A", "30 or 35 A HACR", "#12 AWG (25 A)", "#10 AWG (30 A)", "disconnect", "440.22, 440.32", "never above MOCP"),
+    ("Well pump 240V", "motor circuit", "20 A 2-pole (common)", "#14 AWG short runs", "-", "hardwired", "Article 430", "long runs: check VD"),
+    ("Subpanel 60 A", "120/240V feeder", "60 A 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "4-wire feeder", "215.2, 250.32", "detached: ground rods"),
+    ("Subpanel 100 A", "120/240V feeder", "100 A 2-pole", "#3 AWG (100 A)", "#1 AWG (100 A)", "4-wire feeder", "215.2, 250.32", "VD over ~75 ft"),
+    ("Service 100 A dwelling", "120/240V, 310.12", "100 A main", "#4 AWG (83 A needed)", "#2 AWG (90 A)", "service", "310.12 (83%)", "dwelling only"),
+    ("Service 200 A dwelling", "120/240V, 310.12", "200 A main", "2/0 AWG (166 A needed)", "4/0 AWG (180 A)", "service", "310.12 (83%)", "dwelling only"),
+]
 
 CHOICES = {
     1: ["°C", "°F"],
@@ -130,6 +254,7 @@ CHOICES = {
     4: ["K factor", "Table 8 R"],
     5: ["No", "Yes"],
     6: ["60°C", "75°C", "90°C"],
+    7: [b[0] for b in BOXES],
     8: ["not given", "60°C", "75°C", "90°C"],
     9: ["Raceway/cable", "Free air"],
     10: [s + (" kcmil" if i >= 15 else " AWG") for i, s in enumerate(SIZES)],
@@ -140,6 +265,14 @@ CHOICES = {
     15: ["THHN, THWN", "XHHW, XHH", "TW, THW", "RHW no jkt", "FEP, FEPB"],
     16: [s + (" kcmil" if i >= 13 else " AWG") for i, s in enumerate(FILL_SIZES)],
     17: BOX_SIZES,
+    18: [x[0] for x in SYSTEMS],
+    19: ["2%", "3%", "5%"],
+    20: ["EGC 250.122", "GEC 250.66"],
+    21: ["W", "kW"],
+    22: ["Custom rate"] + [x[0] for x in STATE_RATES],
+    23: [str(x) + " A" for x in STD_SIZES[:28]],
+    24: [a[0] for a in APPLIANCES],
+    25: ["NEMA " + n[0] for n in NEMA],
 }
 
 S = slot
@@ -157,70 +290,140 @@ SLOTS = [
     C(8, "Method", 4, 1, "K = 12.9 Cu / 21.2 Al, or Table 8 R"),
     S(9, "Max drop", "%", 1, 0.5, 0.5, 20, 3, "3% branch, 5% feeder + branch (note)"),
     # wire size
-    S(10, "Load amps", "A", 1, 1, 0, 100000, 40, "Load current"),
+    S(10, "Load amps", "A", 1, 1, 0, 100000, 20, "Load current"),
     C(11, "Continuous", 5, 1, "3 hours or more: wire for 125%"),
     C(12, "Material", 2, 1, "Copper or aluminum"),
     C(13, "Wire rating", 6, 2, "Insulation temperature rating"),
     C(14, "Terminals", 6, 2, "Terminal rating (60°C if 100 A or less)"),
-    S(15, "Ambient", "", 0, 1, -40, 200, 30, "Ambient temperature"),
-    S(16, "Conductors", "", 0, 1, 1, 100, 3, "Current-carrying conductors together"),
+    S(15, "Ambient", "", 0, 1, -40, 200, 30, "Ambient (unit set in the Ampacity tool)"),
+    S(16, "One-way ft", "ft", 0, 5, 0, 100000, 50, "Run length for voltage drop (0 = skip)", blank=1),
+    C(17, "System", 18, 1, "Voltage and phase"),
     # ampacity
-    C(17, "Wire size", 10, 8, "Conductor size"),
-    C(18, "Material", 2, 1, "Copper or aluminum"),
-    C(19, "Insulation", 11, 6, "Insulation type on the wire"),
-    C(20, "Installed", 9, 1, "Raceway / cable / buried, or free air"),
-    S(21, "Ambient", "", 0, 1, -40, 200, 30, "Ambient temperature"),
-    S(22, "Conductors", "", 0, 1, 1, 100, 3, "Current-carrying conductors together"),
-    C(23, "Terminals", 8, 1, "Terminal rating, if the question gives one"),
+    C(18, "Wire size", 10, 8, "Conductor size"),
+    C(19, "Material", 2, 1, "Copper or aluminum"),
+    C(20, "Insulation", 11, 6, "Insulation type on the wire"),
+    C(21, "Installed", 9, 1, "Raceway / cable / buried, or free air"),
+    S(22, "Ambient", "", 0, 1, -40, 200, 30, "Ambient temperature"),
+    S(23, "Conductors", "", 0, 1, 1, 100, 3, "Current-carrying conductors together"),
+    C(24, "Terminals", 8, 1, "Terminal rating, if the question gives one"),
     # breaker size
-    S(24, "Continuous", "A", 1, 1, 0, 100000, 16, "Continuous load, amps"),
-    S(25, "Noncontin.", "A", 1, 1, 0, 100000, 0, "Noncontinuous load, amps"),
-    C(26, "Wire size", 10, 4, "Conductor size"),
-    C(27, "Material", 2, 1, "Copper or aluminum"),
-    C(28, "Column", 6, 2, "Ampacity column (lowest rated part)"),
+    S(25, "Continuous", "A", 1, 1, 0, 100000, 16, "Continuous load, amps"),
+    S(26, "Noncontin.", "A", 1, 1, 0, 100000, 0, "Noncontinuous load, amps"),
+    C(27, "Wire size", 10, 4, "Conductor size"),
+    C(28, "Material", 2, 1, "Copper or aluminum"),
+    C(29, "Column", 6, 2, "Ampacity column (lowest rated part)"),
     # conduit fill
-    C(29, "Find", 12, 1, "How many wires fit, or the conduit size"),
-    C(30, "Conduit", 13, 1, "Raceway type"),
-    C(31, "Trade size", 14, 3, "Raceway trade size"),
-    C(32, "Insulation", 15, 1, "Insulation group (Table 5)"),
-    C(33, "Wire size", 16, 2, "Size of the main wires"),
-    S(34, "How many", "", 0, 1, 0, 1000, 9, "Number of those wires"),
-    C(35, "2nd size", 16, 2, "Size of a second group (e.g. ground)"),
-    S(36, "2nd count", "", 0, 1, 0, 1000, 0, "Number of second-group wires", blank=1),
+    C(30, "Find", 12, 1, "How many wires fit, or the conduit size"),
+    C(31, "Conduit", 13, 1, "Raceway type"),
+    C(32, "Trade size", 14, 3, "Raceway trade size"),
+    C(33, "Insulation", 15, 1, "Insulation group (Table 5)"),
+    C(34, "Wire size", 16, 2, "Size of the main wires"),
+    S(35, "How many", "", 0, 1, 0, 1000, 9, "Number of those wires"),
+    C(36, "2nd size", 16, 2, "Size of a second group (e.g. ground)"),
+    S(37, "2nd count", "", 0, 1, 0, 1000, 0, "Number of second-group wires", blank=1),
     # AWG chart
-    C(37, "Wire size", 10, 4, "Conductor size"),
-    C(38, "Material", 2, 1, "Copper or aluminum"),
-    C(39, "Insulation", 11, 18, "Insulation type"),
+    C(38, "Wire size", 10, 4, "Conductor size"),
+    C(39, "Material", 2, 1, "Copper or aluminum"),
+    C(40, "Insulation", 11, 18, "Insulation type"),
+    # feeder size
+    S(41, "Amps", "A", 0, 5, 1, 100000, 100, "Feeder or service rating, amps"),
+    C(42, "System", 18, 3, "Voltage and phase"),
+    S(43, "One-way ft", "ft", 0, 5, 1, 100000, 100, "Length, one way"),
+    C(44, "Material", 2, 1, "Copper or aluminum"),
+    C(45, "Dwelling", 5, 1, "Dwelling service/feeder: 83% (310.12)"),
+    C(46, "Max drop", 19, 2, "Allowed voltage drop"),
+    C(47, "Column", 6, 2, "Ampacity column (usually 75°C)"),
+    # ground wire
+    C(48, "Type", 20, 1, "Equipment ground or electrode conductor"),
+    S(49, "OCPD", "A", 0, 5, 1, 4000, 60, "Breaker or fuse rating ahead of circuit"),
+    C(50, "Material", 2, 1, "Ground wire material"),
+    C(51, "Service wire", 10, 15, "Largest service conductor (for the GEC)"),
+    C(52, "Service mat.", 2, 1, "Service conductor material"),
     # box fill
-    C(40, "Wire size", 17, 3, "Largest conductor in the box"),
-    S(41, "Conductors", "", 0, 1, 0, 100, 4, "Insulated wires entering (count each)"),
-    C(42, "Clamps", 5, 2, "Any internal cable clamps (count 1)"),
-    S(43, "Devices", "", 0, 1, 0, 20, 1, "Yokes: switches, receptacles (2 each)"),
-    C(44, "Grounds", 5, 2, "Any equipment grounds (count 1)"),
-    S(45, "Fittings", "", 0, 1, 0, 20, 0, "Fixture studs or hickeys (1 each)"),
-    S(46, "Box volume", "in³", 1, 0.5, 0, 1000, 18, "Box volume (0 = skip)", blank=1),
+    C(53, "Box", 7, 6, "Box from Table 314.16(A), or custom"),
+    S(54, "Custom vol.", "in³", 1, 0.5, 0, 1000, 18, "Volume when the box is Custom"),
+    C(55, "Wire size", 17, 3, "Largest conductor in the box"),
+    S(56, "Conductors", "", 0, 1, 0, 100, 4, "Insulated wires entering (count each)"),
+    C(57, "Clamps", 5, 2, "Any internal cable clamps (count 1)"),
+    S(58, "Devices", "", 0, 1, 0, 20, 1, "Yokes: switches, receptacles (2 each)"),
+    C(59, "Grounds", 5, 2, "Any equipment grounds (count 1)"),
+    S(60, "Fittings", "", 0, 1, 0, 20, 0, "Fixture studs or hickeys (1 each)"),
+    # MCA / MOCP
+    S(61, "Comp RLA", "A", 1, 0.5, 0, 10000, 18.5, "Compressor RLA (or largest motor)"),
+    S(62, "Fan FLA", "A", 1, 0.5, 0, 10000, 0.7, "Fan motor FLA (all fans added)"),
+    S(63, "Other", "A", 1, 0.5, 0, 10000, 0, "Other loads, amps"),
+    S(64, "Plate MOCP", "A", 0, 5, 0, 10000, 0, "MOCP on the nameplate (0 = work out)", blank=1),
+    # power calculator
+    S(65, "Volts", "V", -1, 1, 0, 10000000, 240, "Voltage; leave 0 if unknown", blank=2),
+    S(66, "Amps", "A", -1, 0.1, 0, 10000000, 20, "Current; leave 0 if unknown", blank=2),
+    S(67, "Ohms", "Ω", -1, 1, 0, 1000000000, 0, "Resistance; leave 0 if unknown", blank=2),
+    S(68, "Watts", "W", -1, 10, 0, 1000000000, 0, "Real power; leave 0 if unknown", blank=2),
+    S(69, "Power factor", "", 2, 0.01, 0.01, 1, 1, "PF, 1 for resistive loads"),
+    C(70, "Phase", 3, 1, "Single or three phase"),
     # Ohm's law
-    S(47, "Volts (E)", "V", -1, 1, 0, 10000000, 120, "Voltage; leave 0 if unknown", blank=2),
-    S(48, "Amps (I)", "A", -1, 0.1, 0, 10000000, 0, "Current; leave 0 if unknown", blank=2),
-    S(49, "Ohms (R)", "Ω", -1, 1, 0, 1000000000, 12, "Resistance; leave 0 if unknown", blank=2),
-    S(50, "Watts (P)", "W", -1, 10, 0, 1000000000, 0, "Power; leave 0 if unknown", blank=2),
+    S(71, "Volts (E)", "V", -1, 1, 0, 10000000, 120, "Voltage; leave 0 if unknown", blank=2),
+    S(72, "Amps (I)", "A", -1, 0.1, 0, 10000000, 0, "Current; leave 0 if unknown", blank=2),
+    S(73, "Ohms (R)", "Ω", -1, 1, 0, 1000000000, 12, "Resistance; leave 0 if unknown", blank=2),
+    S(74, "Watts (P)", "W", -1, 10, 0, 1000000000, 0, "Power; leave 0 if unknown", blank=2),
+    # kWh
+    S(75, "Power", "", -1, 10, 0, 100000000, 100, "Power of the device"),
+    C(76, "Unit", 21, 1, "Watts or kilowatts"),
+    S(77, "Hours/day", "h", 1, 0.5, 0, 24, 8, "Hours of use per day"),
+    S(78, "Days/month", "", 0, 1, 1, 31, 30, "Days of use per month"),
+    S(79, "Rate", "$/kWh", 3, 0.01, 0, 10, 0.16, "Electric rate, $ per kWh"),
+    # electricity cost
+    C(80, "State", 22, 1, "State average rate, or custom"),
+    S(81, "Rate", "$/kWh", 3, 0.01, 0, 10, 0.16, "Custom rate, $ per kWh"),
+    S(82, "kWh/month", "kWh", 0, 10, 0, 100000000, 850, "Energy used per month"),
+    # derating
+    S(83, "Base amps", "A", 0, 5, 1, 10000, 35, "Table ampacity before derating"),
+    C(84, "Column", 6, 2, "Insulation temperature column"),
+    S(85, "Ambient", "", 0, 1, -40, 200, 30, "Ambient temperature"),
+    S(86, "Conductors", "", 0, 1, 1, 100, 3, "Current-carrying conductors together"),
+    # voltage drop table
+    C(87, "System", 18, 1, "Voltage and phase"),
+    S(88, "Amps", "A", 1, 1, 0.1, 100000, 15, "Load current"),
+    C(89, "Material", 2, 1, "Copper or aluminum"),
+    C(90, "Wire size", 10, 3, "Conductor size"),
+    # breaker / wire chart
+    C(91, "Breaker", 23, 2, "Breaker size"),
+    # appliances
+    C(92, "Appliance", 24, 3, "Appliance or circuit"),
+    # NEMA
+    C(93, "Receptacle", 25, 14, "NEMA configuration"),
 ]
 
-# tools (tile 9, Learn, opens reference pages instead of a tool)
+# tools in tile order; tile 20 (Learn) opens reference pages instead
 TOOLS = [
     ("Voltage drop", "Voltage", "drop", 1, [2, 3, 4, 5, 6, 7, 8, 9]),
-    ("Wire size", "Wire", "size", 1, [10, 11, 12, 13, 14, 16, 15, 1]),
-    ("Ampacity", "Ampacity", "", 2, [17, 18, 19, 20, 21, 1, 22, 23]),
-    ("Breaker size", "Breaker", "size", 2, [24, 25, 26, 27, 28]),
-    ("Conduit fill", "Conduit", "fill", 3, [29, 30, 31, 32, 33, 34, 35, 36]),
-    ("AWG chart", "AWG", "chart", 3, [37, 38, 39]),
-    ("Box fill", "Box", "fill", 4, [40, 41, 42, 43, 44, 45, 46]),
-    ("Ohm's law", "Ohm's", "law", 4, [47, 48, 49, 50]),
+    ("Wire size", "Wire", "size", 1, [10, 11, 12, 13, 14, 15, 16, 17]),
+    ("Ampacity", "Ampacity", "310.16/17", 1, [18, 19, 20, 21, 22, 1, 23, 24]),
+    ("Breaker size", "Breaker", "size", 1, [25, 26, 27, 28, 29]),
+    ("Conduit fill", "Conduit", "fill", 2, [30, 31, 32, 33, 34, 35, 36, 37]),
+    ("AWG chart", "AWG", "chart", 2, [38, 39, 40]),
+    ("Feeder size", "Feeder", "size", 2, [41, 42, 43, 44, 45, 46, 47]),
+    ("Ground wire", "Ground", "wire", 2, [48, 49, 50, 51, 52]),
+    ("Box fill", "Box", "fill", 3, [53, 54, 55, 56, 57, 58, 59, 60]),
+    ("MCA / MOCP", "MCA /", "MOCP", 3, [61, 62, 63, 64]),
+    ("Power calculator", "Power", "calc", 3, [65, 66, 67, 68, 69, 70]),
+    ("Ohm's law", "Ohm's", "law", 3, [71, 72, 73, 74]),
+    ("kWh calculator", "kWh", "", 4, [75, 76, 77, 78, 79]),
+    ("Electricity cost", "Elec.", "cost", 4, [80, 81, 82]),
+    ("Wire derating", "Derating", "", 4, [83, 84, 85, 1, 86]),
+    ("Voltage drop table", "VD", "table", 4, [87, 88, 89, 90]),
+    ("Breaker / wire chart", "Breaker", "wire chart", 5, [91]),
+    ("Appliance circuits", "Appli-", "ances", 5, [92]),
+    ("NEMA receptacles", "NEMA", "plugs", 5, [93]),
 ]
 
 
 def check():
-    check_slots(SLOTS, TOOLS, ntools=8)
+    check_slots(SLOTS, TOOLS, ntools=19)
+    for a in APPLIANCES:
+        assert len(a) == 8 and all(len(x) <= 34 for x in a), a
+    for n in NEMA:
+        assert len(n) == 5 and len(n[3]) <= 34 and len(n[4]) <= 34, n
+    assert len(CHOICES[23]) == 28 and EGC[-1][0] == 4000
     for col in list(T16.values()) + list(T17.values()):
         assert len(col) == len(SIZES)
         nz = [a for a in col if a]
@@ -263,6 +466,35 @@ def build_block():
         "gCond:=" + pmatrix(CONDUIT) + ";",
         "gStd:=" + plist(STD_SIZES) + ";",
         "gBoxV:=" + plist(BOX_VOL) + ";",
+        "// Table 314.16(A) box volumes, in3 (first = custom)",
+        "gBoxes:=" + plist([b[1] for b in BOXES]) + ";",
+        "// systems: volts and phase",
+        "gSysV:=" + plist([s[1] for s in SYSTEMS]) + ";",
+        "gSysP:=" + plist([s[2] for s in SYSTEMS]) + ";",
+        "// Table 250.122: OCPD up to (A), Cu and Al size (index into the sizes)",
+        "gEgcA:=" + plist([e[0] for e in EGC]) + ";",
+        "gEgcCu:=" + plist([SIZES.index(e[1]) + 1 for e in EGC]) + ";",
+        "gEgcAl:=" + plist([SIZES.index(e[2]) + 1 for e in EGC]) + ";",
+        "// Table 250.66: largest service conductor up to (cmil, Cu / Al), GEC Cu / Al",
+        "gGecSc:=" + plist([g[0] for g in GEC]) + ";",
+        "gGecSa:=" + plist([g[1] for g in GEC]) + ";",
+        "gGecCu:=" + plist([SIZES.index(g[2]) + 1 for g in GEC]) + ";",
+        "gGecAl:=" + plist([SIZES.index(g[3]) + 1 for g in GEC]) + ";",
+        "// average residential rates, $/kWh (first = custom)",
+        "gRate:=" + plist([0] + [r[1] for r in STATE_RATES]) + ";",
+        "// appliance guides: circuit, breaker, copper, aluminum, outlet, NEC, note",
+        "gApC:=" + plist([a[1] for a in APPLIANCES]) + ";",
+        "gApB:=" + plist([a[2] for a in APPLIANCES]) + ";",
+        "gApCu:=" + plist([a[3] for a in APPLIANCES]) + ";",
+        "gApAl:=" + plist([a[4] for a in APPLIANCES]) + ";",
+        "gApO:=" + plist([a[5] for a in APPLIANCES]) + ";",
+        "gApN:=" + plist([a[6] for a in APPLIANCES]) + ";",
+        "gApX:=" + plist([a[7] for a in APPLIANCES]) + ";",
+        "// NEMA configurations: voltage, amps, wires, typical use",
+        "gNmV:=" + plist([n[1] for n in NEMA]) + ";",
+        "gNmA:=" + plist([n[2] for n in NEMA]) + ";",
+        "gNmW:=" + plist([n[3] for n in NEMA]) + ";",
+        "gNmU:=" + plist([n[4] for n in NEMA]) + ";",
         "",
     ]
     out += slot_functions(TOOLS, CHOICES, None, 0)
