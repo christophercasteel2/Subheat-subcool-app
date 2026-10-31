@@ -132,6 +132,9 @@ class Parser:
                 if not self.accept(","):
                     break
             self.expect(";")
+            if len(decls) > 8:
+                # the calculator stops with a syntax error at the ninth name
+                raise PPLError(f"line {line}: one LOCAL can declare at most 8 names")
             return ("local", line, decls)
         if self.accept("IF"):
             cond = self.expr()

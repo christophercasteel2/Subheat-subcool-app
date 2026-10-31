@@ -1217,7 +1217,8 @@ BEGIN
   LOCAL mx:=1;
   LOCAL ja:=0;
   LOCAL jb:=0;
-  LOCAL k, av, dv, pu, cm, tr, ts, sm, d;
+  LOCAL k, av, dv, pu, d;
+  LOCAL cm, tr, ts, sm;
   FOR k FROM 1 TO 3 DO
     IF r(k)>=10000 THEN op:=op+1; END;
     IF r(k)>r(mx) THEN mx:=k; END;
