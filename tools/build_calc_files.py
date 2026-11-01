@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -113,6 +113,30 @@ def icon_nec(path):
     im.resize((38, 38), Image.LANCZOS).save(path)
 
 
+def icon_gas(path):
+    """38 x 38 app icon: a gas flame over a pipe and the tile colours."""
+    big = 4
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+
+    def flame(cx, base, w, h, col):
+        pts = []
+        for k in range(41):
+            a = math.pi * k / 40
+            pts.append((cx - w * math.cos(a) * (1 - 0.15 * math.sin(a)), base - h * 0.42 * math.sin(a)))
+        pts += [(cx + w * 0.55, base - h * 0.62), (cx + w * 0.15, base - h * 0.78), (cx, base - h),
+                (cx - w * 0.35, base - h * 0.7), (cx - w * 0.6, base - h * 0.55)]
+        d.polygon([(x * big, y * big) for x, y in pts], fill=col)
+    flame(19, 22, 9, 19, (60, 120, 235))
+    flame(19, 22, 5.5, 12, (120, 200, 255))
+    d.rounded_rectangle([5 * big, 23.5 * big, 33 * big, 27 * big], big, fill=(170, 172, 180))
+    for k, col in enumerate([(32, 104, 206), (124, 74, 192), (214, 110, 22), (30, 142, 74), (196, 52, 52)]):
+        x = 4 + k * 6.2
+        d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
+    im.resize((38, 38), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -138,7 +162,7 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_neccalc.py"),
          note="""NECCALC - NEC calculator for electrical classes
 
-Open the app and tap a tile: voltage drop, wire size, ampacity (Table 310.16 raceway or 310.17 free air, every insulation type), breaker size, conduit fill, AWG chart, box fill, Ohm's law, and Learn (short NEC reference pages).
+Open the app and tap a tile. 19 tools, the calculators, charts and guides of electricalcalctools.com: voltage drop, wire size, ampacity (Table 310.16 raceway or 310.17 free air, every insulation type), breaker size, conduit fill, AWG chart, feeder size, ground wire, box fill, MCA / MOCP, power, Ohm's law, kWh, electricity cost, derating, voltage drop table, breaker / wire chart, appliance circuits and NEMA receptacles, plus Learn (short NEC reference pages).
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP shows the rule each tool uses.
 
@@ -148,6 +172,15 @@ Source and instructions: """ + REPO),
          note="""HVACELEC - electrical calculator for HVAC/R service
 
 Open the app and tap a tile. 20 tools: Ohm's law, power, load amps, series / parallel, amp check, 3-phase balance, capacitor test, winding check, megohm test, motor NEC sizing, motor LRA and RPM, unit MCA / MOCP, voltage drop, wire ampacity, transformer, wye / delta, electric heat, thermistor check, energy cost and unit converter.
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
+
+Source and instructions: """ + REPO),
+    dict(name="HVACGAS", icon=icon_gas,
+         test=os.path.join(ROOT, "tools", "test_hvacgas.py"),
+         note="""HVACGAS - gas heating and piping calculator for HVACR classes
+
+Open the app and tap a tile. 19 tools: gas pipe size (all 37 IFGC Table 402.4 capacity tables, natural gas and propane), pipe capacity, fitting allowance, gas load, clock the meter, manifold pressure, altitude derate, combustion air, flue gas analysis, furnace output, oil nozzle, gas pressure test, fuel cost, unit converter, copper tube, steel pipe, pipe offsets, expansion and brazing alloys, plus Learn (code and trade notes).
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
 

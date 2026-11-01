@@ -8,6 +8,7 @@ Color, touchscreen apps for HVAC/R work on the **HP Prime G1**. All of them also
 | **[HVACAIR](#hvacair-airside-tools-the-rebuilt-hvac-suite)** | The rebuilt HVAC Suite: 20 airside tools, including psychrometrics, coil capacity, furnace temperature rise, static pressure, duct sizing, fan laws, pulleys and quick loads | [`HVACAIR.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACAIR.zip) |
 | **[HVACELEC](#hvacelec-electrical-tools-for-the-hp-prime)** | 20 electrical tools: Ohm's law, motor and compressor checks, capacitor and thermistor tests, NEC wire and breaker sizing, MCA / MOCP, voltage drop and more | [`HVACELEC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACELEC.zip) |
 | **[NECCALC](#neccalc-nec-calculator-for-electrical-class)** | A study app for electrical class with every calculator, chart and guide of electricalcalctools.com (19 tools: voltage drop, wire size, ampacity for every insulation type in a raceway or free air, breaker, conduit fill, AWG, feeder, ground wire, box fill, MCA/MOCP, power, Ohm's law, kWh, cost, derating, drop table, breaker/wire chart, appliances, NEMA) plus NEC notes. Separate from HVACELEC, so you can delete it after the class | [`NECCALC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/NECCALC.zip) |
+| **[HVACGAS](#hvacgas-gas-heating-and-piping)** | Gas heating and piping for the installation and HVAC III courses: gas pipe sizing from all 37 IFGC capacity tables, combustion air, meter clocking, manifold pressure, flue gas, pressure tests, oil nozzles, copper and steel pipe data, offsets, expansion and brazing alloys | [`HVACGAS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACGAS.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
@@ -308,6 +309,39 @@ Download [`NECCALC.zip`](https://github.com/christophercasteel2/Subheat-subcool-
 
 Use the app only where your instructor allows calculators with programs or stored tables.
 
+# HVACGAS: gas heating and piping
+
+An app for the gas heating, fuel gas code and piping parts of the HVACR courses (installation, HVAC III, systems and components). It uses the same tap-a-box or type-on-the-keypad entry as the other apps, and has 19 tools plus **Learn** pages on the code rules.
+
+![Home screen](docs/screens/gas_home.png) ![Gas pipe size](docs/screens/gas_1_gas_pipe_size.png)
+
+Download [`HVACGAS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACGAS.zip), unzip it, and drag `HVACGAS.hpappdir` onto **Application Library** (or `HVACGAS.hpprgm` onto **Programs**).
+
+| Tile | What it does |
+|---|---|
+| **Pipe size** | Pick any of the 37 IFGC Table 402.4 capacity tables (natural gas or propane; Schedule 40 steel, copper, CSST, PE pipe and tubing; every inlet pressure and pressure drop), the length and the load (CFH, kBtu/h or Btu/h). It uses the table row equal to or longer than your length, converts the load with the heating value (1,000 Btu/ft³ natural gas, 2,516 propane, or yours), applies the Table A102.4 gravity factor, and gives the size, what it carries and the next size down |
+| **Pipe capacity** | Every size's capacity in one table at one length, as the code book prints it |
+| **Fitting allowance** | Equivalent length of screwed 90° and 45° ells, tees and gate valves from Appendix A Table A102.2, and the total length to size with |
+| **Gas load** | Up to six appliances: total Btu/h, kBtu/h, CFH, therms or LP gallons and pounds per hour |
+| **Clock meter** | CFH and Btu/h from the test dial and seconds, the percent of the plate input, and the seconds per revolution to aim for |
+| **Manifold pressure** | The manifold pressure that brings the clocked input to the rated input (flow follows the square root of pressure) |
+| **Altitude derate** | 4% per 1,000 ft above 2,000 ft by default (both editable) |
+| **Combustion air** | IFGC 304: required volume (standard or known-infiltration method), room volume, indoor openings, two outdoor openings (direct/vertical or horizontal ducts), one opening, louver sizes at 75% metal or 25% wood free area, and the combination factor |
+| **Flue gas analysis** | CO2, excess air, CO air-free and net stack temperature for natural gas, propane or #2 oil, with an efficiency estimate |
+| **Furnace output** | Output from input and efficiency, and airflow from the temperature rise (or the rise from the airflow) |
+| **Oil nozzle** | Firing rate, the nozzle size at 100 psi, and a nozzle's flow and input at another pump pressure |
+| **Pressure test** | IFGC 406.4: test pressure, pipe volume from Schedule 40 sizes, test duration (10 minutes or 1/2 hour per 500 ft³) and the gauge range |
+| **Fuel cost** | Cost per million Btu delivered for natural gas, propane, oil and electric (with heat pump COP) |
+| **Units** | Pressure (in w.c., psi, oz/in², in Hg, kPa, mbar), energy (Btu, therms, kWh, gas ft³, LP gallons and pounds, oil gallons) and heat rate |
+| **Copper tube** | Type K, L, M and ACR (soft and hard) dimensions, weight, volume, marking color, whether it is allowed for fuel gas, and support spacing |
+| **Steel pipe** | Schedule 40 dimensions, weight, volume, threads per inch, support spacing and a 90° ell's equivalent length |
+| **Pipe offsets** | Travel, run and cut length for 11-1/4°, 22-1/2°, 30°, 45° and 60° offsets, including rolling offsets, to the nearest 1/16 in |
+| **Expansion** | Expansion of copper (CDA coefficient), steel, PVC, CPVC, aluminum or your own coefficient |
+| **Brazing / solder** | BCuP and BAg brazing alloys and two solders: silver and phosphorus content, solidus and liquidus, and flux notes |
+| **Learn** | 14 pages: sizing gas piping, table notes, combustion air, pressure testing, valves/traps/supports, meter and manifold, flue gas, oil burners, venting, copper tube, brazing, offsets, fuels and units, furnace airflow |
+
+**Where the numbers come from.** The 37 gas pipe tables are the IFGC 2021 Tables 402.4(1)–(37), read from the [2021 Seattle Fuel Gas Code chapter 4](https://www.seattle.gov/documents/Departments/SDCI/Codes/FuelGasCode/2021SFGCChapter4.pdf), which prints the IFGC tables without changes, and checked entry by entry against the [2018 edition](https://www.seattle.gov/documents/Departments/SDCI/Codes/FuelGasCode/2018SFGCChapter4.pdf). Every value is stored as printed. A few printed entries look like code-book typos (for example 95 CFH for EHD 37 CSST at 300 ft in Table 402.4(15), and 12,000 at 400 ft for 3 in PE in Table 402.4(36)); both editions print them the same way, so the app keeps them. Table 402.4(37) says "cubic feet of gas per hour" but its values are thousands of Btu/h like the other propane tables, and the app treats it that way. The fitting lengths and gravity factors are from Appendix A, and the combustion air, testing, valve, trap and support rules from IFGC sections 304, 406, 408, 409 and 415 ([chapter 3](https://www.seattle.gov/documents/Departments/SDCI/Codes/FuelGasCode/2021SFGCChapter3.pdf), [Appendix A](https://www.seattle.gov/documents/departments/sdci/codes/fuelgascode/2021sfgcappendixa.pdf)). Copper tube dimensions and weights, the brazing alloy table and the copper expansion coefficient are from the CDA Copper Tube Handbook (A4015-14/17), checked against a mill's ASTM dimension sheet; the handbook prints BAg-34's silver as "37.0-34.0", which the app gives as 37.0-39.0. Steel weights use the ASME B36.10 formula. The expansion coefficients other than copper, the flue gas CO2 maximums and the Siegert efficiency estimate are common handbook values rather than code values, so check them against your course material. The 2018 and 2021 tables are the same; use the code edition your jurisdiction and class use.
+
 # Development
 
 ## Repository layout
@@ -320,14 +354,17 @@ calculator/               ready-to-install files (built, do not edit by hand)
   HVACELEC.hpappdir/, HVACELEC.hpprgm, HVACELEC.zip   the same for HVACELEC
   HVACAIR.hpappdir/, HVACAIR.hpprgm, HVACAIR.zip      the same for HVACAIR
   NECCALC.hpappdir/, NECCALC.hpprgm, NECCALC.zip      the same for NECCALC
+  HVACGAS.hpappdir/, HVACGAS.hpprgm, HVACGAS.zip      the same for HVACGAS
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
 hp-prime/HVACAIR.txt      HVACAIR's readable source (HP PPL)
 hp-prime/NECCALC.txt      NECCALC's readable source (HP PPL)
+hp-prime/HVACGAS.txt      HVACGAS's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
 tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
 tools/gen_nec_tables.py   builds the tool, input-box and NEC table block inside NECCALC.txt
+tools/gen_gas_tables.py   builds the tool, input-box and code table block inside HVACGAS.txt
 tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
@@ -339,10 +376,12 @@ tools/ppl_sim.py          small PPL interpreter: runs SUPERSUB, checks it, rende
 tools/test_hvacelec.py    the same for HVACELEC
 tools/test_hvacair.py     the same for HVACAIR (checked against CoolProp)
 tools/test_neccalc.py     the same for NECCALC (checked against published NEC values)
+tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
+tools/data/gas/           IFGC Table 402.4 and Appendix A tables, CDA copper tube data
 docs/screens/             screenshots made by the simulator
 ```
 
-The calculator files contain the full readable source, so you can also read and edit the programs on the calculator. To change one here, edit its file in `hp-prime/`, then rebuild with `python3 tools/build_calc_files.py`. For HVACELEC's and HVACAIR's tools, input boxes and tables, edit `tools/gen_elec_tables.py` or `tools/gen_air_tables.py` and run it first; it writes the table block into the program.
+The calculator files contain the full readable source, so you can also read and edit the programs on the calculator. To change one here, edit its file in `hp-prime/`, then rebuild with `python3 tools/build_calc_files.py`. For the tools, input boxes and tables of HVACELEC, HVACAIR, NECCALC or HVACGAS, edit its `tools/gen_*_tables.py` and run it first; it writes the table block into the program.
 
 ### Adding a refrigerant
 
