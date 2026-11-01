@@ -9,6 +9,7 @@ Color, touchscreen apps for HVAC/R work on the **HP Prime G1**. All of them also
 | **[HVACELEC](#hvacelec-electrical-tools-for-the-hp-prime)** | 20 electrical tools: Ohm's law, motor and compressor checks, capacitor and thermistor tests, NEC wire and breaker sizing, MCA / MOCP, voltage drop and more | [`HVACELEC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACELEC.zip) |
 | **[NECCALC](#neccalc-nec-calculator-for-electrical-class)** | A study app for electrical class with every calculator, chart and guide of electricalcalctools.com (19 tools: voltage drop, wire size, ampacity for every insulation type in a raceway or free air, breaker, conduit fill, AWG, feeder, ground wire, box fill, MCA/MOCP, power, Ohm's law, kWh, cost, derating, drop table, breaker/wire chart, appliances, NEMA) plus NEC notes. Separate from HVACELEC, so you can delete it after the class | [`NECCALC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/NECCALC.zip) |
 | **[HVACGAS](#hvacgas-gas-heating-and-piping)** | Gas heating and piping, set up for Arkansas: gas pipe sizing from the 2018 Arkansas Fuel Gas Code tables (plus propane reference tables), combustion air, meter clocking, manifold pressure, flue gas, pressure tests, oil nozzles, copper and steel pipe data, offsets, expansion and brazing alloys | [`HVACGAS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACGAS.zip) |
+| **[REFCYCLE](#refcycle-refrigeration-cycle-and-service)** | The refrigeration cycle from saturation temperatures or gauge pressures (enthalpy at each point, refrigeration effect, COP, mass flow), refrigerant property look-ups, compressors, walk-in box loads, the 2026 EPA leak repair and evacuation rules, and service paperwork | [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
@@ -346,6 +347,39 @@ Download [`HVACGAS.zip`](https://github.com/christophercasteel2/Subheat-subcool-
 
 **Where the numbers come from.** The capacity values are the IFGC 2018/2021 Tables 402.4, read from the [2021 Seattle Fuel Gas Code chapter 4](https://www.seattle.gov/documents/Departments/SDCI/Codes/FuelGasCode/2021SFGCChapter4.pdf), which prints the IFGC tables without changes, checked entry by entry against the [2018 edition](https://www.seattle.gov/documents/Departments/SDCI/Codes/FuelGasCode/2018SFGCChapter4.pdf) and, for the Arkansas tables, against the Arkansas code. Every value is stored as printed. A printed entry that looks like a typo (12,000 at 400 ft for 3 in PE in propane Table 402.4(36)) is kept as printed. Table 402.4(37) says "cubic feet of gas per hour" but its values are thousands of Btu/h like the other propane tables, and the app treats it that way. The fitting lengths and gravity factors are from Appendix A, and the combustion air, testing, valve, trap and support rules from the Arkansas code sections 304, 406, 408, 409 and 415. Copper tube dimensions and weights, the brazing alloy table and the copper expansion coefficient are from the CDA Copper Tube Handbook (A4015-14/17), checked against a mill's ASTM dimension sheet; the handbook prints BAg-34's silver as "37.0-34.0", which the app gives as 37.0-39.0. Steel weights use the ASME B36.10 formula. The expansion coefficients other than copper, the flue gas CO2 maximums and the Siegert efficiency estimate are common handbook values rather than code values, so check them against your course material.
 
+# REFCYCLE: refrigeration cycle and service
+
+An app for the systems and components and the service courses: "the computation of temperature-pressure relationship and related problems", commercial refrigeration loads, EPA rules and the paperwork of a service call. 19 tools plus **Learn**.
+
+![Home screen](docs/screens/cycle_home.png) ![Cycle performance](docs/screens/cycle_2_cycle_performance.png)
+
+Download [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip), unzip it, and drag `REFCYCLE.hpappdir` onto **Application Library** (or `REFCYCLE.hpprgm` onto **Programs**).
+
+| Tile | What it does |
+|---|---|
+| **Cycle points** | Refrigerant (R-22, R-410A, R-134a, R-404A, R-407C, R-32, R-507A, R-290, R-12), evaporating and condensing temperatures **or gauge pressures**, superheat, subcooling and compressor efficiency: the enthalpy of the four points of the cycle, the discharge temperature, the liquid temperature and the flash gas |
+| **Cycle perform.** | Refrigeration effect, heat of compression (and compressor kW), heat of rejection, COP and EER, lb/min for the capacity, suction CFM and compression ratio |
+| **Sat. props** | Bubble and dew pressures, glide, liquid and vapor enthalpy, latent heat, vapor volume and entropy at a temperature |
+| **Superheated** | Pressure, temperature, enthalpy, entropy and volume of superheated vapor |
+| **Capacity and flow** | Btu/h and tons from the mass flow and refrigeration effect, or the flow needed for a capacity |
+| **Comp. displace.** | Displacement and actual CFM from bore, stroke, cylinders, RPM and volumetric efficiency, and the capacity at the cycle tool's conditions |
+| **Vol. efficiency** | Compression ratio and volumetric efficiency from the clearance volume |
+| **EER COP kW/t** | Converts between EER, COP and kW per ton |
+| **Water load** | Btu/h and tons from GPM and temperature difference, GPM per ton, cooling tower range and approach |
+| **Box walls / Product load / Box equipment** | Walk-in loads: wall, ceiling and floor transmission from the R-value; product cooling, freezing and below-freezing loads; the equipment Btu/h from the daily total, safety factor and run time |
+| **EPA leak rate** | Annualizing or rolling-average leak rate (40 CFR 84.102), whether the leak repair rule applies (HFC/HFO appliances of 15 lb or more since January 1, 2026, 84.106; CFC/HCFC of 50 lb or more, 82.157; residential and light commercial A/C is excluded), the 10/20/30% limit, the 30-day repair and verification deadlines and the 125% chronic-leaker report |
+| **EPA evacuation** | The required recovery vacuum from 40 CFR 82.156 Table 1, with the appliance pressure class worked out from the liquid pressure at 104°F (82.152), small appliances, and the 0 psig and 5 psig rules |
+| **Charge record** | Refrigerant added and recovered by cylinder weights, in lb and lb-oz |
+| **Service invoice** | Labor, marked-up parts, refrigerant, trip charge, tax and total |
+| **Markup margin** | Price, profit, markup and margin from either one |
+| **Time sheet** | Hours worked from the clock times and break, regular and overtime hours for the week, and pay |
+| **Units** | Enthalpy, entropy, specific volume, capacity, pressure and mass flow in I-P and SI units |
+| **Learn** | 12 pages: the cycle, cycle numbers, the enthalpy reference, compressors, box loads, EPA leak repair for HFCs and for CFC/HCFCs, EPA records, evacuation levels, Arkansas HVACR license classes, service paperwork, water and efficiency formulas |
+
+**Where the numbers come from.** Refrigerant properties are generated from [CoolProp](http://www.coolprop.org/) (the same reference equations of state as NIST REFPROP for these refrigerants) on a grid every 5°F of saturation temperature and every 10°F of superheat, and the program interpolates with quadratics. Against CoolProp called directly, the tests find the saturation pressures within 0.002 psi and the enthalpies within 0.005 Btu/lb at random states, and whole cycles within 0.06 Btu/lb and 0.3°F. Enthalpy and entropy use the **ASHRAE reference** (0 for saturated liquid at -40°F); a P-H chart with another reference gives h values that differ by a constant, but the same refrigeration effect, heat of compression and COP. For blends, the evaporating and condensing temperatures are dew points, as on compressor ratings, and the liquid uses the bubble point at the head pressure; subcooled liquid takes the enthalpy of saturated liquid at its temperature, the usual textbook method. R-454B and the other newer blends are left out because CoolProp's models for them read about 1% off the manufacturers' tables. The EPA rules are typed from the current [eCFR](https://www.ecfr.gov/current/title-40/chapter-I/subchapter-C/part-84/subpart-C/section-84.106) text of 40 CFR 82.152, 82.156, 82.157, 84.102 and 84.106 (as of October 2026); by the 82.152 definition, R-32 (359 psia at 104°F) is a very high-pressure refrigerant. The Arkansas license classes are from the HVACR Licensing Board's rules.
+
+The program file is about 400 KB on the calculator, larger than the other apps, because of the property tables; if it is slow to open the first time, give it a few seconds.
+
 # Development
 
 ## Repository layout
@@ -359,16 +393,19 @@ calculator/               ready-to-install files (built, do not edit by hand)
   HVACAIR.hpappdir/, HVACAIR.hpprgm, HVACAIR.zip      the same for HVACAIR
   NECCALC.hpappdir/, NECCALC.hpprgm, NECCALC.zip      the same for NECCALC
   HVACGAS.hpappdir/, HVACGAS.hpprgm, HVACGAS.zip      the same for HVACGAS
+  REFCYCLE.hpappdir/, REFCYCLE.hpprgm, REFCYCLE.zip   the same for REFCYCLE
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
 hp-prime/HVACAIR.txt      HVACAIR's readable source (HP PPL)
 hp-prime/NECCALC.txt      NECCALC's readable source (HP PPL)
 hp-prime/HVACGAS.txt      HVACGAS's readable source (HP PPL)
+hp-prime/REFCYCLE.txt     REFCYCLE's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
 tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
 tools/gen_nec_tables.py   builds the tool, input-box and NEC table block inside NECCALC.txt
 tools/gen_gas_tables.py   builds the tool, input-box and code table block inside HVACGAS.txt
+tools/gen_cycle_tables.py builds the tool, input-box and refrigerant property block inside REFCYCLE.txt (needs CoolProp)
 tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
@@ -381,6 +418,7 @@ tools/test_hvacelec.py    the same for HVACELEC
 tools/test_hvacair.py     the same for HVACAIR (checked against CoolProp)
 tools/test_neccalc.py     the same for NECCALC (checked against published NEC values)
 tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
+tools/test_refcycle.py    the same for REFCYCLE (checked against CoolProp and the EPA rules)
 tools/data/gas/           IFGC Table 402.4 and Appendix A tables, CDA copper tube data
 docs/screens/             screenshots made by the simulator
 ```

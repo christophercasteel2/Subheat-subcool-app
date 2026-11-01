@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -137,6 +137,25 @@ def icon_gas(path):
     im.resize((38, 38), Image.LANCZOS).save(path)
 
 
+def icon_cycle(path):
+    """38 x 38 app icon: a pressure-enthalpy dome with the cycle drawn on it."""
+    big = 4
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    dome = [(5 + 26 * k / 40, 27 - 19 * math.sin(math.pi * k / 40) ** 0.7) for k in range(41)]
+    d.line([(x * big, y * big) for x, y in dome], fill=(150, 156, 172), width=int(1.4 * big))
+    d.line([(11 * big, 10.5 * big), (27 * big, 10.5 * big)], fill=(245, 70, 70), width=int(1.8 * big))
+    d.line([(27 * big, 10.5 * big), (33 * big, 4.5 * big)], fill=(245, 70, 70), width=int(1.8 * big))
+    d.line([(11 * big, 10.5 * big), (11 * big, 25 * big)], fill=(255, 210, 0), width=int(1.8 * big))
+    d.line([(11 * big, 25 * big), (24 * big, 25 * big)], fill=(60, 140, 240), width=int(1.8 * big))
+    d.line([(24 * big, 25 * big), (33 * big, 4.5 * big)], fill=(240, 240, 240), width=int(1.8 * big))
+    for k, col in enumerate([(32, 104, 206), (124, 74, 192), (214, 110, 22), (30, 142, 74), (196, 52, 52)]):
+        x = 4 + k * 6.2
+        d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
+    im.resize((38, 38), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -181,6 +200,15 @@ Source and instructions: """ + REPO),
          note="""HVACGAS - gas heating and piping calculator for HVACR classes
 
 Open the app and tap a tile. Set up for Arkansas (2018 Arkansas Fuel Gas Code). 19 tools: gas pipe size (the eight Arkansas Table 402.4 natural gas tables, plus IFGC propane tables as a reference), pipe capacity, fitting allowance, gas load, clock the meter, manifold pressure, altitude derate, combustion air, flue gas analysis, furnace output, oil nozzle, gas pressure test, fuel cost, unit converter, copper tube, steel pipe, pipe offsets, expansion and brazing alloys, plus Learn (code and trade notes).
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
+
+Source and instructions: """ + REPO),
+    dict(name="REFCYCLE", icon=icon_cycle,
+         test=os.path.join(ROOT, "tools", "test_refcycle.py"),
+         note="""REFCYCLE - refrigeration cycle and service calculator for HVACR classes
+
+Open the app and tap a tile. 19 tools: cycle state points and performance (R-22, R-410A, R-134a, R-404A, R-407C, R-32, R-507A, R-290, R-12; from saturation temperatures or gauge pressures), saturated and superheated properties, capacity and mass flow, compressor displacement, volumetric efficiency, EER / COP / kW per ton, water load and cooling tower, walk-in box wall, product and equipment loads, EPA leak rate (40 CFR 84.106 / 82.157), EPA evacuation levels (82.156), charge record, service invoice, markup and margin, time sheet and a unit converter, plus Learn.
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
 
