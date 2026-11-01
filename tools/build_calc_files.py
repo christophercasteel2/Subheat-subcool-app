@@ -162,7 +162,7 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_neccalc.py"),
          note="""NECCALC - NEC calculator for electrical classes
 
-Open the app and tap a tile. 19 tools, the calculators, charts and guides of electricalcalctools.com: voltage drop, wire size, ampacity (Table 310.16 raceway or 310.17 free air, every insulation type), breaker size, conduit fill, AWG chart, feeder size, ground wire, box fill, MCA / MOCP, power, Ohm's law, kWh, electricity cost, derating, voltage drop table, breaker / wire chart, appliance circuits and NEMA receptacles, plus Learn (short NEC reference pages).
+Follows the 2026 NEC as adopted in Arkansas. Open the app and tap a tile. 19 tools, the calculators, charts and guides of electricalcalctools.com: voltage drop, wire size, ampacity (Table 310.16 raceway or 310.17 free air, every insulation type), breaker size, conduit fill, AWG chart, feeder size, ground wire, box fill, MCA / MOCP, power, Ohm's law, kWh, electricity cost, derating, voltage drop table, breaker / wire chart, appliance circuits and NEMA receptacles, plus Learn (short NEC reference pages).
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP shows the rule each tool uses.
 
@@ -180,7 +180,7 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_hvacgas.py"),
          note="""HVACGAS - gas heating and piping calculator for HVACR classes
 
-Open the app and tap a tile. 19 tools: gas pipe size (all 37 IFGC Table 402.4 capacity tables, natural gas and propane), pipe capacity, fitting allowance, gas load, clock the meter, manifold pressure, altitude derate, combustion air, flue gas analysis, furnace output, oil nozzle, gas pressure test, fuel cost, unit converter, copper tube, steel pipe, pipe offsets, expansion and brazing alloys, plus Learn (code and trade notes).
+Open the app and tap a tile. Set up for Arkansas (2018 Arkansas Fuel Gas Code). 19 tools: gas pipe size (the eight Arkansas Table 402.4 natural gas tables, plus IFGC propane tables as a reference), pipe capacity, fitting allowance, gas load, clock the meter, manifold pressure, altitude derate, combustion air, flue gas analysis, furnace output, oil nozzle, gas pressure test, fuel cost, unit converter, copper tube, steel pipe, pipe offsets, expansion and brazing alloys, plus Learn (code and trade notes).
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
 

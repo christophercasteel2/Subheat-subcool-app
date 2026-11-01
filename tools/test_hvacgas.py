@@ -2,7 +2,9 @@
 """Simulator tests for hp-prime/HVACGAS.txt (gas heating and piping).
 
 The pipe sizing answers are checked against the IFGC Table 402.4 data file
-for every one of the 37 tables (every size boundary at several lengths);
+for the eight Arkansas tables (which are also compared with the printed
+2018 Arkansas Fuel Gas Code) and the propane reference tables (every size
+boundary at several lengths);
 the other tools against the code text (sections 304 and 406), the CDA
 Copper Tube Handbook values, published Schedule 40 weights and formulas
 worked out here.  The touch and keypad flow is played through, and
@@ -26,6 +28,8 @@ DATA = os.path.join(ROOT, "tools", "data", "gas")
 DIGIT = {"0": 47, "1": 42, "2": 43, "3": 44, "4": 37, "5": 38, "6": 39,
          "7": 32, "8": 33, "9": 34, ".": 48}
 PIPE = json.load(open(os.path.join(DATA, "ifgc_402_4.json"), encoding="utf-8"))["tables"]
+# the tables as printed in the 2018 Arkansas Fuel Gas Code
+ARK = json.load(open(os.path.join(DATA, "arkansas_402_4.json"), encoding="utf-8"))["tables"]
 CU = json.load(open(os.path.join(DATA, "copper_tube.json"), encoding="utf-8"))
 STEEL = ["1/8", "1/4", "3/8", "1/2", "3/4", "1", "1-1/4", "1-1/2", "2", "2-1/2", "3", "4",
          "5", "6", "8", "10", "12"]
@@ -112,27 +116,44 @@ def main():
     def val(r, label):
         return nums(r[label][0])
 
+    def tables(it):
+        """(chooser index, code table number, Arkansas?, sizes kept)"""
+        return [(k, int(n), it.g["gTAR"][k - 1] == 1, len(fn_call(it, "sizeSet", it.g["gTSz"][k - 1])))
+                for k, n in enumerate(it.g["gTNo"], 1)]
+
+    def t_arkansas(it):
+        # the chooser holds exactly the eight Arkansas tables, then propane
+        # references; each Arkansas table matches the printed Arkansas code
+        tl = tables(it)
+        ok = [n for _, n, ar, _ in tl if ar] == [2, 5, 7, 9, 12, 14, 21, 22]
+        ok &= all(not ar and PIPE[n - 1]["gas"] != "Natural" for _, n, ar, _ in tl[8:])
+        for k, n, ar, nsz in tl[:8]:
+            m = fn_call(it, "pipeTab", k)
+            rows = ARK[str(n)]
+            ok &= len(m) == len(rows) and nsz == len(rows[0]) - 1
+            for row, mrow in zip(rows, m):
+                ok &= [v or 0 for v in row[1:]] == [int(x) for x in mrow]
+        return ok
+
     def t_size(it):
         # every table: at three lengths, a load equal to each size's capacity
         # picks that size, and one more picks the next size
         bad = []
-        sizes = {}
-        for t in PIPE:
-            n = t["table"]
-            names = fn_call(it, "sizeSet", it.g["gTSz"][n - 1])
-            sizes[n] = names
+        for k, n, ar, nsz in tables(it):
+            t = PIPE[n - 1]
+            names = fn_call(it, "sizeSet", it.g["gTSz"][k - 1])
             unit = 1 if t["units"] == "CFH" else 2
             for li in (0, len(t["lengths"]) // 2, len(t["lengths"]) - 1):
                 L = t["lengths"][li]
-                caps = t["capacity"][li]
+                caps = t["capacity"][li][:nsz]
                 for j, cap in enumerate(caps):
                     if not cap:
                         continue
-                    r = calc(it, 1, v1=n, v2=L, v3=cap, v4=unit)
+                    r = calc(it, 1, v1=k, v2=L, v3=cap, v4=unit)
                     if r.get("Size", ("",))[0] != names[j]:
                         bad.append((n, L, cap, r.get("Size")))
                     later = [k for k in range(j + 1, len(caps)) if caps[k] > cap]
-                    r = calc(it, 1, v1=n, v2=L, v3=cap + 1, v4=unit)
+                    r = calc(it, 1, v1=k, v2=L, v3=cap + 1, v4=unit)
                     want = names[later[0]] if later else "none big enough"
                     if r.get("Size", ("",))[0] != want:
                         bad.append((n, L, cap + 1, r.get("Size")))
@@ -154,10 +175,12 @@ def main():
         ok &= r["SG factor"][0] == "x 0.90" and r["Size"][0] == "1-1/4 in"   # 257 x 0.9 = 231 < 240
         # propane table 402.4(28) in kBtu/h; 100 CFH of propane = 251.6 kBtu/h
         t28 = PIPE[27]
-        r = calc(it, 1, v1=28, v2=50, v3=100, v4=1)
+        lp28 = it.g["gTNo"].index(28) + 1
+        r = calc(it, 1, v1=lp28, v2=50, v3=100, v4=1)
         caps = t28["capacity"][t28["lengths"].index(50)]
         want = next(j for j, c in enumerate(caps) if c >= 251.6)
         ok &= r["Load"][0] == "251.6 kBtu/h" and r["Size"][0] == t28["sizes"][want] + " in"
+        ok &= r["Table"][1].startswith("LP ref")
         # longer than the table
         r = calc(it, 1, v2=2500)
         return ok and r["Length"][0] == "past the table"
@@ -207,6 +230,9 @@ def main():
         # 60,000 Btu/h: indoor openings 100 in2 minimum; metal louvers 75%
         r = calc(it, 8, v36=60000)
         ok &= val(r, "Indoor opngs") == 100 and r["Out direct"][1] == "each of 2, louver 20"
+        # Arkansas 304.6: no outdoor opening under 12 in2 (30,000 / 4,000 = 7.5)
+        r = calc(it, 8, v36=30000, v42=1)
+        ok &= val(r, "Out direct") == 12 and val(r, "One opening") == 12 and val(r, "Out horiz.") == 15
         # known infiltration: 0.5 ACH, 60,000 other + 40,000 fan-assisted
         r = calc(it, 8, v36=100000, v37=40000, v41=0.5)
         return ok and val(r, "Needed") == rnd(21 / 0.5 * 60 + 15 / 0.5 * 40, 0)
@@ -234,14 +260,16 @@ def main():
         # 2 psi system (not single-family): 3 psig; 2 in x 2,000 ft + 1 in x 500 ft
         r = calc(it, 12, v56=2, v57=1, v58=9, v59=2000, v60=6, v61=500)
         vol = 2.067 ** 2 * math.pi / 4 / 144 * 2000 + 1.049 ** 2 * math.pi / 4 / 144 * 500
-        # 49.6 ft3, not a single-family dwelling: 1/2 hour
-        ok = val(r, "Test pressure") == 3 and val(r, "Pipe volume") == rnd(vol, 2) and val(r, "Duration") == 30
-        # 5 psig working: 7.5 psig test; 600 ft3 of 4 in pipe: 2 x 30 min
+        # 49.6 ft3: 250 ft3 or less, so the Arkansas minimum of 15 minutes
+        ok = val(r, "Test pressure") == 3 and val(r, "Pipe volume") == rnd(vol, 2) and val(r, "Duration") == 15
+        # 5 psig working: 7.5 psig test; 600 ft3 of 4 in pipe: 1/2 hour per
+        # 500 ft3 = 36 minutes (IFGC, rounding up each 500 ft3: 60)
         L = 600 / (4.026 ** 2 * math.pi / 4 / 144)
         r = calc(it, 12, v56=5, v57=1, v58=12, v59=L)
-        ok &= val(r, "Test pressure") == 7.5 and val(r, "Duration") == 60 and val(r, "Gauge") == 37.5
+        ok &= val(r, "Test pressure") == 7.5 and val(r, "Duration") == 36 and val(r, "Gauge") == 37.5
+        ok &= r["Duration"][1].endswith("rounds up: 60")
         r = calc(it, 12, v56=5, v57=2, v58=12, v59=L)
-        return ok and val(r, "Duration") == 10
+        return ok and val(r, "Duration") == 15
 
     def t_cost(it):
         r = calc(it, 13)
@@ -301,7 +329,8 @@ def main():
                    t_expansion, t_brazing]
     names = re.findall(r'"([^"]*)"', re.search(r"gTName:=\{(.*?)\};", src).group(1))
 
-    ev = [shot("gas_home.png"), check("pipe size rules: rows, units, gravity, propane", t_size_rules)]
+    ev = [shot("gas_home.png"), check("Arkansas tables match the printed Arkansas code", t_arkansas),
+          check("pipe size rules: rows, units, gravity, propane", t_size_rules)]
     for k, fn in enumerate(tool_checks, 1):
         slug = re.sub(r"[^a-z0-9]+", "_", names[k - 1].lower()).strip("_")
         ev += [*tap(*tile(k)),
@@ -317,15 +346,15 @@ def main():
         check("Learn returns to the tiles", lambda it: it.g["gScr"] == 1 and it.g["gHome"] == 20),
         # pipe size: pick a table, type a length and a load
         *tap(*tile(1)),
-        *tap(*box(1)), ("dialog", 28),
-        check("chose Table 402.4(28)", lambda it: it.g["gV"][0] == 28),
+        *tap(*box(1)), ("dialog", 9),
+        check("chose propane Table 402.4(28)", lambda it: it.g["gV"][0] == 9 and it.g["gTNo"][8] == 28),
         KEY["right"], *keys("85"), KEY["enter"],
         check("typed the length", lambda it: it.g["gV"][1] == 85),
         *tap(*box(3)), ("dialog", 150),
         check("typed the load", lambda it: it.g["gV"][2] == 150),
         shot("gas_pipe_lp.png"),
         *tap(*menu(2)),
-        check("RESET", lambda it: it.g["gV"][0] == 2 and it.g["gV"][1] == 60),
+        check("RESET", lambda it: it.g["gV"][0] == 1 and it.g["gV"][1] == 60),
         *tap(300, 10),
         shot("gas_help_tool.png"),
         *tap(160, 120),

@@ -199,6 +199,11 @@ def main():
         ok &= val(r, "Required") == 166 and r["Use"][0] == "2/0 AWG Cu"
         r = calc(it, 7, v41=200, v43=50, v45=2, v44=2)
         ok &= r["Use"][0] == "4/0 AWG Al"
+        # 2026 NEC 310.12: no 83% sizing with 60 C wire, or outside 100-400 A
+        r = calc(it, 7, v41=200, v43=50, v45=2, v47=1)
+        ok &= val(r, "Required") == 200 and "75°C" in r["Required"][1]
+        r = calc(it, 7, v41=60, v43=50, v45=2)
+        ok &= val(r, "Required") == 60
         # a long run: 100 A, 300 ft, 2%: R <= 0.02 x 240 x 1000 / (2 x 100 x 300) = 0.08 -> 3/0 (0.0766)
         r = calc(it, 7, v43=300, v46=1)
         return ok and r["Use"][0] == "3/0 AWG Cu"

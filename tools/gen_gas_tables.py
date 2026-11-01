@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 """Write the generated block of hp-prime/HVACGAS.txt: the tool list, the
 input-box ("slot") tables and the code tables of the gas heating and
-piping calculator.
+piping calculator, set up for Arkansas.
+
+Arkansas: the 2018 Arkansas Fuel Gas Code (the 2018 IFGC with state
+amendments, Arkansas Department of Health) keeps eight of the IFGC pipe
+sizing tables, all natural gas: 402.4(2), (5), (7), (9), (12), (14), (21)
+and (22); the rest, including every CSST and propane table, are deleted
+(CSST is sized by the manufacturer's instructions, 403.5.5; LP-gas is under
+the Arkansas LP-Gas Board).  Its Table 402.4(21) has only the 1/2 - 2 in
+columns.  Every value of those eight tables was compared with the IFGC
+data below and is the same.  The IFGC propane tables for steel, copper and
+PE are kept after them, marked as a reference.
 
 Edit the tables here (or the data files they come from), then run
     python3 tools/gen_gas_tables.py
@@ -38,7 +48,24 @@ def load(name):
         return json.load(fh)
 
 
-PIPE = load("ifgc_402_4.json")["tables"]
+ALL_PIPE = load("ifgc_402_4.json")["tables"]
+AR_TABLES = [2, 5, 7, 9, 12, 14, 21, 22]          # 2018 Arkansas Fuel Gas Code
+LP_REFERENCE = [28, 30, 35, 37, 25, 26, 27, 29, 31, 36]   # IFGC propane, reference only
+AR_SIZES = {21: 6}                                 # AR Table 402.4(21): 1/2 - 2 in only
+
+
+def pick(n, ar):
+    t = json.loads(json.dumps(ALL_PIPE[n - 1]))
+    assert t["table"] == n
+    k = AR_SIZES.get(n) if ar else None
+    if k:
+        t["sizes"], t["ids"] = t["sizes"][:k], t["ids"][:k]
+        t["capacity"] = [row[:k] for row in t["capacity"]]
+    t["ar"] = ar
+    return t
+
+
+PIPE = [pick(n, True) for n in AR_TABLES] + [pick(n, False) for n in LP_REFERENCE]
 APPA = load("ifgc_appendix_a.json")
 COPPER = load("copper_tube.json")
 
@@ -67,14 +94,14 @@ MAT_TAG = {"steel": "stl", "copper": "Cu", "CSST": "CSST", "PE pipe": "PE", "PE 
 
 
 def table_label(t):
-    """short name for the table chooser, e.g. 2 NG stl 0.5wc or 13 NG Cu 2-1.5
-    (inlet - drop, psi); the result rows spell the table out"""
-    gas = "NG" if t["gas"] == "Natural" else "LP"
+    """short name for the table chooser: AR 2 stl 0.5wc for an Arkansas
+    (natural gas) table, LP 28 stl 0.5wc for a propane reference table, and
+    inlet-drop in psi for the higher pressure tables (e.g. AR 12 Cu 2-1)"""
     mat = MAT_TAG[MAT_SHORT[t["material"]]]
     drop = drop_tag(t["drop"])
     if "psi" in t["inlet"] and "<" not in short_press(t["inlet"]):
         drop = short_press(t["inlet"]).replace(" psi", "") + "-" + drop.replace("psi", "")
-    return f"{t['table']} {gas} {mat} {drop}"
+    return f"{'AR' if t['ar'] else 'LP'} {t['table']} {mat} {drop}"
 
 
 def size_labels(t):
@@ -99,7 +126,7 @@ SDR = {"PE pipe": ["SDR 9", "SDR 11", "SDR 11", "SDR 10", "SDR 11", "SDR 11", "S
 for t in PIPE:
     mat = MAT_SHORT[t["material"]]
     if mat in SDR:
-        t["sdr"] = SDR[mat]
+        t["sdr"] = SDR[mat][:len(t["sizes"])]
 
 # the intended use printed on a table, shortened to fit one result row
 USE = {3: "start at 8 in w.c. or more", 4: "start at 11 in w.c. or more",
@@ -131,7 +158,7 @@ STEEL = ["1/8", "1/4", "3/8", "1/2", "3/4", "1", "1-1/4", "1-1/2", "2", "2-1/2",
          "5", "6", "8", "10", "12"]
 STEEL_OD = [0.405, 0.540, 0.675, 0.840, 1.050, 1.315, 1.660, 1.900, 2.375, 2.875, 3.500,
             4.500, 5.563, 6.625, 8.625, 10.750, 12.750]
-STEEL_ID = [0.269, 0.364, 0.493] + [float(x) for x in PIPE[0]["ids"]]
+STEEL_ID = [0.269, 0.364, 0.493] + [float(x) for x in ALL_PIPE[0]["ids"]]
 STEEL_TPI = [27, 18, 18, 14, 14, 11.5, 11.5, 11.5, 11.5, 8, 8, 8, 8, 8, 8, 8, 8]
 # Table 415.1 support spacing, ft (0 = smaller than the table lists)
 STEEL_SUPPORT = [0, 0, 0, 6, 8, 8] + [10] * 11
@@ -236,14 +263,14 @@ C = choice_slot(CHOICES, UNITS, CONV_UNITS_MAX)
 
 SLOTS = [
     # gas pipe size
-    C(1, "Table", 1, 2, "IFGC Table 402.4( ): gas, material, drop"),
+    C(1, "Table", 1, 1, "AR Table 402.4( ), or a propane reference"),
     S(2, "Length", "ft", 0, 5, 1, 5000, 60, "Longest length (or branch length), ft"),
     S(3, "Load", "", -1, 10, 0, 100000000, 200, "Gas load of the section"),
     C(4, "Load unit", 2, 1, "Unit of the load"),
     S(5, "Heat value", "Btu/ft³", 0, 10, 0, 4000, 0, "0 = 1,000 natural / 2,516 propane", blank=3),
     S(6, "Gas SG", "", 2, 0.05, 0.35, 2.1, 0.6, "Natural gas specific gravity (0.60)"),
     # pipe capacity
-    C(7, "Table", 1, 2, "IFGC Table 402.4( ): gas, material, drop"),
+    C(7, "Table", 1, 1, "AR Table 402.4( ), or a propane reference"),
     S(8, "Length", "ft", 0, 5, 1, 5000, 60, "Length to look up, ft"),
     # fitting allowance
     C(9, "Pipe size", 4, 5, "Schedule 40 pipe size"),
@@ -369,7 +396,8 @@ TOOLS = [
 
 def check():
     check_slots(SLOTS, TOOLS, ntools=19)
-    assert len(PIPE) == 37 and [t["table"] for t in PIPE] == list(range(1, 38))
+    assert [t["table"] for t in PIPE] == AR_TABLES + LP_REFERENCE
+    assert all(t["gas"] == "Natural" for t in PIPE[:8]) and all(t["gas"] != "Natural" for t in PIPE[8:])
     for t in PIPE:
         assert len(t["capacity"]) == len(t["lengths"])
         for row in t["capacity"]:
@@ -400,8 +428,12 @@ def build_block():
     out = ["// ---- BEGIN TABLES (generated by tools/gen_gas_tables.py) ----"]
     out += slot_globals(TOOLS, SLOTS)
     out += [
-        "// IFGC Table 402.4(n): material, gas (1 natural, 2 propane), inlet pressure,",
-        "// pressure drop, units (1 CFH, 2 thousands of Btu/h), size set, length set",
+        "// pipe tables in chooser order: code table number, 1 = in the Arkansas Fuel Gas",
+        "// Code (0 = IFGC propane reference), material, gas (1 natural, 2 propane),",
+        "// inlet pressure, pressure drop, units (1 CFH, 2 thousands of Btu/h), size set,",
+        "// length set, intended use",
+        "gTNo:=" + plist([t["table"] for t in PIPE]) + ";",
+        "gTAR:=" + plist([1 if t["ar"] else 0 for t in PIPE]) + ";",
         "gTMat:=" + plist([MAT_LONG[MAT_SHORT[t["material"]]] for t in PIPE]) + ";",
         "gTGas:=" + plist([1 if t["gas"] == "Natural" else 2 for t in PIPE]) + ";",
         "gTIn:=" + plist([short_press(t["inlet"]) for t in PIPE]) + ";",
@@ -412,8 +444,8 @@ def build_block():
         "gTUse:=" + plist([USE.get(t["table"], "") for t in PIPE]) + ";",
         "// capacities: rows are the lengths, columns the sizes (0 = NA)",
     ]
-    for t in PIPE:
-        out.append(f"gP{t['table']}:=" + pmatrix(t["capacity"]) + ";")
+    for k, t in enumerate(PIPE, 1):
+        out.append(f"gP{k}:=" + pmatrix(t["capacity"]) + ";   // Table 402.4(" + str(t["table"]) + ")")
     out += [
         "// Appendix A Table A102.4: gas specific gravity and capacity multiplier",
         "gSG:=" + plist([s for s, _ in SG]) + ";",
@@ -445,9 +477,9 @@ def build_block():
         "pipeTab(n)",
         "BEGIN",
     ]
-    for t in PIPE:
-        out.append(f"  IF n=={t['table']} THEN RETURN gP{t['table']}; END;")
-    out += ["  RETURN gP2;", "END;", "", "// size names and inside diameters of size set s", "sizeSet(s)", "BEGIN"]
+    for k, t in enumerate(PIPE, 1):
+        out.append(f"  IF n=={k} THEN RETURN gP{k}; END;")
+    out += ["  RETURN gP1;", "END;", "", "// size names and inside diameters of size set s", "sizeSet(s)", "BEGIN"]
     for k, (labels, _) in enumerate(SIZE_SETS, 1):
         out.append(f"  IF s=={k} THEN RETURN {plist(list(labels))}; END;")
     out += ["  RETURN {};", "END;", "", "idSet(s)", "BEGIN"]
@@ -465,7 +497,8 @@ def build_block():
 def main():
     check()
     write_block(PROGRAM, build_block())
-    print(f"wrote {len(SLOTS)} input boxes, {len(TOOLS)} tools and {len(PIPE)} pipe tables into {PROGRAM}")
+    print(f"wrote {len(SLOTS)} input boxes, {len(TOOLS)} tools and {len(PIPE)} pipe tables "
+          f"({len(AR_TABLES)} Arkansas) into {PROGRAM}")
 
 
 if __name__ == "__main__":

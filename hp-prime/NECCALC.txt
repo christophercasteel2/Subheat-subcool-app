@@ -81,8 +81,8 @@ gApB:={"15 A 1-pole","20 A 1-pole","30 A 2-pole","50 A 2-pole","40 A 2-pole","30
 gApCu:={"#14 AWG","#12 AWG","#10 AWG (35 A at 75°C)","#6 AWG (65 A)","#8 AWG (50 A)","#10 AWG","#8 AWG","#10 AWG","#10 AWG","2 runs of #8 AWG","3 runs of #8 AWG","4 runs of #8 AWG","#6 AWG (65 A)","#6 AWG (65 A)","#12 AWG (25 A at 75°C)","#10 AWG (35 A at 75°C)","#8 AWG (50 A at 75°C)","#8 AWG (50 A at 75°C)","#6 AWG (65 A at 75°C)","#3 AWG (100 A at 75°C)","#14 or #12 AWG","#12 or #10 AWG","#10 or #8 AWG","#12 AWG (25 A)","#14 AWG short runs","#6 AWG (65 A)","#3 AWG (100 A)","#4 AWG (83 A needed)","2/0 AWG (166 A needed)"};
 gApAl:={"-","#10 AWG Al","#8 AWG (40 A)","#4 AWG (65 A)","#6 AWG (50 A)","#8 AWG","#6 AWG","#8 AWG","#8 AWG","-","-","-","#4 AWG (65 A)","#4 AWG (65 A)","#10 AWG (30 A at 75°C)","#8 AWG (40 A at 75°C)","#8 AWG (40 A at 75°C)","#6 AWG (50 A at 75°C)","#4 AWG (65 A at 75°C)","#1 AWG (100 A at 75°C)","-","-","-","#10 AWG (30 A)","-","#4 AWG (65 A)","#1 AWG (100 A)","#2 AWG (90 A)","4/0 AWG (180 A)"};
 gApO:={"5-15","5-20","14-30","14-50","14-50","hardwired","hardwired","hardwired","hardwired","hardwired","hardwired","hardwired","spa disconnect","spa disconnect","14-50 or hardwired","14-50 or hardwired","14-50 or hardwired","14-50 or hardwired","hardwired","hardwired","disconnect","disconnect","disconnect","disconnect","hardwired","4-wire feeder","4-wire feeder","service","service"};
-gApN:={"210.19, 240.4(D)","210.11(C), 210.52","220.54, 250.140","220.55, 210.19(A)(3)","220.55","422.10, nameplate","422.10, nameplate","422.13 (125%)","422.13 (125%)","422.13","422.13","422.13","Article 680","Article 680","625.40, 625.42","625.40, 625.42","625.40, 625.42","625.40, 625.42","625.40, 625.42","625.40, 625.42","440.22, 440.32","440.22, 440.32","440.22, 440.32","440.22, 440.32","Article 430","215.2, 250.32","215.2, 250.32","310.12 (83%)","310.12 (83%)"};
-gApX:={"","","dryer load 5000 W min.","8.75 kW+: 40 A min.","","","","18.75 x 1.25 = 23.4 A","22.9 x 1.25 = 28.6 A","","check the service size","check the service size","disconnect in sight, 5 ft+ away","long runs: #4 Cu","","","","","","","use plate MCA / MOCP","use plate MCA / MOCP","use plate MCA / MOCP","never above MOCP","long runs: check VD","detached: ground rods","VD over ~75 ft","dwelling only","dwelling only"};
+gApN:={"210.19, 240.4(D)","210.11(C), 210.52","120.54, 250.140","120.55, 210.19","120.55","422.10, nameplate","422.10, nameplate","422.13 (125%)","422.13 (125%)","422.13","422.13","422.13","Article 680","Article 680","625.40, 625.42","625.40, 625.42","625.40, 625.42","625.40, 625.42","625.40, 625.42","625.40, 625.42","440.22, 440.32","440.22, 440.32","440.22, 440.32","440.22, 440.32","Article 430","215.2, 250.32","215.2, 250.32","310.12 (83%)","310.12 (83%)"};
+gApX:={"","","dryer load 5000 W min.","8.75 kW+: 40 A min.","","","","18.75 x 1.25 = 23.4 A","22.9 x 1.25 = 28.6 A","","check the service size","check the service size","GFCI still required in Arkansas","long runs: #4 Cu","","","","","","","use plate MCA / MOCP","use plate MCA / MOCP","use plate MCA / MOCP","never above MOCP","long runs: check VD","detached: ground rods","VD over ~75 ft","dwelling only","dwelling only"};
 // NEMA configurations: voltage, amps, wires, typical use
 gNmV:={"125 V","125 V","125 V","125 V","125 V","250 V","250 V","250 V","250 V","125/250 V","125/250 V","125/250 V","125/250 V","125/250 V","125/250 V","250 V 3-ph","125 V","125 V","250 V","250 V","125/250 V","125/250 V","250 V 3-ph"};
 gNmA:={15,15,20,30,50,15,20,30,50,30,50,20,30,50,60,50,20,30,20,30,20,30,30};
@@ -701,9 +701,9 @@ BEGIN
     " RESET puts that tool's example values back.",
     " HELP shows the rule the tool uses.",
     "TABLES",
-    " NEC 310.12, 310.15, 310.16, 310.17, Chapter 9",
-    " Tables 1, 4, 5, 8, 240.4(D), 240.6(A), 250.66,",
-    " 250.122, 314.16 (2020/2023). Check your edition."});
+    " 2026 NEC as Arkansas adopted it (Sept 3, 2026):",
+    " 310.12, 310.15-310.17, Chapter 9, 240.4(D), 240.6,",
+    " 250.66, 250.122, 314.16, Article 120 (was 220)."});
 END;
 
 // reference page n (the Learn tile, and each tool's HELP)
@@ -824,7 +824,7 @@ BEGIN
     " Breaker: at least 125% of the continuous load",
     " (3 hours or more) plus 100% of the rest",
     " (210.20(A), 215.3).",
-    " Wire: at least the same (210.19(A)(1)).",
+    " Wire: at least the same (210.19(A)).",
     " Standard sizes 240.6(A): 15, 20, 25, 30, 35, 40,",
     " 45, 50, 60, 70, 80, 90, 100, 110, 125, 150, 175,",
     " 200, 225, 250, 300, 350, 400 ...",
@@ -845,21 +845,21 @@ BEGIN
     " The chart lists 310.16 and 310.17 ampacities for",
     " all three columns; your insulation picks one."}; END;
   IF n==11 THEN h:={
-    "GFCI (210.8): PROTECTS PEOPLE",
-    " Trips at about 5 mA leaking to ground (shock).",
-    " Dwellings: bathrooms, kitchens, garages,",
-    " outdoors, basements, crawl spaces, laundry,",
-    " within 6 ft of sinks, tubs and showers,",
-    " boathouses. Outdoor outlets 210.8(F) (A/C units).",
-    " Hot tubs and pools (680), EV chargers (625).",
-    "AFCI (210.12): PREVENTS FIRES",
-    " Detects arcing from damaged cords or loose",
-    " splices. 120 V 15/20 A circuits in kitchens,",
-    " family, dining, living rooms, bedrooms, closets,",
-    " hallways, laundry areas and similar rooms.",
-    "BOTH",
-    " Dual-function breakers do both. A GFCI does not",
-    " stop arcs; an AFCI does not stop shock."}; END;
+    "GFCI (210.8) PROTECTS PEOPLE; AFCI (210.12) FIRE",
+    " GFCI trips at about 5 mA leaking to ground.",
+    " Dwellings: baths, kitchens, garages, outdoors,",
+    " basements, crawl spaces, near sinks, tubs and",
+    " showers; 210.8(F) outdoor outlets up to 60 A",
+    " (2026). The HVAC exception ended 9/1/2026.",
+    " AFCI: 120 V 15/20 A dwelling circuits in living",
+    " areas, bedrooms, kitchens, hallways, laundry.",
+    "ARKANSAS AMENDMENTS (17 CAR 210-401)",
+    " No AFCI or GFCI required on dwelling circuits",
+    " over 130 V (240 V A/C, dryers, ranges) except",
+    " pools, spas and water (Articles 680, 682).",
+    " None for laundry areas (except outlets within",
+    " 6 ft of a sink), refrigerators or microwaves.",
+    " 120 V outdoor outlets still need GFCI."}; END;
   IF n==12 THEN h:={
     "READING A NAMEPLATE",
     " MCA  minimum circuit ampacity: the wire must",
@@ -880,14 +880,14 @@ BEGIN
     "FEEDERS AND SERVICES",
     " Feeder: 125% continuous + 100% noncontinuous",
     " (215.2(A)), the same for the breaker (215.3).",
-    "DWELLING 83% RULE (310.12)",
-    " 120/240 V dwelling service or main feeder: the",
-    " wire may carry 83% of the service rating.",
+    "DWELLING 83% RULE (310.12, 2026)",
+    " 120/240 V dwelling service or main feeder (and",
+    " 208Y/120 V feeders): 83% of the rating, only with",
+    " 75°C or higher rated wire (Table 310.12(A)).",
     "  100 A -> 83 A: 4 AWG Cu or 2 AWG Al",
     "  150 A -> 124.5 A: 1 AWG Cu or 2/0 AWG Al",
     "  200 A -> 166 A: 2/0 AWG Cu or 4/0 AWG Al",
-    " Not for subpanel feeders that carry only part of",
-    " the dwelling load.",
+    " Not for subpanels that carry only part of it.",
     "VOLTAGE DROP",
     " Size up for long runs: 3% on the feeder (2% is",
     " common practice), 5% feeder plus branch.",
@@ -961,9 +961,9 @@ BEGIN
     " Kitchen: 2 or more 20 A small appliance circuits;",
     " laundry 20 A; bathroom 20 A (210.11(C)).",
     " Water heater: 125% of the nameplate (422.13).",
-    " Dryer: 5000 W or the nameplate (220.54).",
-    " Range: Table 220.55; 8.75 kW and up needs",
-    " 40 A minimum (210.19(A)(3)).",
+    " Dryer: nameplate or 5000 W, larger (120.54).",
+    " Range: Table 120.55 (was 220.55); 8.75 kW and up",
+    " needs a 40 A minimum circuit (210.19).",
     " EV charger: continuous, 125% (625.42).",
     " A/C, heat pumps: plate MCA and MOCP (440).",
     " Hot tub: GFCI, disconnect in sight and 5 ft or",
@@ -1252,10 +1252,12 @@ BEGIN
   LOCAL dw:=gV(45)==2;
   LOCAL mx:=IFTE(gV(46)==1,2,IFTE(gV(46)==2,3,5));
   LOCAL c:=gV(47);
-  LOCAL req:=a*IFTE(gV(45)==2,0.83,1);
+  // 2026 NEC 310.12: the 83% sizing needs 75 C or higher rated wire
+  LOCAL ok83:=gV(45)==2 AND gV(47)>=2 AND gV(41)>=100 AND gV(41)<=400;
+  LOCAL req:=a*IFTE(gV(45)==2 AND gV(47)>=2 AND gV(41)>=100 AND gV(41)<=400,0.83,1);
   LOCAL ka, kv, k, pc, mt;
   mt:=IFTE(m==2," Al"," Cu");
-  addRow("Required",fmtTr(req,2)+" A",IFTE(dw,"83% of "+istr(a)+" A, 310.12","100% of "+istr(a)+" A"),cText);
+  addRow("Required",fmtTr(req,2)+" A",IFTE(ok83,"83% of "+istr(a)+" A, 310.12",IFTE(dw,"100%: 310.12 needs 75°C+, 100-400 A","100% of "+istr(a)+" A")),IFTE(dw AND NOT ok83,cWarn,cText));
   ka:=0;
   FOR k FROM IFTE(m==2,4,3) TO SIZE(gCM) DO
     IF ka==0 AND ampT(1,k,m,c)>=req-0.0001 THEN ka:=k; END;
@@ -1276,7 +1278,7 @@ BEGIN
   addRow("Use",sizeName(k)+mt,istr(ampT(1,k,m,c))+" A at "+colName(c),cSelc);
   addRow("Drop",fmtN(pc,2)+"%",fmtN(pc*gSysV(sy)/100,1)+" V of "+istr(gSysV(sy))+" V",IFTE(pc<=3,cGood,IFTE(pc<=5,cWarn,cBad)));
   addRow("EGC",egcTxt(a,m)+mt,"250.122, "+istr(a)+" A OCPD",cText);
-  IF dw AND (gSysV(sy)<>240 OR gSysP(sy)<>1) THEN addRow("Note","","310.12 covers 120/240 V dwellings",cWarn); END;
+  IF dw AND gSysP(sy)<>1 THEN addRow("Note","","310.12: 120/240 V or 208Y/120 V feeders",cWarn); END;
   RETURN 1;
 END;
 

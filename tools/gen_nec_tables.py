@@ -5,7 +5,15 @@ input-box ("slot") tables and the NEC tables of the class calculator.
 Edit the tables here, not in the program, then run
     python3 tools/gen_nec_tables.py
 
-NEC tables (2020/2023 numbering; values unchanged from the 2017 edition)
+Arkansas: the Board of Electrical Examiners adopted the 2026 NEC with
+amendments, effective September 3, 2026 (17 CAR 210-401).  Section numbers
+below follow the 2026 NEC (load calculations moved from Article 220 to
+Article 120).  The table values are unchanged from the 2017 edition, except
+that the 2026 Table 310.16 adds 60/75 C values for 16 AWG copper and a
+14 AWG copper-clad aluminum row; those are not in this program (16 AWG
+copper shows only its 90 C value), so check the code book for them.
+
+NEC tables
   310.16  ampacity, raceway / cable / earth, 18 AWG - 2000 kcmil
   310.17  ampacity, single conductors in free air
           both copied from Omnicable's reproduction of the 2017 tables
@@ -223,9 +231,9 @@ def ev_row(evse):
 APPLIANCES = [
     ("15A receptacles", "120V general outlets", "15 A 1-pole", "#14 AWG", "-", "5-15", "210.19, 240.4(D)", ""),
     ("20A receptacles", "120V kitchen, bath, garage", "20 A 1-pole", "#12 AWG", "#10 AWG Al", "5-20", "210.11(C), 210.52", ""),
-    ("Electric dryer", "240V, 4-wire", "30 A 2-pole", "#10 AWG (35 A at 75°C)", "#8 AWG (40 A)", "14-30", "220.54, 250.140", "dryer load 5000 W min."),
-    ("Range up to 12 kW", "120/240V, 4-wire", "50 A 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "14-50", "220.55, 210.19(A)(3)", "8.75 kW+: 40 A min."),
-    ("Range under 8.75 kW", "120/240V, 4-wire", "40 A 2-pole", "#8 AWG (50 A)", "#6 AWG (50 A)", "14-50", "220.55", ""),
+    ("Electric dryer", "240V, 4-wire", "30 A 2-pole", "#10 AWG (35 A at 75°C)", "#8 AWG (40 A)", "14-30", "120.54, 250.140", "dryer load 5000 W min."),
+    ("Range up to 12 kW", "120/240V, 4-wire", "50 A 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "14-50", "120.55, 210.19", "8.75 kW+: 40 A min."),
+    ("Range under 8.75 kW", "120/240V, 4-wire", "40 A 2-pole", "#8 AWG (50 A)", "#6 AWG (50 A)", "14-50", "120.55", ""),
     ("Wall oven 5-7 kW", "240V", "30 A 2-pole", "#10 AWG", "#8 AWG", "hardwired", "422.10, nameplate", ""),
     ("Cooktop 7-9 kW", "240V", "40 A 2-pole", "#8 AWG", "#6 AWG", "hardwired", "422.10, nameplate", ""),
     ("Water heater 4500W", "240V, 18.75 A", "30 A 2-pole", "#10 AWG", "#8 AWG", "hardwired", "422.13 (125%)", "18.75 x 1.25 = 23.4 A"),
@@ -233,7 +241,7 @@ APPLIANCES = [
     ("Tankless 18 kW", "240V, 2 heating circuits", "2 x 40 A 2-pole", "2 runs of #8 AWG", "-", "hardwired", "422.13", ""),
     ("Tankless 27 kW", "240V, 3 heating circuits", "3 x 40 A 2-pole", "3 runs of #8 AWG", "-", "hardwired", "422.13", "check the service size"),
     ("Tankless 36 kW", "240V, 4 heating circuits", "4 x 40 A 2-pole", "4 runs of #8 AWG", "-", "hardwired", "422.13", "check the service size"),
-    ("Hot tub 50 A", "120/240V, 4-wire", "50 A GFCI 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "spa disconnect", "Article 680", "disconnect in sight, 5 ft+ away"),
+    ("Hot tub 50 A", "120/240V, 4-wire", "50 A GFCI 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "spa disconnect", "Article 680", "GFCI still required in Arkansas"),
     ("Hot tub 60 A", "120/240V, 4-wire", "60 A GFCI 2-pole", "#6 AWG (65 A)", "#4 AWG (65 A)", "spa disconnect", "Article 680", "long runs: #4 Cu"),
     ev_row(16), ev_row(24), ev_row(32), ev_row(40), ev_row(48), ev_row(80),
     ("Mini-split 9-12k BTU", "115V or 230V", "15-20 A", "#14 or #12 AWG", "-", "disconnect", "440.22, 440.32", "use plate MCA / MOCP"),
