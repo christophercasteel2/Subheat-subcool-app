@@ -1,6 +1,6 @@
 # HP Prime HVAC apps
 
-Color, touchscreen apps for HVAC/R work on the **HP Prime G1**. All of them also run on the G2.
+Color, touchscreen apps for HVAC/R and electricity classes on the **HP Prime G1**. All of them also run on the G2.
 
 | App | What it does | Download |
 |---|---|---|
@@ -10,6 +10,7 @@ Color, touchscreen apps for HVAC/R work on the **HP Prime G1**. All of them also
 | **[NECCALC](#neccalc-nec-calculator-for-electrical-class)** | A study app for electrical class with every calculator, chart and guide of electricalcalctools.com (19 tools: voltage drop, wire size, ampacity for every insulation type in a raceway or free air, breaker, conduit fill, AWG, feeder, ground wire, box fill, MCA/MOCP, power, Ohm's law, kWh, cost, derating, drop table, breaker/wire chart, appliances, NEMA) plus NEC notes. Separate from HVACELEC, so you can delete it after the class | [`NECCALC.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/NECCALC.zip) |
 | **[HVACGAS](#hvacgas-gas-heating-and-piping)** | Gas heating and piping, set up for Arkansas: gas pipe sizing from the 2018 Arkansas Fuel Gas Code tables (plus propane reference tables), combustion air, meter clocking, manifold pressure, flue gas, pressure tests, oil nozzles, copper and steel pipe data, offsets, expansion and brazing alloys | [`HVACGAS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACGAS.zip) |
 | **[REFCYCLE](#refcycle-refrigeration-cycle-and-service)** | The refrigeration cycle from saturation temperatures or gauge pressures (enthalpy at each point, refrigeration effect, COP, mass flow), refrigerant property look-ups, compressors, walk-in box loads, the 2026 EPA leak repair and evacuation rules, and service paperwork | [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip) |
+| **[CIRCUITS](#circuits-dc-circuits-for-electricity-class)** | DC circuits for electricity class: series, parallel, series-parallel and combination circuits (RT, IT, ET and every resistor's voltage, current and power), finding an open or shorted resistor, Kirchhoff's voltage and current laws, a two-source network, Ohm's law and power, dividers, the color code and metric prefixes | [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/CIRCUITS.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
@@ -380,6 +381,32 @@ Download [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 The program file is about 400 KB on the calculator, larger than the other apps, because of the property tables; if it is slow to open the first time, give it a few seconds.
 
+# CIRCUITS: DC circuits for electricity class
+
+An app for the electricity class: the series, parallel and combination circuit problems of the homework, Kirchhoff's laws and troubleshooting. Each tool has its input boxes down the left and every answer down the right, so you can read off whatever the question asks for (RT, IT, ET, PT, or any resistor's E, I or P). 12 tools plus **Learn**.
+
+![Home screen](docs/screens/circ_home.png) ![Series-parallel](docs/screens/circ_3_series_parallel.png)
+
+Download [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/CIRCUITS.zip), unzip it, and drag `CIRCUITS.hpappdir` onto **Application Library** (or `CIRCUITS.hpprgm` onto **Programs**).
+
+| Tile | What it does |
+|---|---|
+| **Series** | Up to 7 resistors in series; give ET or IT. RT, IT, ET, PT and each resistor's voltage drop and power |
+| **Parallel** | Up to 7 resistors in parallel; RT, IT, ET, PT and each branch current and power |
+| **Series-parallel** | Two or three parallel branches of two resistors in series ((R1 + R2) ‖ (R3 + R4) ‖ (R5 + R6)): RT, ET or IT, each branch's resistance and current, and each resistor's voltage and current |
+| **Combination** | The chain R1 – (R2 ‖ R3) – R4 – (R5 ‖ R6) – R7 (a 0 leaves a resistor out): RT, IT, ET, PT and each resistor's voltage and current |
+| **Troubleshoot** | The two-branch circuit with your voltmeter readings and measured current: the normal readings, and which resistor is open or shorted (the closest match out of all of them open, shorted or OK) |
+| **KVL voltage** | Kirchhoff's voltage law: the missing voltage drop (or ET) around a loop |
+| **KCL current** | Kirchhoff's current law: the unknown current into or out of a junction, and what a negative answer means (the assumed direction was wrong) |
+| **Kirchhoff 2 sources** | Two sources, each with a resistor, feeding a middle resistor: the top node voltage and I1, I2, I3 with their directions, checked with KCL |
+| **Ohm's law** | Any two of E, I, R and P give the other two |
+| **Dividers** | Voltage divider (two in series) and current divider (two in parallel) |
+| **Color code** | 4- and 5-band resistors: value, tolerance and the lowest and highest value |
+| **Prefixes** | A value in every metric prefix, pico to giga (15 mA = 0.015 A) |
+| **Learn** | 11 pages: series, parallel, series-parallel steps, KVL, KCL, two-source networks, troubleshooting, Ohm's law and power, dividers, color code and prefixes |
+
+Answers show six significant figures (0.318644 A, 5627.11 Ω). The tests work the homework problems again with plain arithmetic: (470 + 360) ‖ (510 + 430) at 0.6 A gives RT = 440.791 Ω and I2 = 0.318644 A; the 63 V combination chain gives RT = 5627.11 Ω; the 12 V troubleshooting readings (E1 12 V, E2 0 V, E3 7 V, E4 5 V, 15 mA) give R1 open.
+
 # Development
 
 ## Repository layout
@@ -394,18 +421,21 @@ calculator/               ready-to-install files (built, do not edit by hand)
   NECCALC.hpappdir/, NECCALC.hpprgm, NECCALC.zip      the same for NECCALC
   HVACGAS.hpappdir/, HVACGAS.hpprgm, HVACGAS.zip      the same for HVACGAS
   REFCYCLE.hpappdir/, REFCYCLE.hpprgm, REFCYCLE.zip   the same for REFCYCLE
+  CIRCUITS.hpappdir/, CIRCUITS.hpprgm, CIRCUITS.zip   the same for CIRCUITS
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
 hp-prime/HVACAIR.txt      HVACAIR's readable source (HP PPL)
 hp-prime/NECCALC.txt      NECCALC's readable source (HP PPL)
 hp-prime/HVACGAS.txt      HVACGAS's readable source (HP PPL)
 hp-prime/REFCYCLE.txt     REFCYCLE's readable source (HP PPL)
+hp-prime/CIRCUITS.txt     CIRCUITS's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
 tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
 tools/gen_nec_tables.py   builds the tool, input-box and NEC table block inside NECCALC.txt
 tools/gen_gas_tables.py   builds the tool, input-box and code table block inside HVACGAS.txt
 tools/gen_cycle_tables.py builds the tool, input-box and refrigerant property block inside REFCYCLE.txt (needs CoolProp)
+tools/gen_circ_tables.py  builds the tool and input-box block inside CIRCUITS.txt
 tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
@@ -419,6 +449,7 @@ tools/test_hvacair.py     the same for HVACAIR (checked against CoolProp)
 tools/test_neccalc.py     the same for NECCALC (checked against published NEC values)
 tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
 tools/test_refcycle.py    the same for REFCYCLE (checked against CoolProp and the EPA rules)
+tools/test_circuits.py    the same for CIRCUITS (checked against the homework problems)
 tools/data/gas/           IFGC Table 402.4 and Appendix A tables, CDA copper tube data
 docs/screens/             screenshots made by the simulator
 ```

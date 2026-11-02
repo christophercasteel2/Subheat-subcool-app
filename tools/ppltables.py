@@ -50,7 +50,7 @@ def pmatrix(rows):
     return "[" + ",".join("[" + ",".join(ppl_num(v) for v in r) + "]" for r in rows) + "]"
 
 
-def check_slots(slots, tools, ntools=20):
+def check_slots(slots, tools, ntools=20, max_ins=8):
     nums = [s["num"] for s in slots]
     assert nums == list(range(1, len(slots) + 1)), "slots must be numbered 1, 2, 3, ..."
     for s in slots:
@@ -63,7 +63,7 @@ def check_slots(slots, tools, ntools=20):
     assert used == nums, "every slot belongs to a tool"
     assert len(tools) == ntools
     for t in tools:
-        assert len(t[4]) <= 8, f"{t[0]}: at most 8 input boxes fit"
+        assert len(t[4]) <= max_ins, f"{t[0]}: at most {max_ins} input boxes fit"
 
 
 def slot_globals(tools, slots):

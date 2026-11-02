@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -156,6 +156,41 @@ def icon_cycle(path):
     im.resize((38, 38), Image.LANCZOS).save(path)
 
 
+def icon_circuit(path):
+    """38 x 38 app icon: a battery, a resistor in series and two in
+    parallel."""
+    big = 4
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    wire = (236, 236, 236)
+
+    def ln(*pts, col=wire, w=1.4):
+        d.line([(x * big, y * big) for x, y in pts], fill=col, width=int(w * big), joint="curve")
+
+    def zig(p0, p1, col):
+        (x0, y0), (x1, y1) = p0, p1
+        n, a = 6, 2.4
+        nx, ny = (y1 - y0), -(x1 - x0)
+        ln_ = (nx * nx + ny * ny) ** 0.5
+        pts = [p0] + [(x0 + (x1 - x0) * (k + 0.5) / n + nx / ln_ * a * (1 if k % 2 else -1),
+                       y0 + (y1 - y0) * (k + 0.5) / n + ny / ln_ * a * (1 if k % 2 else -1))
+                      for k in range(n)] + [p1]
+        ln(*pts, col=col, w=1.5)
+
+    ln((6, 16), (6, 7), (10, 7))
+    zig((10, 7), (21, 7), (255, 210, 0))
+    ln((21, 7), (31, 7), (31, 12))
+    ln((23, 7), (23, 12))
+    zig((23, 12), (23, 25), (110, 170, 250))
+    zig((31, 12), (31, 25), (190, 150, 250))
+    ln((23, 25), (23, 31))
+    ln((31, 25), (31, 31), (6, 31), (6, 22))
+    ln((2, 16), (10, 16), col=(245, 70, 70), w=1.6)
+    ln((4, 22), (8, 22), w=2.4)
+    im.resize((38, 38), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -211,6 +246,15 @@ Source and instructions: """ + REPO),
 Open the app and tap a tile. 19 tools: cycle state points and performance (R-22, R-410A, R-134a, R-404A, R-407C, R-32, R-507A, R-290, R-12; from saturation temperatures or gauge pressures), saturated and superheated properties, capacity and mass flow, compressor displacement, volumetric efficiency, EER / COP / kW per ton, water load and cooling tower, walk-in box wall, product and equipment loads, EPA leak rate (40 CFR 84.106 / 82.157), EPA evacuation levels (82.156), charge record, service invoice, markup and margin, time sheet and a unit converter, plus Learn.
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. HELP explains each tool.
+
+Source and instructions: """ + REPO),
+    dict(name="CIRCUITS", icon=icon_circuit,
+         test=os.path.join(ROOT, "tools", "test_circuits.py"),
+         note="""CIRCUITS - DC circuit calculator for electricity classes
+
+Open the app and tap a tile. 12 tools: series, parallel, series-parallel (branches of two resistors) and combination circuits (R1 - R2||R3 - R4 - R5||R6 - R7) with RT, IT, ET, PT and every resistor's voltage, current and power; troubleshooting (which resistor is open or shorted, from voltmeter readings); Kirchhoff's voltage law; Kirchhoff's current law (with what a negative answer means); a two-source Kirchhoff network; Ohm's law and power; voltage and current dividers; the resistor color code and metric prefixes, plus Learn (formulas and rules).
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. A resistor of 0 is left out. Give ET or IT and the other is worked out. HELP shows the formulas.
 
 Source and instructions: """ + REPO),
 ]
