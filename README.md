@@ -11,10 +11,11 @@ Color, touchscreen apps for HVAC/R and electricity classes on the **HP Prime G1*
 | **[HVACGAS](#hvacgas-gas-heating-and-piping)** | Gas heating and piping, set up for Arkansas: gas pipe sizing from the 2018 Arkansas Fuel Gas Code tables (plus propane reference tables), combustion air, meter clocking, manifold pressure, flue gas, pressure tests, oil nozzles, copper and steel pipe data, offsets, expansion and brazing alloys | [`HVACGAS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/HVACGAS.zip) |
 | **[REFCYCLE](#refcycle-refrigeration-cycle-and-service)** | The refrigeration cycle from saturation temperatures or gauge pressures (enthalpy at each point, refrigeration effect, COP, mass flow), refrigerant property look-ups, compressors, walk-in box loads, the 2026 EPA leak repair and evacuation rules, and service paperwork | [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip) |
 | **[CIRCUITS](#circuits-dc-circuits-for-electricity-class)** | DC circuits for electricity class: series, parallel, series-parallel and combination circuits (RT, IT, ET and every resistor's voltage, current and power), finding an open or shorted resistor, Kirchhoff's voltage and current laws, a two-source network, Ohm's law and power, dividers, the color code and metric prefixes | [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/CIRCUITS.zip) |
+| **[GEOMETRY](#geometry-practical-plane-geometry)** | Chapter 8 of a trades math class, Practical Plane Geometry: angles in degrees-minutes-seconds, angle facts, parallel lines, perimeter and area of rectangles, squares, parallelograms, trapezoids, triangles, hexagons, L-shaped figures and circles, the Pythagorean theorem, and cost of materials. Every tool has a drawing that lights up the part you are typing | [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
-**On an Android phone:** every app is also an Android app: [SUPERSUB](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/SUPERSUB.apk) · [HVACAIR](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACAIR.apk) · [NECCALC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/NECCALC.apk) · [HVACELEC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACELEC.apk) · [HVACGAS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) · [REFCYCLE](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) · [CIRCUITS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk). See [Android apps](#android-apps).
+**On an Android phone:** the HVACR and electrical apps are also Android apps: [SUPERSUB](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/SUPERSUB.apk) · [HVACAIR](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACAIR.apk) · [NECCALC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/NECCALC.apk) · [HVACELEC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACELEC.apk) · [HVACGAS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) · [REFCYCLE](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) · [CIRCUITS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk). See [Android apps](#android-apps).
 
 # SUPERSUB: superheat and subcooling for the HP Prime
 
@@ -410,9 +411,39 @@ Download [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 Answers show six significant figures (0.318644 A, 5627.11 Ω). The tests work the homework problems again with plain arithmetic: (470 + 360) ‖ (510 + 430) at 0.6 A gives RT = 440.791 Ω and I2 = 0.318644 A; the 63 V combination chain gives RT = 5627.11 Ω; the 12 V troubleshooting readings (E1 12 V, E2 0 V, E3 7 V, E4 5 V, 15 mA) give R1 open.
 
+# GEOMETRY: practical plane geometry
+
+An app for a trades math class, covering Chapter 8, Practical Plane Geometry (angle measurement; perimeter of polygons and area of quadrilaterals; triangles, regular hexagons and irregular polygons; circles). Each tool shows its input boxes on the left, a **drawing of the figure** at the top right with the part you are typing lit up in yellow, and the answers below. A box showing **?** is the one to find. 19 tools plus **Learn** (the chapter's formulas). It is a calculator app only (no Android version).
+
+![Home screen](docs/screens/geom_home.png) ![Trapezoid](docs/screens/geom_9_trapezoid.png)
+
+Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip), unzip it, and drag `GEOMETRY.hpappdir` onto **Application Library** (or `GEOMETRY.hpprgm` onto **Programs**).
+
+| Tile | What it does |
+|---|---|
+| **Angle math** | Degrees, minutes and seconds: A + B, A − B, A × n, A ÷ n, 180° − (A + B), 90° − A, 180° − A, with carrying (109°43′ + 25°32′ = 135°15′; 14°32′48″ × 2 = 29°5′36″), the decimal degrees and the kind of angle |
+| **Angle facts** | For two crossing lines: the vertical and adjacent angles, complement, supplement, rest of 360°, and 360° ÷ n or 180° ÷ n for equally spaced bolt holes or deck pieces |
+| **Parallel lines** | Two parallel lines cut by a transversal: from one angle, all eight (corresponding, alternate interior and exterior, same-side) |
+| **Triangle angles** | The third angle from two (degrees and minutes), or the base angles of an isosceles triangle from its apex, and whether it is acute, right or obtuse |
+| **Perimeter** | Up to 8 sides; the perimeter in that unit, in feet and inches (to 1/16 in.) and in the other units |
+| **Rectangle / Square** | Area, perimeter and diagonal; or the missing side from the area (W = A ÷ L, s = √A) |
+| **Parallelogram / Trapezoid** | A = bh and A = ((b1 + b2) ÷ 2) × h, and the perimeters |
+| **Cost and material** | An area or length converted to the unit of the price (sq in, sq ft, sq yd, sq m, acres, in, ft, yd, m), waste %, the cost, bags or bundles needed, and posts at a spacing |
+| **Pythagorean** | The missing side of a right triangle (c = √(a² + b²), a = √(c² − b²)), in feet and inches too, or a check that three sides make a right triangle |
+| **Triangle area** | A = ½bh, or the base or height from the area |
+| **Triangle 3 sides** | Area from three sides (Heron's formula; the isosceles formula gives the same), perimeter, kind of triangle by sides and by angles, height and the three angles |
+| **Hexagon** | A regular hexagon from its side, across flats or across corners: area (2.598 s²), perimeter and the other two sizes |
+| **Irregular figure** | Up to three rectangles added together or cut out (an L-shaped room), and the cost per square unit |
+| **Circle** | From the radius, diameter, circumference or area: the other three, with π exact, 3.14, 3.1416 or 22/7 as the problem says |
+| **Ring** | The area between two circles (a lawn around a flowerbed) and its cost |
+| **Sector and arc** | Arc length, sector area, chord and the distance around a slice of a circle |
+| **Feet and inches** | Feet and inches to decimal feet, inches, yards and meters, and an area in sq in, sq ft, sq yd, sq m and acres |
+
+The tests (`tools/test_geometry.py`) work the chapter's examples and answers: perimeters, the rectangle, square, parallelogram and trapezoid examples, the fence ($9,888), drywall ($123.90) and driveway ($4,335) costs, the Pythagorean examples (41 ft, 17, 17.5, the 6.63 ft ladder, the 12.9 ft stairway), the triangle areas (52 in², 200 cm², 26 ft², 25.5 in²), and the preview's hexagon, L-shaped room and circle problems. The uploaded chapter ends partway through section 8-3, so the hexagon, irregular-figure and circle tools follow the chapter preview's problems and the standard formulas.
+
 # Android apps
 
-Every app also runs on an Android phone or tablet (Android 5 or newer) as its own app, with its own icon. It is the same program as on the calculator: the calculator screen at the top (tap it the same way) and the calculator's keys below it (the arrows, Enter, Esc, Del, the digits and Help, Menu, Symb, Plot and Num). Turn the phone sideways for a bigger screen. Number boxes open the phone's keyboard; choice boxes open a list. The phone's Back button works as Esc.
+Every app except GEOMETRY also runs on an Android phone or tablet (Android 5 or newer) as its own app, with its own icon. It is the same program as on the calculator: the calculator screen at the top (tap it the same way) and the calculator's keys below it (the arrows, Enter, Esc, Del, the digits and Help, Menu, Symb, Plot and Num). Turn the phone sideways for a bigger screen. Number boxes open the phone's keyboard; choice boxes open a list. The phone's Back button works as Esc.
 
 | App | Download |
 |---|---|
@@ -445,6 +476,7 @@ calculator/               ready-to-install files (built, do not edit by hand)
   HVACGAS.hpappdir/, HVACGAS.hpprgm, HVACGAS.zip      the same for HVACGAS
   REFCYCLE.hpappdir/, REFCYCLE.hpprgm, REFCYCLE.zip   the same for REFCYCLE
   CIRCUITS.hpappdir/, CIRCUITS.hpprgm, CIRCUITS.zip   the same for CIRCUITS
+  GEOMETRY.hpappdir/, GEOMETRY.hpprgm, GEOMETRY.zip   the same for GEOMETRY
 android/NAME.apk          the Android apps (built, do not edit by hand)
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
@@ -453,6 +485,7 @@ hp-prime/NECCALC.txt      NECCALC's readable source (HP PPL)
 hp-prime/HVACGAS.txt      HVACGAS's readable source (HP PPL)
 hp-prime/REFCYCLE.txt     REFCYCLE's readable source (HP PPL)
 hp-prime/CIRCUITS.txt     CIRCUITS's readable source (HP PPL)
+hp-prime/GEOMETRY.txt     GEOMETRY's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
 tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
@@ -460,6 +493,7 @@ tools/gen_nec_tables.py   builds the tool, input-box and NEC table block inside 
 tools/gen_gas_tables.py   builds the tool, input-box and code table block inside HVACGAS.txt
 tools/gen_cycle_tables.py builds the tool, input-box and refrigerant property block inside REFCYCLE.txt (needs CoolProp)
 tools/gen_circ_tables.py  builds the tool and input-box block inside CIRCUITS.txt
+tools/gen_geom_tables.py  builds the tool and input-box block inside GEOMETRY.txt
 tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
@@ -474,6 +508,7 @@ tools/test_neccalc.py     the same for NECCALC (checked against published NEC va
 tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
 tools/test_refcycle.py    the same for REFCYCLE (checked against CoolProp and the EPA rules)
 tools/test_circuits.py    the same for CIRCUITS (checked against the homework problems)
+tools/test_geometry.py    the same for GEOMETRY (checked against the textbook's examples)
 tools/ppl2js.py           translates a PPL program into JavaScript for the Android apps
 tools/android/            the Android runtime (runtime.js), page (shell.html), signing key and test drivers
 tools/build_android.py    builds android/NAME.apk (needs the Android SDK, a JDK and Node)

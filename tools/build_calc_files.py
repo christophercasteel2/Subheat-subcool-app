@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -191,6 +191,24 @@ def icon_circuit(path, size=38):
     im.resize((size, size), Image.LANCZOS).save(path)
 
 
+def icon_geometry(path, size=38):
+    """38 x 38 app icon: a right triangle on a protractor arc."""
+    big = 4 * -(-size // 38)
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    P = lambda *pts: [(x * big, y * big) for x, y in pts]  # noqa: E731
+    d.arc([5 * big, 5 * big, 33 * big, 33 * big], 180, 360, fill=(255, 210, 0), width=int(1.6 * big))
+    for k in range(7):
+        a = math.radians(180 + 30 * k)
+        d.line(P((19 + 14 * math.cos(a), 19 + 14 * math.sin(a)), (19 + 11 * math.cos(a), 19 + 11 * math.sin(a))),
+               fill=(255, 210, 0), width=int(1.2 * big))
+    d.polygon(P((7, 32), (31, 32), (7, 13)), fill=(26, 52, 80), outline=(70, 170, 240))
+    d.line(P((7, 32), (31, 32), (7, 13), (7, 32)), fill=(70, 170, 240), width=int(1.6 * big))
+    d.line(P((7, 28), (11, 28), (11, 32)), fill=(236, 236, 236), width=int(1.1 * big))
+    im.resize((size, size), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -255,6 +273,15 @@ Source and instructions: """ + REPO),
 Open the app and tap a tile. 12 tools: series, parallel, series-parallel (branches of two resistors) and combination circuits (R1 - R2||R3 - R4 - R5||R6 - R7) with RT, IT, ET, PT and every resistor's voltage, current and power; troubleshooting (which resistor is open or shorted, from voltmeter readings); Kirchhoff's voltage law; Kirchhoff's current law (with what a negative answer means); a two-source Kirchhoff network; Ohm's law and power; voltage and current dividers; the resistor color code and metric prefixes, plus Learn (formulas and rules).
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. A resistor of 0 is left out. Give ET or IT and the other is worked out. HELP shows the formulas.
+
+Source and instructions: """ + REPO),
+    dict(name="GEOMETRY", icon=icon_geometry, android=False,
+         test=os.path.join(ROOT, "tools", "test_geometry.py"),
+         note="""GEOMETRY - practical plane geometry for a trades math class (Chapter 8)
+
+Open the app and tap a tile. 19 tools, each with a drawing that lights up the part you are typing: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, perimeter, rectangle, square, parallelogram, trapezoid, cost and material, Pythagorean theorem, triangle area (base and height, or three sides), regular hexagon, irregular (L-shaped) figures, circle, ring, sector and arc, and feet and inches, plus Learn (the chapter's formulas).
+
+In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. A box showing ? is the one to find. HELP shows the formulas.
 
 Source and instructions: """ + REPO),
 ]

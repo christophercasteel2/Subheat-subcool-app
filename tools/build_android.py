@@ -209,7 +209,7 @@ def main():
     keystore()
     os.makedirs(OUT, exist_ok=True)
     for app in APPS:
-        if not names or app["name"] in names:
+        if app.get("android", True) and (not names or app["name"] in names):
             build(app)
     print(f"written to {OUT}")
 
