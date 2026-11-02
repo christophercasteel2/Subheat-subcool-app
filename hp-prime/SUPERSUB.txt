@@ -189,17 +189,18 @@ cHit:=RGB(80,70,20);
 // 32-35 suction psig, head psig, suction line, liquid line: copies of the
 //       gauge screen readings (setSlot writes them back)
 // 36 saturation temps for superheat / subcooling: exact or whole degrees
-gV:={2,63,95,75,55,10,180,53,1200,3,3,25,15,0,300,75,70,297,500,400,600,10,47.7,33,33,1,100,1,0,3,1,118,319,50,90,1};
-gSL:={"Metering","Return WB","Outdoor DB","Return DB","Supply DB","Target SC","Discharge","Supply WB","Airflow","Nominal","Liquid line","Line length","Incl. length","Mfr oz/ft","Start","Start temp","Temp now","Press. now","Vacuum","Decay start","Decay end","Decay time","Water cap.","Tare wt","Gross now","Convert","Value","From","Elevation","Tolerance","Mode","Suction","Head","SLT","LLT","Sat temps"};
-gSU:={"","°F","°F","°F","°F","°F","°F","°F","CFM","tons","","ft","ft","oz/ft","psig","°F","°F","psig","micron","micron","micron","min","lb","lb","lb","","","","ft","°F","","psig","psig","°F","°F",""};
+// 37-38 sat temp tool: saturated suction and saturated liquid temps
+gV:={2,63,95,75,55,10,180,53,1200,3,3,25,15,0,300,75,70,297,500,400,600,10,47.7,33,33,1,100,1,0,3,1,118,319,50,90,1,40,110};
+gSL:={"Metering","Return WB","Outdoor DB","Return DB","Supply DB","Target SC","Discharge","Supply WB","Airflow","Nominal","Liquid line","Line length","Incl. length","Mfr oz/ft","Start","Start temp","Temp now","Press. now","Vacuum","Decay start","Decay end","Decay time","Water cap.","Tare wt","Gross now","Convert","Value","From","Elevation","Tolerance","Mode","Suction","Head","SLT","LLT","Sat temps","Sat suction","Sat liquid"};
+gSU:={"","°F","°F","°F","°F","°F","°F","°F","CFM","tons","","ft","ft","oz/ft","psig","°F","°F","psig","micron","micron","micron","min","lb","lb","lb","","","","ft","°F","","psig","psig","°F","°F","","°F","°F"};
 // decimals shown, Up/Down step, lowest and highest value allowed
-gSD:={0,1,1,1,1,1,0,1,0,1,0,0,0,2,0,0,0,0,0,0,0,0,1,1,1,0,2,0,0,0,0,1,1,1,1,0};
-gSS:={1,1,1,1,1,1,5,1,25,0.5,1,1,1,0.05,5,1,1,1,50,50,50,1,0.5,0.5,0.5,1,1,1,100,1,1,1,1,1,1,1};
-gSLo:={1,20,-20,30,20,0,0,20,0,0.5,1,0,0,0,0,-40,-40,-14,1,1,1,0.1,1,0,0,1,-1000000,1,-1000,1,1,-14,-14,-60,-60,1};
-gSHi:={2,90,130,120,100,40,350,90,20000,100,5,500,100,5,1000,150,150,1000,30000,30000,30000,600,1000,1000,2000,6,1000000000,7,15000,10,2,700,900,200,200,2};
+gSD:={0,1,1,1,1,1,0,1,0,1,0,0,0,2,0,0,0,0,0,0,0,0,1,1,1,0,2,0,0,0,0,1,1,1,1,0,1,1};
+gSS:={1,1,1,1,1,1,5,1,25,0.5,1,1,1,0.05,5,1,1,1,50,50,50,1,0.5,0.5,0.5,1,1,1,100,1,1,1,1,1,1,1,1,1};
+gSLo:={1,20,-20,30,20,0,0,20,0,0.5,1,0,0,0,0,-40,-40,-14,1,1,1,0.1,1,0,0,1,-1000000,1,-1000,1,1,-14,-14,-60,-60,1,-60,-60};
+gSHi:={2,90,130,120,100,40,350,90,20000,100,5,500,100,5,1000,150,150,1000,30000,30000,30000,600,1000,1000,2000,6,1000000000,7,15000,10,2,700,900,200,200,2,200,200};
 // choice list for a slot (see choiceList), 0 = a number
-gSC:={1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,4,0,0,5,0,0,0,0,6};
-gTName:={"Full check","Charge check","System check","Capacity check","Line set charge","Nitrogen test","Vacuum / evacuation","Recovery cylinder","Refrigerant info","Unit converter","Settings","Help"};
+gSC:={1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,4,0,0,5,0,0,0,0,6,0,0};
+gTName:={"Full check","Charge check","System check","Capacity check","Line set charge","Nitrogen test","Vacuum / evacuation","Recovery cylinder","Refrigerant info","Unit converter","Settings","Sat temp SH/SC","Help"};
 
 // ================= number formatting =================
 
@@ -835,7 +836,9 @@ BEGIN
     "High side (head / liquid) gauge, psig",
     "Suction line temp at the service valve",
     "Liquid line temp at the service valve",
-    "Whole °F reads like a printed P-T chart"};
+    "Whole °F reads like a printed P-T chart",
+    "Saturation temp at the suction (evaporator)",
+    "Saturation temp at the liquid line (condenser)"};
   RETURN h(s);
 END;
 
@@ -918,7 +921,7 @@ BEGIN
     " Num: P-T chart   Menu: TOOLS   Esc: quit",
     "TOOLS",
     " Full check (all readings at once), charge,",
-    " system, capacity, line set, nitrogen, vacuum ...",
+    " system, ... Sat temp SH/SC: from sat temps.",
     " Tap a box to change it. HELP explains each tool.",
     "HOW IT IS FIGURED",
     " Superheat = suction line temp - DEW temp",
@@ -1052,6 +1055,18 @@ BEGIN
     " a printed P-T chart is read. Use it when a test's",
     " answers come from a chart. Superheat, subcool and",
     " the checks use it; the P-T chart screen is exact."}; END;
+  IF t==12 THEN h:={
+    "WHEN YOU ALREADY KNOW THE SAT TEMPS",
+    " Type the saturation temperatures (from the",
+    " question or a P-T chart) and the line temps.",
+    " Superheat = suction line temp - sat suction temp",
+    " Subcool   = sat liquid temp - liquid line temp",
+    " Example: sat 110°F, LLT 100°F: subcool 10°F.",
+    " No pressures are used, so nothing is rounded.",
+    "PRESSURES",
+    " Listed for the chosen refrigerant: the suction",
+    " at the dew point, the head at the bubble point.",
+    " SLT and LLT are the gauge screen's readings."}; END;
   showText(gTName(t),h);
 END;
 
@@ -1080,16 +1095,27 @@ BEGIN
   END;
 END;
 
+// one pressure per temperature when the refrigerant has no glide
+noGlide()
+BEGIN
+  RETURN ABS(psat(gRef,40,1)-psat(gRef,40,0))<0.05;
+END;
+
 drawPT()
 BEGIN
   LOCAL k, t, y, c;
+  LOCAL one:=noGlide();
   RECT_P(G1,0,0,319,239,cBg);
   drawTitle(IFTE(gV(29)==0,"P-T CHART  psig","P-T psig @ "+istr(gV(29))+" ft"));
   RECT_P(G1,0,22,319,37,cPanel);
-  rtext("°F",40,25,1,cDim);
+  rtext("SAT °F",40,25,1,cDim);
   rtext("°C",92,25,1,cDim);
-  rtext("LIQUID (bubble)",196,25,1,cDim);
-  rtext("VAPOR (dew)",296,25,1,cDim);
+  IF one THEN
+    rtext("PRESSURE psig",240,25,1,cDim);
+  ELSE
+    rtext("LIQUID psig (SC)",196,25,1,cDim);
+    rtext("VAPOR psig (SH)",296,25,1,cDim);
+  END;
   FOR k FROM 0 TO gRows-1 DO
     t:=gPTTop+k*gPTStep;
     y:=38+k*16;
@@ -1102,8 +1128,12 @@ BEGIN
     END;
     rtext(istr(t),40,y+2,2,c);
     rtext(fmt1((t-32)*5/9),92,y+2,2,cDim);
-    ptCell(psat(gRef,t,1),180,y+2,c);
-    ptCell(psat(gRef,t,0),280,y+2,c);
+    IF one THEN
+      ptCell(psat(gRef,t,0),224,y+2,c);
+    ELSE
+      ptCell(psat(gRef,t,1),180,y+2,c);
+      ptCell(psat(gRef,t,0),280,y+2,c);
+    END;
   END;
   drawMenu({"REFRIG","STEP "+istr(gPTStep)+"°","LOOK UP","GAUGES","TOOLS"});
   BLIT_P(G0,G1);
@@ -1121,7 +1151,11 @@ BEGIN
       IF TYPE(v)==0 THEN
         gFindT:=v;
         gFindB:=v;
-        MSGBOX(gRName(gRef)+" at "+fmt1(v)+"°F"+nl+"Liquid (bubble): "+fmtP(psat(gRef,v,1))+nl+"Vapor (dew): "+fmtP(psat(gRef,v,0)));
+        IF noGlide() THEN
+          MSGBOX(gRName(gRef)+" saturated at "+fmt1(v)+"°F"+nl+"Pressure: "+fmtP(psat(gRef,v,0)));
+        ELSE
+          MSGBOX(gRName(gRef)+" saturated at "+fmt1(v)+"°F"+nl+"Liquid (bubble, for subcool): "+fmtP(psat(gRef,v,1))+nl+"Vapor (dew, for superheat): "+fmtP(psat(gRef,v,0)));
+        END;
       END;
     END;
   ELSE
@@ -1177,13 +1211,14 @@ BEGIN
   IF t==8 THEN RETURN {23,24,25}; END;
   IF t==10 THEN RETURN {26,28,27}; END;
   IF t==11 THEN RETURN {29,30,36}; END;
+  IF t==12 THEN RETURN {37,34,38,35}; END;
   RETURN {};
 END;
 
 // tools whose answer depends on the refrigerant
 toolRef(t)
 BEGIN
-  RETURN t==1 OR t==2 OR t==3 OR t==5 OR t==8 OR t==9;
+  RETURN t==1 OR t==2 OR t==3 OR t==5 OR t==8 OR t==9 OR t==12;
 END;
 
 hilo(v,lo,hi)
@@ -1547,6 +1582,34 @@ BEGIN
   RETURN 1;
 END;
 
+// superheat and subcooling straight from saturation temperatures, the
+// way a test question gives them: no pressures are needed.  The pressures
+// at those saturation temperatures are listed too (dew for the suction,
+// bubble for the liquid line).
+calcSat()
+BEGIN
+  LOCAL es:=gV(37);
+  LOCAL ls:=gV(38);
+  LOCAL sh:=gST-es;
+  LOCAL sc:=ls-gLT;
+  addRow("Superheat",fmt1(sh)+"°F","SLT "+fmt1(gST)+" - sat "+fmt1(es),IFTE(sh<0,cBad,cSelc));
+  addRow("Subcooling",fmt1(sc)+"°F","sat "+fmt1(ls)+" - LLT "+fmt1(gLT),IFTE(sc<0,cBad,cSelc));
+  IF sh<0 THEN addRow("","SLT below sat temp: check","",cWarn); END;
+  IF sc<0 THEN addRow("","LLT above sat temp: check","",cWarn); END;
+  IF inRange(es) THEN
+    addRow("Suction",fmtP(psat(gRef,es,0)),"at "+fmt1(es)+"°F (dew)",cText);
+  ELSE
+    addRow("Suction","off the chart","",cDim);
+  END;
+  IF inRange(ls) THEN
+    addRow("Head",fmtP(psat(gRef,ls,1)),"at "+fmt1(ls)+"°F (bubble)",cText);
+  ELSE
+    addRow("Head","off the chart","",cDim);
+  END;
+  addRow("","SH = SLT - sat   SC = sat - LLT","",cDim);
+  RETURN 1;
+END;
+
 toolCalc(t)
 BEGIN
   clearRows();
@@ -1561,6 +1624,7 @@ BEGIN
   IF t==9 THEN calcInfo(); END;
   IF t==10 THEN calcConv(); END;
   IF t==11 THEN calcSet(); END;
+  IF t==12 THEN calcSat(); END;
 END;
 
 drawTool()

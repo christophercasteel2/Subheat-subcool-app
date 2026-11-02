@@ -923,11 +923,26 @@ def tool_events(out, check, ref, fn_call):
         fn_call(it, "setAtm")
         return ok
 
+    def sat_method(it):
+        # a test question: sat 110 F and LLT 100 F give 10 F of subcooling;
+        # sat 40 F and SLT 52 F give 12 F of superheat; no pressures used
+        set_state(it, "R-410A", gST=52, gLT=100, v37=40, v38=110)
+        r = calc(it, 12)
+        ok = r["Superheat"][0] == "12.0°F" and r["Subcooling"][0] == "10.0°F"
+        p_dew = CP.PropsSI("P", "T", f2k(40), "Q", 1, "R410A") / 6894.757 - 14.696
+        p_bub = CP.PropsSI("P", "T", f2k(110), "Q", 0, "R410A") / 6894.757 - 14.696
+        ok &= abs(num(r["Suction"][0]) - p_dew) < 0.15 and abs(num(r["Head"][0]) - p_bub) < 0.15
+        set_state(it, "R-22", gST=35.5, gLT=96.4, v37=38.2, v38=104.9)
+        r = calc(it, 12)
+        ok &= r["Superheat"][0] == "-2.7°F" and r["Subcooling"][0] == "8.5°F"
+        set_state(it, "R-410A", gLP=118, gHP=319, gST=50, gLT=90, v37=40, v38=110)
+        return ok
+
     def every_refrigerant(it):
         names = re.search(r'gRName:=\{(.*?)\};', it.src).group(1).replace('"', "").split(",")
         for n in names:
             set_state(it, n, gLP=60, gHP=200, gST=50, gLT=90)
-            for tool in range(1, 12):
+            for tool in range(1, 13):
                 fn_call(it, "toolCalc", float(tool))
                 if not it.g["gRL"]:
                     return False
@@ -951,6 +966,7 @@ def tool_events(out, check, ref, fn_call):
         check("refrigerant info: class, GWP, glide", info),
         check("unit converter: pressure, temperature, capacity", converter),
         check("settings: altitude correction", settings),
+        check("sat temp SH/SC: straight from saturation temps", sat_method),
         check("every tool runs for every refrigerant", every_refrigerant),
         # drive the screens: TOOLS button, pick a tool, edit boxes
         *tap(2 * 64 + 30, 230), ("dialog", 2),
@@ -974,6 +990,18 @@ def tool_events(out, check, ref, fn_call):
         *tap(2 * 64 + 30, 230), ("dialog", 9), shot("tool_info.png"),
         *tap(2 * 64 + 30, 230), ("dialog", 10), shot("tool_converter.png"),
         *tap(2 * 64 + 30, 230), ("dialog", 11), shot("tool_settings.png"),
+        *tap(2 * 64 + 30, 230), ("dialog", 12),
+        *tap(100, 24 + 8), ("dialog", 110),
+        check("sat temp tool: type sat suction", lambda it: it.g["gV"][36] == 110 and it.g["gTool"] == 12),
+        *tap(100, 24 + 8), ("dialog", 40),
+        *tap(100, 44 + 8), ("dialog", 110),
+        *tap(260, 44 + 8), ("dialog", 100),
+        check("sat temp tool: LLT box moves the gauge screen reading", lambda it: it.g["gLT"] == 100),
+        check("sat temp tool: 110 - 100 = 10 F subcooling", lambda it: it.g["gRV"][1] == "10.0°F"),
+        shot("tool_sat.png"),
+        *tap(4 * 64 + 30, 230),
+        shot("tool_sat_help.png"),
+        KEY["enter"],
         *tap(2 * 64 + 30, 230), ("dialog", 1),
         *tap(100, 24 + 1 * 21 + 8), ("dialog", 121),
         check("full check: typing suction moves the gauge", lambda it: it.g["gLP"] == 121 and it.g["gTool"] == 1),
