@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#12141c">
+<title>{{TITLE}}</title>
+<style>
+@font-face { font-family: PPLSans; src: url(data:font/ttf;base64,{{FONT}}) format("truetype"); }
+:root {
+  --bg: #12141c; --panel: #222632; --key: #343a4c; --key2: #2a2f3e; --edge: #5a6278;
+  --text: #ececec; --dim: #969cac; --sel: #ffd200; --enter: #1f6fd0;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font-family: Roboto, "Segoe UI", Arial, sans-serif; overflow: hidden;
+  -webkit-user-select: none; user-select: none; touch-action: none; }
+#app { display: flex; flex-direction: column; height: 100%; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+#scr { display: block; width: min(100vw, 76vh); aspect-ratio: 4 / 3; margin: 0 auto; background: #000;
+  image-rendering: auto; touch-action: none; }
+#pad { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: 6px;
+  padding: 8px; width: min(100vw, 560px); margin: 0 auto; min-height: 0; }
+#pad button { border: 0; border-radius: 9px; background: var(--key); color: var(--text);
+  font: 500 clamp(13px, 4.2vw, 21px) Roboto, Arial, sans-serif; padding: 0; min-height: 0; touch-action: none; }
+#pad button.fn { background: var(--key2); color: var(--dim); font-size: clamp(11px, 3.4vw, 17px); }
+#pad button.ar { background: #2c3550; }
+#pad button.en { background: var(--enter); font-weight: 700; }
+#pad button.dn { filter: brightness(1.6); }
+@media (orientation: landscape) {
+  #app { flex-direction: row; }
+  #scr { height: min(100%, 47vw); width: auto; margin: auto 0 auto auto; }
+  #pad { width: auto; flex: 1; max-width: 420px; margin: auto; height: min(100%, 420px); }
+}
+#ov { position: fixed; inset: 0; background: rgba(6, 8, 12, .72); display: none; align-items: center;
+  justify-content: center; padding: 14px; z-index: 5; }
+#ov.on { display: flex; }
+#box { background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; width: min(100%, 460px);
+  max-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+#box h2 { margin: 0; padding: 12px 16px; font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--edge); }
+#body { padding: 12px 16px; overflow-y: auto; touch-action: pan-y; }
+#body p { margin: 0 0 8px; color: var(--dim); font-size: 15px; white-space: pre-wrap; }
+#body p.msg { color: var(--text); font-size: 17px; }
+#body label { display: block; margin-bottom: 6px; font-size: 16px; }
+#body input { width: 100%; font-size: 22px; padding: 10px; border-radius: 8px; border: 1px solid var(--edge);
+  background: #12141c; color: var(--text); -webkit-user-select: text; user-select: text; }
+.item { display: block; width: 100%; text-align: left; padding: 12px 12px; margin: 0 0 4px; border: 0;
+  border-radius: 8px; background: var(--key2); color: var(--text); font-size: 17px; }
+.item.cur { outline: 2px solid var(--sel); }
+#btns { display: flex; gap: 8px; padding: 10px 16px 14px; justify-content: flex-end; }
+#btns button { border: 0; border-radius: 8px; padding: 11px 18px; font-size: 16px; background: var(--key); color: var(--text); }
+#btns button.ok { background: var(--enter); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="scr" width="320" height="240"></canvas>
+  <div id="pad"></div>
+</div>
+<div id="ov"><div id="box"><h2 id="ttl"></h2><div id="body"></div><div id="btns"></div></div></div>
+<script>
+{{RUNTIME}}
+</script>
+<script>
+{{PROGRAM}}
+</script>
+<script>
+"use strict";
+(function () {
+  // calculator key codes
+  const KEYS = [
+    ["Help", 3, "fn"], ["Symb", 1, "fn"], ["Plot", 6, "fn"], ["Num", 11, "fn"], ["Menu", 13, "fn"],
+    ["Esc", 4, "fn"], ["◀", 7, "ar"], ["▲", 2, "ar"], ["▼", 12, "ar"], ["▶", 8, "ar"],
+    ["7", 32], ["8", 33], ["9", 34], ["Del", 19, "fn"], ["−", 45],
+    ["4", 37], ["5", 38], ["6", 39], [".", 48], ["+", 50],
+    ["1", 42], ["2", 43], ["3", 44], ["0", 47], ["Enter", 30, "en"],
+  ];
+  const REPEAT = new Set([2, 12, 7, 8, 19]);
+  const scr = document.getElementById("scr");
+  const dpr = window.devicePixelRatio || 1;
+  const S = Math.max(2, Math.min(6, Math.ceil(Math.max(screen.width, screen.height) * dpr / 320)));
+  scr.width = 320 * S;
+  scr.height = 240 * S;
+
+  // ---- events for WAIT ----
+  const queue = [];
+  let waiter = null;
+  let dialogOpen = false;
+  function push(ev) {
+    if (dialogOpen) return;
+    if (waiter) { const w = waiter; waiter = null; w(ev); return; }
+    // a run of finger moves only needs the latest one
+    if (Array.isArray(ev) && ev[0] === 1 && queue.length && Array.isArray(queue[queue.length - 1]) &&
+        queue[queue.length - 1][0] === 1) queue[queue.length - 1] = ev;
+    else queue.push(ev);
+  }
+  function nextEvent() {
+    if (queue.length) return Promise.resolve(queue.shift());
+    return new Promise((res) => { waiter = res; });
+  }
+
+  // ---- touch on the screen: down, moves, up, then a click if it did not drag ----
+  let down = null;
+  function pos(e) {
+    const r = scr.getBoundingClientRect();
+    return [Math.max(0, Math.min(319, Math.floor((e.clientX - r.left) * 320 / r.width))),
+            Math.max(0, Math.min(239, Math.floor((e.clientY - r.top) * 240 / r.height)))];
+  }
+  scr.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    scr.setPointerCapture(e.pointerId);
+    const p = pos(e);
+    down = { p, moved: false };
+    push([0, p[0], p[1]]);
+  });
+  scr.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    const p = pos(e);
+    if (!down.moved && Math.abs(p[0] - down.p[0]) + Math.abs(p[1] - down.p[1]) < 6) return;
+    down.moved = true;
+    push([1, p[0], p[1]]);
+  });
+  function up(e) {
+    if (!down) return;
+    const d = down;
+    down = null;
+    push([2]);
+    if (!d.moved) push([3, d.p[0], d.p[1]]);
+  }
+  scr.addEventListener("pointerup", up);
+  scr.addEventListener("pointercancel", () => { if (down) { down = null; push([2]); } });
+
+  // ---- keypad ----
+  const pad = document.getElementById("pad");
+  for (const [label, code, cls] of KEYS) {
+    const b = document.createElement("button");
+    b.textContent = label;
+    if (cls) b.className = cls;
+    let timer = null;
+    const stop = () => { clearTimeout(timer); clearInterval(timer); timer = null; b.classList.remove("dn"); };
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      b.classList.add("dn");
+      push(code);
+      if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) {}
+      if (REPEAT.has(code)) timer = setTimeout(() => { timer = setInterval(() => push(code), 90); }, 450);
+    });
+    b.addEventListener("pointerup", stop);
+    b.addEventListener("pointerleave", stop);
+    b.addEventListener("pointercancel", stop);
+    pad.appendChild(b);
+  }
+  const KBD = { ArrowUp: 2, ArrowDown: 12, ArrowLeft: 7, ArrowRight: 8, Enter: 30, Escape: 4,
+    Backspace: 19, Delete: 19, "-": 45, "+": 50, ".": 48, "0": 47, "1": 42, "2": 43, "3": 44,
+    "4": 37, "5": 38, "6": 39, "7": 32, "8": 33, "9": 34, F1: 3, h: 3, m: 13, s: 1, n: 11, p: 6 };
+  document.addEventListener("keydown", (e) => {
+    if (dialogOpen) return;
+    if (e.key in KBD) { e.preventDefault(); push(KBD[e.key]); }
+  });
+
+  // ---- dialogs (INPUT, CHOOSE, MSGBOX) ----
+  const ov = document.getElementById("ov"), ttl = document.getElementById("ttl"),
+        body = document.getElementById("body"), btns = document.getElementById("btns");
+  let cancelDialog = null;
+  function open(title, onCancel) {
+    ttl.textContent = title;
+    body.innerHTML = "";
+    btns.innerHTML = "";
+    dialogOpen = true;
+    cancelDialog = onCancel;
+    ov.classList.add("on");
+  }
+  function close() {
+    ov.classList.remove("on");
+    dialogOpen = false;
+    cancelDialog = null;
+    if (document.activeElement) document.activeElement.blur();
+  }
+  function button(text, cls, fn) {
+    const b = document.createElement("button");
+    b.textContent = text;
+    if (cls) b.className = cls;
+    b.addEventListener("click", fn);
+    btns.appendChild(b);
+    return b;
+  }
+  function choose(title, items, cur) {
+    return new Promise((res) => {
+      const done = (k) => { close(); res(k); };
+      open(title, () => done(0));
+      let curEl = null;
+      items.forEach((t, k) => {
+        const b = document.createElement("button");
+        b.className = "item" + (k + 1 === cur ? " cur" : "");
+        b.textContent = t;
+        b.addEventListener("click", () => done(k + 1));
+        body.appendChild(b);
+        if (k + 1 === cur) curEl = b;
+      });
+      button("Cancel", "", () => done(0));
+      if (curEl) curEl.scrollIntoView({ block: "center" });
+    });
+  }
+  function evalNum(s) {
+    s = s.trim().replace(/−/g, "-").replace(/,/g, ".");
+    if (!s) return null;
+    if (!/^[0-9.+\-*/()eE ]+$/.test(s)) return NaN;
+    try { const v = Function('"use strict";return (' + s + ")")(); return typeof v === "number" ? v : NaN; }
+    catch (x) { return NaN; }
+  }
+  function input(title, label, help, cur) {
+    return new Promise((res) => {
+      const done = (v) => { close(); res(v); };
+      open(title, () => done(null));
+      const l = document.createElement("label");
+      l.textContent = label;
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "decimal";
+      inp.autocomplete = "off";
+      inp.value = typeof cur === "number" ? PPL.B.str(cur) : "";
+      body.appendChild(l);
+      body.appendChild(inp);
+      if (help) { const p = document.createElement("p"); p.textContent = help; p.style.marginTop = "8px"; body.appendChild(p); }
+      const ok = () => {
+        const v = evalNum(inp.value);
+        if (v === null) return done(null);
+        if (!isFinite(v)) { inp.style.borderColor = "#f53c3c"; return; }
+        done(v);
+      };
+      button("±", "", () => {
+        const s = inp.value.trim();
+        inp.value = s.startsWith("-") ? s.slice(1) : "-" + s;
+        inp.focus();
+      });
+      button("Cancel", "", () => done(null));
+      button("OK", "ok", ok);
+      inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok(); } });
+      setTimeout(() => { inp.focus(); inp.select(); }, 30);
+    });
+  }
+  function msgbox(text) {
+    return new Promise((res) => {
+      const done = () => { close(); res(); };
+      open("{{TITLE}}", done);
+      const p = document.createElement("p");
+      p.className = "msg";
+      p.textContent = text;
+      body.appendChild(p);
+      button("OK", "ok", done);
+    });
+  }
+
+  // Android back button: close a dialog, or press Esc
+  window.pplBack = function () {
+    if (dialogOpen) { if (cancelDialog) cancelDialog(); }
+    else push(4);
+    return true;
+  };
+
+  function ended(message) {
+    open("{{TITLE}}", null);
+    const p = document.createElement("p");
+    p.className = "msg";
+    p.textContent = message;
+    body.appendChild(p);
+    if (window.Android && window.Android.exit) button("Close", "", () => window.Android.exit());
+    button("Start again", "ok", () => location.reload());
+  }
+
+  const host = { scale: S, screen: scr, nextEvent, choose, input, msgbox,
+    newCanvas: (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; } };
+  const B = makeRuntime(host);
+  const prog = pplProgram(B);
+  window.PPL = { B, prog, push };
+  const fontReady = document.fonts && document.fonts.load ? document.fonts.load("12px PPLSans") : Promise.resolve();
+  fontReady.catch(() => {}).then(() => prog.start()).then(() => {
+    if (window.Android && window.Android.exit) window.Android.exit();
+    else ended("The program has ended.");
+  }, (e) => {
+    ended("Sorry, the program stopped with an error:\n" + (e && e.message ? e.message : e));
+  });
+})();
+</script>
+</body>
+</html>

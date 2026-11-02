@@ -14,6 +14,8 @@ Color, touchscreen apps for HVAC/R and electricity classes on the **HP Prime G1*
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
+**On an Android phone:** every app is also an Android app: [SUPERSUB](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/SUPERSUB.apk) · [HVACAIR](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACAIR.apk) · [NECCALC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/NECCALC.apk) · [HVACELEC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACELEC.apk) · [HVACGAS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) · [REFCYCLE](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) · [CIRCUITS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk). See [Android apps](#android-apps).
+
 # SUPERSUB: superheat and subcooling for the HP Prime
 
 A color, touchscreen superheat and subcooling calculator for the **HP Prime G1** (it also runs on the G2). It is built around a pair of analog manifold gauges that you set by dragging the needles, plus a full pressure-temperature (P-T) chart and a set of service tools for the refrigerant circuit.
@@ -407,6 +409,26 @@ Download [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 Answers show six significant figures (0.318644 A, 5627.11 Ω). The tests work the homework problems again with plain arithmetic: (470 + 360) ‖ (510 + 430) at 0.6 A gives RT = 440.791 Ω and I2 = 0.318644 A; the 63 V combination chain gives RT = 5627.11 Ω; the 12 V troubleshooting readings (E1 12 V, E2 0 V, E3 7 V, E4 5 V, 15 mA) give R1 open.
 
+# Android apps
+
+Every app also runs on an Android phone or tablet (Android 5 or newer) as its own app, with its own icon. It is the same program as on the calculator: the calculator screen at the top (tap it the same way) and the calculator's keys below it (the arrows, Enter, Esc, Del, the digits and Help, Menu, Symb, Plot and Num). Turn the phone sideways for a bigger screen. Number boxes open the phone's keyboard; choice boxes open a list. The phone's Back button works as Esc.
+
+| App | Download |
+|---|---|
+| SUPERSUB | [`SUPERSUB.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/SUPERSUB.apk) |
+| HVACAIR | [`HVACAIR.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACAIR.apk) |
+| NECCALC | [`NECCALC.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/NECCALC.apk) |
+| HVACELEC | [`HVACELEC.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACELEC.apk) |
+| HVACGAS | [`HVACGAS.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) |
+| REFCYCLE | [`REFCYCLE.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) |
+| CIRCUITS | [`CIRCUITS.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk) |
+
+**Installing:** on the phone, tap the APK link above (or open the file you downloaded). Android asks to allow installs from that app (Chrome, Files or Drive); allow it, then tap **Install**. The apps are not from the Play Store, so Play Protect may ask you to confirm; tap **More details → Install anyway** (or **Install without scanning**). The apps need no permissions and work without internet. A newer APK installs over the old one.
+
+**How it works.** `tools/ppl2js.py` translates each calculator program (`hp-prime/NAME.txt`) into JavaScript, using the simulator's own parser, and `tools/android/runtime.js` supplies the calculator's built-in functions: drawing on a canvas with the simulator's font (Liberation Sans, SIL Open Font License), the touch and key events, and the INPUT, CHOOSE and MSGBOX dialogs. `tools/build_android.py` packs each one into an Android app (a full-screen WebView) with the Android SDK's own tools. `tools/test_android.py` plays the same random taps, drags, keys and dialog answers through the simulator and through the translated program, and checks that every variable comes out the same, so the program tests above hold for the Android apps too. `tools/android/test_page.js` drives the app page in a phone-sized Chromium.
+
+The APKs are signed with a key kept out of the repository (`tools/android/apps.keystore`, made by the build script if it is missing). Android installs an update over an app only when both are signed with the same key, so if the APKs are ever rebuilt with a new key, uninstall the old app first.
+
 # Development
 
 ## Repository layout
@@ -422,6 +444,7 @@ calculator/               ready-to-install files (built, do not edit by hand)
   HVACGAS.hpappdir/, HVACGAS.hpprgm, HVACGAS.zip      the same for HVACGAS
   REFCYCLE.hpappdir/, REFCYCLE.hpprgm, REFCYCLE.zip   the same for REFCYCLE
   CIRCUITS.hpappdir/, CIRCUITS.hpprgm, CIRCUITS.zip   the same for CIRCUITS
+android/NAME.apk          the Android apps (built, do not edit by hand)
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
 hp-prime/HVACAIR.txt      HVACAIR's readable source (HP PPL)
@@ -450,6 +473,10 @@ tools/test_neccalc.py     the same for NECCALC (checked against published NEC va
 tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
 tools/test_refcycle.py    the same for REFCYCLE (checked against CoolProp and the EPA rules)
 tools/test_circuits.py    the same for CIRCUITS (checked against the homework problems)
+tools/ppl2js.py           translates a PPL program into JavaScript for the Android apps
+tools/android/            the Android runtime (runtime.js), page (shell.html), signing key and test drivers
+tools/build_android.py    builds android/NAME.apk (needs the Android SDK, a JDK and Node)
+tools/test_android.py     checks the translated programs against the simulator
 tools/data/gas/           IFGC Table 402.4 and Appendix A tables, CDA copper tube data
 docs/screens/             screenshots made by the simulator
 ```

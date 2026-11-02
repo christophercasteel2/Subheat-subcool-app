@@ -34,9 +34,9 @@ OUT = os.path.join(ROOT, "calculator")
 REPO = "github.com/christophercasteel2/Subheat-subcool-app"
 
 
-def icon_gauges(path):
+def icon_gauges(path, size=38):
     """38 x 38 app icon: a blue and a red gauge."""
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -53,13 +53,13 @@ def icon_gauges(path):
     d.rounded_rectangle([5 * big, 27 * big, 33 * big, 31 * big], big, fill=(175, 178, 186))
     for x, col in ((10, (40, 110, 230)), (19, (240, 200, 40)), (28, (220, 45, 45))):
         d.rectangle([(x - 1.5) * big, 31 * big, (x + 1.5) * big, 35 * big], fill=col)
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
-def icon_bolt(path):
+def icon_bolt(path, size=38):
     """38 x 38 app icon: a yellow lightning bolt over the app's five tile
     colours."""
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -71,12 +71,12 @@ def icon_bolt(path):
     pts = [(7, 0), (1, 9), (6, 9), (4, 16), (11, 6), (6, 6)]
     s, ox, oy = 1.62, 10.1, 2.5
     d.polygon([((ox + x * s) * big, (oy + y * s) * big) for x, y in pts], fill=(255, 210, 0))
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
-def icon_air(path):
+def icon_air(path, size=38):
     """38 x 38 app icon: three moving-air arrows over the app's tile colours."""
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -93,13 +93,13 @@ def icon_air(path):
         d.polygon([((ox + tip * s) * big, (oy + (y0 - 2) * s) * big),
                    ((ox + tip * s) * big, (oy + (y0 + 3.4) * s) * big),
                    ((ox + (tip + 4) * s) * big, (oy + (y0 + 0.7) * s) * big)], fill=(120, 200, 255))
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
-def icon_nec(path):
+def icon_nec(path, size=38):
     """38 x 38 app icon: NEC in a code-book cover over the tile colours."""
     from PIL import ImageFont
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -110,12 +110,12 @@ def icon_nec(path):
     for k, col in enumerate([(32, 104, 206), (30, 142, 74), (124, 74, 192), (214, 110, 22), (20, 128, 140)]):
         x = 4 + k * 6.2
         d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
-def icon_gas(path):
+def icon_gas(path, size=38):
     """38 x 38 app icon: a gas flame over a pipe and the tile colours."""
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -134,12 +134,12 @@ def icon_gas(path):
     for k, col in enumerate([(32, 104, 206), (124, 74, 192), (214, 110, 22), (30, 142, 74), (196, 52, 52)]):
         x = 4 + k * 6.2
         d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
-def icon_cycle(path):
+def icon_cycle(path, size=38):
     """38 x 38 app icon: a pressure-enthalpy dome with the cycle drawn on it."""
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -153,13 +153,13 @@ def icon_cycle(path):
     for k, col in enumerate([(32, 104, 206), (124, 74, 192), (214, 110, 22), (30, 142, 74), (196, 52, 52)]):
         x = 4 + k * 6.2
         d.rounded_rectangle([x * big, 30 * big, (x + 5.2) * big, 34 * big], big, fill=col)
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
-def icon_circuit(path):
+def icon_circuit(path, size=38):
     """38 x 38 app icon: a battery, a resistor in series and two in
     parallel."""
-    big = 4
+    big = 4 * -(-size // 38)
     im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
@@ -188,7 +188,7 @@ def icon_circuit(path):
     ln((31, 25), (31, 31), (6, 31), (6, 22))
     ln((2, 16), (10, 16), col=(245, 70, 70), w=1.6)
     ln((4, 22), (8, 22), w=2.4)
-    im.resize((38, 38), Image.LANCZOS).save(path)
+    im.resize((size, size), Image.LANCZOS).save(path)
 
 
 APPS = [
