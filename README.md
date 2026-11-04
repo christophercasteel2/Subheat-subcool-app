@@ -413,7 +413,9 @@ Answers show six significant figures (0.318644 A, 5627.11 Ω). The tests work th
 
 # GEOMETRY: practical plane geometry
 
-An app for a trades math class, covering Chapter 8, Practical Plane Geometry (angle measurement; perimeter of polygons and area of quadrilaterals; triangles, regular hexagons and irregular polygons; circles). Each tool shows its input boxes on the left, a **drawing of the figure** at the top right with the part you are typing lit up in yellow, and the answers below. A box showing **?** is the one to find. 19 tools plus **Learn** (the chapter's formulas). It is a calculator app only (no Android version).
+An app for a trades math class, covering Chapter 8, Practical Plane Geometry (angle measurement; perimeter of polygons and area of quadrilaterals; triangles, regular hexagons and irregular polygons; circles). Each tool shows its input boxes on the left, a **drawing of the figure** at the top right with the part you are typing lit up in yellow, and the answers below. A box showing **?** is the one to find. 22 tools plus **Learn** (the chapter's formulas).
+
+**Word problems.** Give whatever the problem gives and leave the size you want at 0 (it shows **?**): a rectangle from its area and perimeter (or diagonal), a square from its perimeter or diagonal, a parallelogram's height from its area, a trapezoid's base or height from its area or a side from its perimeter, a right triangle's legs from its area, a triangle's third side from its perimeter, a hexagon from its perimeter or area, a ring from its outer radius or area, a sector's radius or angle from its arc or area, and the missing side of a polygon from its perimeter. The circle and equilateral triangle tools ask which size you were given. It is a calculator app only (no Android version).
 
 ![Home screen](docs/screens/geom_home.png) ![Trapezoid](docs/screens/geom_9_trapezoid.png)
 
@@ -426,20 +428,23 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 | **Parallel lines** | Two parallel lines cut by a transversal: from one angle, all eight (corresponding, alternate interior and exterior, same-side) |
 | **Triangle angles** | The third angle from two (degrees and minutes), or the base angles of an isosceles triangle from its apex, and whether it is acute, right or obtuse |
 | **Perimeter** | Up to 8 sides; the perimeter in that unit, in feet and inches (to 1/16 in.) and in the other units |
-| **Rectangle / Square** | Area, perimeter and diagonal; or the missing side from the area (W = A ÷ L, s = √A) |
-| **Parallelogram / Trapezoid** | A = bh and A = ((b1 + b2) ÷ 2) × h, and the perimeters |
+| **Rectangle / Square** | Area, perimeter and diagonal; or the sides from any two of L, W, area, perimeter and diagonal (W = A ÷ L, s = √A, s = P ÷ 4) |
+| **Parallelogram / Trapezoid** | A = bh and A = ((b1 + b2) ÷ 2) × h, and the perimeters; or a base, the height or a side from the area or perimeter |
 | **Cost and material** | An area or length converted to the unit of the price (sq in, sq ft, sq yd, sq m, acres, in, ft, yd, m), waste %, the cost, bags or bundles needed, and posts at a spacing |
-| **Pythagorean** | The missing side of a right triangle (c = √(a² + b²), a = √(c² − b²)), in feet and inches too, or a check that three sides make a right triangle |
+| **Pythagorean** | The missing side of a right triangle (c = √(a² + b²), a = √(c² − b²)), in feet and inches too, its area and perimeter, a check that three sides make a right triangle, or the legs from the area |
 | **Triangle area** | A = ½bh, or the base or height from the area |
-| **Triangle 3 sides** | Area from three sides (Heron's formula; the isosceles formula gives the same), perimeter, kind of triangle by sides and by angles, height and the three angles |
-| **Hexagon** | A regular hexagon from its side, across flats or across corners: area (2.598 s²), perimeter and the other two sizes |
+| **Triangle 3 sides** | Area from three sides (Hero's formula; the isosceles formula gives the same), or from a height you enter (b × h ÷ 2 on side c, as on the homework), perimeter, a missing side from the perimeter, kind of triangle by sides and by angles, height and the three angles |
+| **Hexagon** | A regular hexagon from its side, across flats, across corners, perimeter or area: area (2.598 s², or the handout's 2.6 s²), perimeter and the other sizes |
 | **Irregular figure** | Up to three rectangles added together or cut out (an L-shaped room), and the cost per square unit |
 | **Circle** | From the radius, diameter, circumference or area: the other three, with π exact, 3.14, 3.1416 or 22/7 as the problem says |
-| **Ring** | The area between two circles (a lawn around a flowerbed) and its cost |
-| **Sector and arc** | Arc length, sector area, chord and the distance around a slice of a circle |
+| **Ring** | The area between two circles (a lawn around a flowerbed) and its cost, from any two of the inner radius, width, outer radius and ring area |
+| **Sector and arc** | Arc length, sector area, chord and the distance around a slice of a circle; or the radius or angle from the arc or area |
 | **Feet and inches** | Feet and inches to decimal feet, inches, yards and meters, and an area in sq in, sq ft, sq yd, sq m and acres |
+| **Equilateral** | From the side, perimeter, area or height: area (0.433 s²), perimeter (3s), height (0.866 s) and side |
+| **Hero's formula** | The area of any triangle from its three sides, step by step: s = (a + b + c) ÷ 2, s − a, s − b, s − c, their product and its square root, and the perimeter |
+| **Composite shapes** | One shape (rectangle, square, triangle, circle, hexagon or equilateral triangle) with a second added or cut out: the shaded area (a hexagon with a square cut out: 1040 − 400 = 640 sq ft with the handout's 2.6 s²) |
 
-The tests (`tools/test_geometry.py`) work the chapter's examples and answers: perimeters, the rectangle, square, parallelogram and trapezoid examples, the fence ($9,888), drywall ($123.90) and driveway ($4,335) costs, the Pythagorean examples (41 ft, 17, 17.5, the 6.63 ft ladder, the 12.9 ft stairway), the triangle areas (52 in², 200 cm², 26 ft², 25.5 in²), and the preview's hexagon, L-shaped room and circle problems. The uploaded chapter ends partway through section 8-3, so the hexagon, irregular-figure and circle tools follow the chapter preview's problems and the standard formulas.
+The tests (`tools/test_geometry.py`) work the chapter's examples and answers: perimeters, the rectangle, square, parallelogram and trapezoid examples, the fence ($9,888), drywall ($123.90) and driveway ($4,335) costs, the Pythagorean examples (41 ft, 17, 17.5, the 6.63 ft ladder, the 12.9 ft stairway), the triangle areas (52 in², 200 cm², 26 ft², 25.5 in²), and the preview's hexagon, L-shaped room and circle problems, and the class homework 2-5 and handouts (perimeters and areas, the 450 yd² and 1,750 ft² triangles with their heights, 13, 15 and 7 for the missing sides, the hexagon's 90 ft, 585 sq ft, 30 ft and 25.98 ft, the 640 sq ft shaded area, and the circles' 94.2 m, 706.5 m², 62.8 m, 314 m², 17.84 ft and 79.6 m). The uploaded chapter ends partway through section 8-3, so the hexagon, irregular-figure and circle tools follow the chapter preview's problems and the standard formulas.
 
 # Android apps
 

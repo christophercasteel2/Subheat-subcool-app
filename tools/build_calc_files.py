@@ -279,7 +279,9 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_geometry.py"),
          note="""GEOMETRY - practical plane geometry for a trades math class (Chapter 8)
 
-Open the app and tap a tile. 19 tools, each with a drawing that lights up the part you are typing: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, perimeter, rectangle, square, parallelogram, trapezoid, cost and material, Pythagorean theorem, triangle area (base and height, or three sides), regular hexagon, irregular (L-shaped) figures, circle, ring, sector and arc, and feet and inches, plus Learn (the chapter's formulas).
+Open the app and tap a tile. 22 tools, each with a drawing that lights up the part you are typing: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, perimeter, rectangle, square, parallelogram, trapezoid, cost and material, Pythagorean theorem, triangle area (base and height, or three sides with an optional height), regular hexagon, irregular (L-shaped) figures, circle, ring, sector and arc, feet and inches, equilateral triangle, Hero's formula step by step and composite figures (one shape added to or cut out of another), plus Learn (the chapter's formulas).
+
+Word problems: give whatever the problem gives (an area, a perimeter, a diagonal...) and leave the size you want at 0; the tool finds it and everything else.
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. A box showing ? is the one to find. HELP shows the formulas.
 

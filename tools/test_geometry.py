@@ -25,7 +25,7 @@ DIGIT = {"0": 47, "1": 42, "2": 43, "3": 44, "4": 37, "5": 38, "6": 39,
 
 
 def tile(k):
-    return ((k - 1) % 4) * 80 + 40, 23 + ((k - 1) // 4) * 43 + 20
+    return ((k - 1) % 4) * 80 + 40, 23 + ((k - 1) // 4) * 36 + 16
 
 
 def box(k):
@@ -289,12 +289,137 @@ def main():
         r = calc(it, 19, v89=0, v90=14)
         return ok and text(r, "Ft-in") == "1 ft 2 in" and close(val(r, "Area sq yd"), 600.25 / 9)
 
+    # ---- the class homework and handouts (Ch. 8 homework 2-5) ----------
+    def t_hw(it):
+        ok = True
+        r = calc(it, 7, v31=2, v32=20)                 # square 20 ft
+        ok &= val(r, "Perimeter") == 80 and val(r, "Area") == 400
+        r = calc(it, 6, v27=2, v28=40, v29=20)         # rectangle 40 x 20 ft
+        ok &= val(r, "Perimeter") == 120 and val(r, "Area") == 800
+        r = calc(it, 8, v34=6, v35=50, v36=18, v37=20)  # parallelogram
+        ok &= val(r, "Perimeter") == 140 and val(r, "Area") == 900
+        r = calc(it, 9, v38=6, v39=10, v40=30, v41=18, v42=22, v43=22)
+        ok &= val(r, "Perimeter") == 84 and val(r, "Area") == 360
+        r = calc(it, 13, v59=3, v60=25, v61=40, v62=50, v103=18)
+        ok &= val(r, "Area, c h / 2") == 450 and val(r, "Perimeter") == 115
+        r = calc(it, 13, v59=2, v60=75, v61=75, v62=50, v103=70)
+        ok &= val(r, "Area, c h / 2") == 1750 and val(r, "Perimeter") == 200
+        r = calc(it, 20, v110=6, v111=1, v112=30)      # equilateral 30 m
+        ok &= val(r, "Perimeter") == 90 and close(val(r, "Area"), math.sqrt(3) / 4 * 900)
+        r = calc(it, 11, v51=6, v52=15, v53=20, v54=25)   # right triangle 15-20-25
+        ok &= val(r, "Area") == 150 and val(r, "Perimeter") == 60
+        r = calc(it, 11, v52=5, v53=12, v54=0)
+        ok &= val(r, "Hyp. c") == 13
+        r = calc(it, 11, v52=8, v53=0, v54=17)
+        ok &= val(r, "Leg b") == 15
+        r = calc(it, 11, v52=0, v53=24, v54=25)
+        ok &= val(r, "Leg a") == 7
+        r = calc(it, 14, v63=2, v64=1, v65=15, v105=2)   # hexagon 15 ft, handout 2.6 s²
+        ok &= val(r, "Perimeter") == 90 and val(r, "Area") == 585
+        ok &= val(r, "Across corners") == 30 and close(val(r, "Across flats"), 15 * math.sqrt(3))
+        r = calc(it, 15, v66=2, v67=35, v68=10, v69=1, v70=10, v71=10, v73=0, v74=0, v75=0)
+        ok &= val(r, "Total area") == 450              # L-shape
+        r = calc(it, 5, v18=2, v19=20, v20=10, v21=10, v22=15, v23=10, v24=35)   # L-shape sides
+        ok &= val(r, "Perimeter") == 100
+        r = calc(it, 22)                               # hexagon 20 minus square 20
+        ok &= val(r, "Shaded area") == 640
+        r = calc(it, 16, v76=2, v77=30, v78=6, v79=2)  # circle d 30 m, π 3.14
+        ok &= close(val(r, "Circumf."), 94.2) and close(val(r, "Area"), 706.5)
+        r = calc(it, 16, v76=1, v77=10, v78=6, v79=2)
+        ok &= close(val(r, "Circumf."), 62.8) and close(val(r, "Area"), 314)
+        r = calc(it, 16, v76=4, v77=1000, v78=2, v79=1)   # 17.84 ft (the π key)
+        ok &= abs(val(r, "Radius r") - 17.84) < 0.005
+        r = calc(it, 16, v76=3, v77=500, v78=6, v79=2)
+        return ok and abs(val(r, "Radius r") - 79.62) < 0.005
+
+    # ---- word problems: given an area, perimeter, ... find the rest ----
+    def t_word(it):
+        ok = True
+        r = calc(it, 6, v27=2, v28=0, v29=0, v30=800, v94=120)    # A and P
+        ok &= close(val(r, "Length L"), 40) and close(val(r, "Width W"), 20)
+        r = calc(it, 6, v27=2, v28=40, v29=0, v94=120)           # L and P
+        ok &= val(r, "Width W") == 20
+        r = calc(it, 6, v28=0, v29=0, v30=48, v95=10)            # A and diagonal: 8 x 6
+        ok &= close(val(r, "Length L"), 8) and close(val(r, "Width W"), 6)
+        r = calc(it, 6, v28=8, v29=0, v95=10)
+        ok &= close(val(r, "Width W"), 6)
+        r = calc(it, 7, v32=0, v96=80)                           # square from P
+        ok &= val(r, "Side s") == 20 and val(r, "Area") == 400
+        r = calc(it, 7, v32=0, v97=10 * math.sqrt(2))
+        ok &= close(val(r, "Side s"), 10)
+        r = calc(it, 8, v35=50, v36=0, v98=900)                  # parallelogram h from A
+        ok &= val(r, "Height h") == 18
+        r = calc(it, 8, v35=0, v36=18, v37=20, v99=140)          # b from P
+        ok &= val(r, "Base b") == 50 and val(r, "Area") == 900
+        r = calc(it, 9, v39=10, v40=0, v41=18, v100=360)         # trapezoid b2 from A
+        ok &= val(r, "Bottom b2") == 30
+        r = calc(it, 9, v39=10, v40=30, v41=0, v100=360)
+        ok &= val(r, "Height h") == 18
+        r = calc(it, 9, v39=10, v40=30, v41=18, v42=0, v43=22, v101=84)
+        ok &= val(r, "Side c") == 22 and val(r, "Perimeter") == 84
+        r = calc(it, 11, v52=15, v53=0, v54=0, v102=150)          # leg from the area
+        ok &= val(r, "Leg b") == 20 and val(r, "Hyp. c") == 25
+        r = calc(it, 11, v52=0, v53=0, v54=25, v102=150)
+        ok &= close(val(r, "Leg a"), 20) and close(val(r, "Leg b"), 15)
+        r = calc(it, 13, v60=0, v61=4, v62=5, v104=12)           # a from P
+        ok &= val(r, "Side a") == 3 and val(r, "Area") == 6
+        r = calc(it, 5, v19=3, v20=5, v21=6, v22=0, v93=18)       # missing side
+        ok &= val(r, "Missing side") == 4
+        r = calc(it, 14, v64=4, v65=90)                           # hexagon from P
+        ok &= val(r, "Side s") == 15
+        r = calc(it, 14, v64=5, v65=585, v105=2)                  # from the area
+        ok &= close(val(r, "Side s"), 15)
+        r = calc(it, 17, v81=8.5, v82=0, v106=20.5)               # ring from R
+        ok &= close(val(r, "Width w"), 12) and close(val(r, "Ring area"), math.pi * 348)
+        r = calc(it, 17, v81=8.5, v82=0, v107=math.pi * 348)
+        ok &= close(val(r, "Width w"), 12)
+        r = calc(it, 17, v81=0, v82=12, v107=math.pi * 348)
+        ok &= close(val(r, "Inner r"), 8.5)
+        r = calc(it, 18, v86=10, v87=0, v108=5 * math.pi)         # sector angle from arc
+        ok &= close(val(r, "Angle"), 90)
+        r = calc(it, 18, v86=0, v87=90, v109=25 * math.pi)
+        ok &= close(val(r, "Radius r"), 10)
+        r = calc(it, 18, v86=0, v87=0, v108=5 * math.pi, v109=25 * math.pi)
+        return ok and close(val(r, "Radius r"), 10) and close(val(r, "Angle"), 90)
+
+    def t_equi(it):
+        r = calc(it, 20)                               # side 30
+        ok = val(r, "Perimeter") == 90 and close(val(r, "Height h"), 15 * math.sqrt(3))
+        r = calc(it, 20, v111=2, v112=90)
+        ok &= val(r, "Side s") == 30
+        r = calc(it, 20, v111=3, v112=math.sqrt(3) / 4 * 900)
+        ok &= close(val(r, "Side s"), 30)
+        r = calc(it, 20, v111=4, v112=15 * math.sqrt(3))
+        return ok and close(val(r, "Side s"), 30)
+
+    def t_hero(it):
+        r = calc(it, 21)                               # 13, 14, 15
+        ok = val(r, "Area") == 84 and val(r, "s") == 21 and val(r, "s(s-a)(s-b)(s-c)") == 7056
+        ok &= val(r, "s - a") == 8 and val(r, "Perimeter") == 42
+        r = calc(it, 21, v114=3, v115=4, v116=5)
+        ok &= val(r, "Area") == 6
+        r = calc(it, 21, v114=1, v115=2, v116=5)
+        return ok and "Not a triangle" in r
+
+    def t_comp(it):
+        r = calc(it, 22)                               # hexagon 20 - square 20 (2.6 s²)
+        ok = val(r, "Shaded area") == 640
+        r = calc(it, 22, v118=4, v119=20.5, v122=4, v123=8.5, v125=1)   # ring as two circles
+        ok &= close(val(r, "Shaded area"), math.pi * 348)
+        r = calc(it, 22, v118=1, v119=10, v120=8, v121=1, v122=3, v123=10, v124=6)
+        ok &= val(r, "Total area") == 110                 # rectangle + triangle
+        r = calc(it, 22, v126=1)
+        return ok and close(val(r, "Shaded area"), 1.5 * math.sqrt(3) * 400 - 400)
+
     tool_checks = [t_ang, t_facts, t_par, t_tri, t_peri, t_rect, t_sq, t_pgram, t_trap, t_cost,
-                   t_pyth, t_tria, t_tri3, t_hex, t_irr, t_circ, t_ring, t_sect, t_ftin]
+                   t_pyth, t_tria, t_tri3, t_hex, t_irr, t_circ, t_ring, t_sect, t_ftin,
+                   t_equi, t_hero, t_comp]
     names = re.findall(r'"([^"]*)"', re.search(r"gTName:=\{(.*?)\};", src).group(1))
     assert len(names) == len(tool_checks)
 
-    ev = [shot("geom_home.png")]
+    ev = [shot("geom_home.png"),
+          check("homework 2-5 answers", t_hw),
+          check("word problems: given area, perimeter, ... find the rest", t_word)]
     for k, fn in enumerate(tool_checks, 1):
         slug = re.sub(r"[^a-z0-9]+", "_", names[k - 1].lower()).strip("_")
         ev += [*tap(*tile(k)),
@@ -304,10 +429,10 @@ def main():
                shot(f"geom_{k}_{slug}.png"),
                *tap(*menu(5))]
     ev += [
-        *tap(*tile(20)), ("dialog", 9),
+        *tap(*tile(23)), ("dialog", 9),
         shot("geom_learn.png"),
         KEY["enter"],
-        check("Learn returns to the tiles", lambda it: it.g["gScr"] == 1 and it.g["gHome"] == 20),
+        check("Learn returns to the tiles", lambda it: it.g["gScr"] == 1 and it.g["gHome"] == 23),
         # rectangle: tap the width box, enter 0 and the area 64: W = 64 / L
         *tap(*tile(6)),
         *tap(*box(3)), ("dialog", 0),
@@ -325,7 +450,7 @@ def main():
         check("NEXT", lambda it: it.g["gTool"] == 7),
         KEY["esc"],
         KEY["down"], KEY["down"], KEY["down"], KEY["right"],
-        check("arrows on the 4 x 5 tiles", lambda it: it.g["gHome"] == 20),
+        check("arrows on the 4 x 6 tiles", lambda it: it.g["gHome"] == 20),
         KEY["help"],
         shot("geom_help.png"),
         KEY["enter"],
