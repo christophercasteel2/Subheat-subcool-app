@@ -130,6 +130,7 @@ gLearn:={"9 Kirchhoff's two laws","9 Current law (KCL)","9 Voltage law (KVL)","9
 gGrpA:={1,13,34,58};
 gGrpB:={12,33,57,64};
 gGrpN:={"Unit 9 notes","Unit 11 notes","Unit 13 notes","Key terms"};
+gSTop:=1;       // first line shown on a scrolling notes page
 
 // ================= number formatting =================
 
@@ -551,9 +552,9 @@ showHelp()
 BEGIN
   showText("ELECREV",{
     "EXAM REVIEW: UNITS 9, 11, 13",
-    " UNIT 9 / 11 / 13 NOTES and KEY TERMS tiles open a",
-    " list of pages: pick one; any key goes back to the",
-    " list; Esc leaves the list.",
+    " UNIT 9 / 11 / 13 NOTES and KEY TERMS: one long page.",
+    " Up/Down or drag: scroll. + / - or tap low / high:",
+    " a screen. Left/Right: section. Esc: back.",
     " Blue tiles: Unit 9 tools. Purple: Unit 11 tools.",
     " Orange: Unit 13 tools.",
     "INSIDE A TOOL",
@@ -566,8 +567,8 @@ BEGIN
     " Esc: back to the tiles; Esc on the tiles quits."});
 END;
 
-// reference page n (the note tiles, and each tool's HELP)
-learnPage(n)
+// the lines of reference page n
+pageLines(n)
 BEGIN
   LOCAL h:={" No notes."};
   IF n==1 THEN h:={
@@ -1542,31 +1543,104 @@ BEGIN
     " Charge current max A-hr / 10; lead-acid limit",
     " 110°F (43°C); gel valve 2-6 PSI.",
     " Largest AWG 4/0 = 211,600 CM; duct spacing 7.5 in"}; END;
-  showText(gLearn(n),h);
+  RETURN h;
 END;
 
-// the pages of note tile g, until Esc
-learnMenu(g)
+// one page on its own (each tool's HELP)
+learnPage(n)
 BEGIN
-  LOCAL lst:={};
-  LOCAL t:=1;
-  LOCAL k;
-  LOCAL go:=1;
-  FOR k FROM gGrpA(g) TO gGrpB(g) DO
-    lst(SIZE(lst)+1):=gLearn(k);
-  END;
-  WHILE go DO
-    IF CHOOSE(t,gGrpN(g),lst) THEN
-      IF t>=1 THEN
-        learnPage(gGrpA(g)+t-1);
-      ELSE
-        go:=0;
+  showText(gLearn(n),pageLines(n));
+END;
+
+// one long page of lines t, scrolled with Up/Down, + / -, or a finger;
+// Left/Right jump to the previous / next section (st: first line of
+// each section); Esc or Enter (or CLOSE) goes back
+showScroll(ttl,t,st)
+BEGIN
+  LOCAL n:=SIZE(t);
+  LOCAL nr:=15;
+  LOCAL mx:=MAX(1,n-nr+1);
+  LOCAL done:=0;
+  LOCAL dragged:=0;
+  LOCAL y0:=0;
+  LOCAL k, ev, dy, tx, bh, by;
+  gSTop:=1;
+  REPEAT
+    RECT_P(G1,0,0,319,239,cBg);
+    RECT_P(G1,0,0,319,20,cPanel);
+    TEXTOUT_P(ttl,G1,5,4,2,cText);
+    rtext(istr(gSTop)+"-"+istr(MIN(n,gSTop+nr-1))+" of "+istr(n),262,6,1,cDim);
+    chip("CLOSE",268);
+    FOR k FROM 0 TO nr-1 DO
+      IF gSTop+k<=n THEN
+        tx:=t(gSTop+k);
+        TEXTOUT_P(tx,G1,6,24+k*14,1,IFTE(LEFT(tx,1)==" ",cText,cSelc));
+      END;
+    END;
+    // scroll bar
+    bh:=MAX(10,ROUND(214*MIN(1,nr/MAX(1,n)),0));
+    by:=22+ROUND((214-bh)*(gSTop-1)/MAX(1,mx-1),0);
+    RECT_P(G1,316,22,319,236,cRow);
+    RECT_P(G1,316,by,319,by+bh,cEdge);
+    BLIT_P(G0,G1);
+    ev:=WAIT(-1);
+    IF TYPE(ev)==6 THEN
+      IF ev(1)==0 AND SIZE(ev)>=3 THEN
+        y0:=ev(3);
+        dragged:=0;
+      END;
+      IF ev(1)==1 AND SIZE(ev)>=3 THEN
+        dy:=IP((y0-ev(3))/14);
+        IF dy<>0 THEN
+          gSTop:=gSTop+dy;
+          y0:=y0-dy*14;
+          dragged:=1;
+        END;
+      END;
+      IF ev(1)==3 AND SIZE(ev)>=3 AND dragged==0 THEN
+        IF ev(3)<21 THEN
+          IF ev(2)>=268 THEN done:=1; END;
+        ELSE
+          gSTop:=gSTop+IFTE(ev(3)>=130,nr-1,1-nr);
+        END;
       END;
     ELSE
-      go:=0;
+      IF ev==2 THEN gSTop:=gSTop-1; END;
+      IF ev==12 THEN gSTop:=gSTop+1; END;
+      IF ev==50 THEN gSTop:=gSTop+nr-1; END;
+      IF ev==45 THEN gSTop:=gSTop-nr+1; END;
+      IF ev==8 THEN
+        k:=SIZE(st);
+        WHILE k>=1 AND st(k)>gSTop DO k:=k-1; END;
+        IF k<SIZE(st) THEN gSTop:=st(k+1); ELSE gSTop:=mx; END;
+      END;
+      IF ev==7 THEN
+        k:=1;
+        WHILE k<=SIZE(st) AND st(k)<gSTop DO k:=k+1; END;
+        gSTop:=IFTE(k>=2,st(k-1),1);
+      END;
+      IF ev==4 OR ev==30 THEN done:=1; END;
+    END;
+    gSTop:=MAX(1,MIN(mx,gSTop));
+  UNTIL done;
+  gDown:=0;
+END;
+
+// all the pages of note tile g as one scrolling page
+learnMenu(g)
+BEGIN
+  LOCAL t:={};
+  LOCAL st:={};
+  LOCAL k, j, h;
+  FOR k FROM gGrpA(g) TO gGrpB(g) DO
+    h:=pageLines(k);
+    IF SIZE(t)>0 THEN t(SIZE(t)+1):=""; END;
+    st(SIZE(st)+1):=SIZE(t)+1;
+    FOR j FROM 1 TO SIZE(h) DO
+      t(SIZE(t)+1):=h(j);
     END;
   END;
-  gDown:=0;
+  showScroll(gGrpN(g),t,st);
 END;
 
 toolHelp(t)

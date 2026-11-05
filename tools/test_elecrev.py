@@ -244,20 +244,7 @@ def main():
         bad = []
         n = len(it.g["gLearn"])
         for k in range(1, n + 1):
-            seen = {}
-
-            def grab(ttl, t, seen=seen):
-                seen["t"] = t
-            orig = it.funcs["showText"]
-            it.funcs["showText"] = (["ttl", "t"], [], False)
-            params, body, _ = it.funcs["learnPage"]
-            frame = {"n": float(k)}
-            # run learnPage up to its showText call by evaluating h
-            try:
-                it.run_block(body[:-1], frame)
-            finally:
-                it.funcs["showText"] = orig
-            h = frame["h"]
+            h = fn_call(it, "pageLines", k)
             if len(h) > 15:
                 bad.append((k, "lines", len(h)))
             for line in h:
@@ -286,12 +273,35 @@ def main():
                *tap(*menu(5))]
     ev += [
         # Unit 9 notes: pick page 5 (Thevenin), back to the list, pick 12, leave
-        *tap(*tile(19)), ("dialog", 5), shot("rev_notes_thevenin.png"), KEY["enter"],
-        ("dialog", 12), shot("rev_notes_review9.png"), KEY["enter"], ("dialog", None),
-        check("Unit 9 notes return to the tiles", lambda it: it.g["gScr"] == 1 and it.g["gHome"] == 19),
-        *tap(*tile(20)), ("dialog", 13), shot("rev_notes_voltage_drop.png"), KEY["enter"], ("dialog", None),
-        *tap(*tile(21)), ("dialog", 18), shot("rev_notes_series_parallel.png"), KEY["enter"], ("dialog", None),
-        *tap(*tile(22)), ("dialog", 1), shot("rev_key_terms.png"), KEY["enter"], ("dialog", None),
+        # Unit 9 notes: one long page; arrows, + / -, sections, drag, tap
+        *tap(*tile(19)), shot("rev_notes_unit9.png"),
+        KEY["down"], KEY["down"], KEY["down"],
+        check("Down scrolls a line at a time", lambda it: it.g["gSTop"] == 4),
+        KEY["up"],
+        check("Up scrolls back", lambda it: it.g["gSTop"] == 3),
+        [0, 160, 200], [1, 160, 172], [1, 160, 144], [2], [3, 160, 144],
+        check("dragging the text up 56 px scrolls 4 lines (no page jump)", lambda it: it.g["gSTop"] == 7),
+        KEY["right"], KEY["right"], KEY["right"], KEY["right"],
+        check("Right jumps to the next section (Thevenin)",
+              lambda it: it.g["gSTop"] == sum(len(fn_call(it, "pageLines", k)) + 1 for k in range(1, 5)) + 1),
+        shot("rev_notes_thevenin.png"),
+        KEY["left"],
+        check("Left jumps back a section",
+              lambda it: it.g["gSTop"] == sum(len(fn_call(it, "pageLines", k)) + 1 for k in range(1, 4)) + 1),
+        KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"],
+        KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"],
+        check("+ pages down and stops at the end", lambda it: it.g["gSTop"] > 150),
+        shot("rev_notes_review9.png"),
+        *tap(160, 60),
+        check("tap the top half pages up", lambda it: it.g["gSTop"] > 140),
+        *tap(290, 10),
+        check("CLOSE returns to the tiles", lambda it: it.g["gScr"] == 1 and it.g["gHome"] == 19),
+        *tap(*tile(20)), KEY["minus"], KEY["right"], KEY["right"], KEY["right"], KEY["right"],
+        KEY["right"], KEY["right"], KEY["right"], KEY["right"], KEY["right"], KEY["right"], KEY["right"],
+        KEY["right"], shot("rev_notes_voltage_drop.png"), KEY["esc"],
+        check("Esc returns to the tiles", lambda it: it.g["gScr"] == 1),
+        *tap(*tile(21)), KEY["right"] , *[KEY["right"]] * 16, shot("rev_notes_series_parallel.png"), KEY["enter"],
+        *tap(*tile(22)), shot("rev_key_terms.png"), KEY["esc"],
         check("key terms tile", lambda it: it.g["gHome"] == 22),
         *tap(*tile(8)), *tap(*box(5)), ("dialog", 24),
         check("tap a box: amps 24", lambda it: it.g["gV"][55] == 24),

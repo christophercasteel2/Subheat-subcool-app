@@ -307,7 +307,7 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_elecrev.py"),
          note="""ELECREV - electricity class exam review: Units 9, 11 and 13
 
-Notes and key terms (64 pages): Kirchhoff's laws, Thevenin's, Norton's and the superposition theorems; AWG, NEC wire tables, insulation, correction factors, resistance, voltage drop, parallel conductors, eddy currents, MEGGER testing; cells and batteries, lead-acid charging, nicad, Ni-MH, lithium, series and parallel batteries, solar cells, thermocouples, piezoelectricity and fuel cells; review and practice answers.
+Notes and key terms (four long scrolling pages: Up/Down or drag to scroll, + / - a screen, Left/Right a section): Kirchhoff's laws, Thevenin's, Norton's and the superposition theorems; AWG, NEC wire tables, insulation, correction factors, resistance, voltage drop, parallel conductors, eddy currents, MEGGER testing; cells and batteries, lead-acid charging, nicad, Ni-MH, lithium, series and parallel batteries, solar cells, thermocouples, piezoelectricity and fuel cells; review and practice answers.
 
 18 calculators: KCL, KVL, two-source network, Thevenin / Norton, equivalent with a load, superposition, R = KL/CM, voltage drop, wire size for a long run, ampacity derating, conductor for a load, temperature coefficient, NEC 310.15(C), battery bank, cells needed, capacity and run time, internal resistance, Ohm's law.
 
