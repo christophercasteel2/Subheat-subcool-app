@@ -12,6 +12,7 @@ Color, touchscreen apps for HVAC/R and electricity classes on the **HP Prime G1*
 | **[REFCYCLE](#refcycle-refrigeration-cycle-and-service)** | The refrigeration cycle from saturation temperatures or gauge pressures (enthalpy at each point, refrigeration effect, COP, mass flow), refrigerant property look-ups, compressors, walk-in box loads, the 2026 EPA leak repair and evacuation rules, and service paperwork | [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip) |
 | **[CIRCUITS](#circuits-dc-circuits-for-electricity-class)** | DC circuits for electricity class: series, parallel, series-parallel and combination circuits (RT, IT, ET and every resistor's voltage, current and power), finding an open or shorted resistor, Kirchhoff's voltage and current laws, a two-source network, Ohm's law and power, dividers, the color code and metric prefixes | [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/CIRCUITS.zip) |
 | **[GEOMETRY](#geometry-practical-plane-geometry)** | Chapter 8 of a trades math class, Practical Plane Geometry: angles in degrees-minutes-seconds, angle facts, parallel lines, perimeter and area of rectangles, squares, parallelograms, trapezoids, triangles, hexagons, L-shaped figures and circles, the Pythagorean theorem, and cost of materials. Every tool has a drawing that lights up the part you are typing | [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip) |
+| **[ELECREV](#elecrev-electricity-exam-review)** | Exam review for electricity class Units 9, 11 and 13: 64 pages of notes, key terms and review answers, and 18 calculators for every equation in the units (Kirchhoff, Thevenin, Norton, superposition, wire resistance, voltage drop, ampacity, batteries). A separate app you can delete after the exam | [`ELECREV.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/ELECREV.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
@@ -446,9 +447,21 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 The tests (`tools/test_geometry.py`) work the chapter's examples and answers: perimeters, the rectangle, square, parallelogram and trapezoid examples, the fence ($9,888), drywall ($123.90) and driveway ($4,335) costs, the Pythagorean examples (41 ft, 17, 17.5, the 6.63 ft ladder, the 12.9 ft stairway), the triangle areas (52 in², 200 cm², 26 ft², 25.5 in²), and the preview's hexagon, L-shaped room and circle problems, and the class homework 2-5 and handouts (perimeters and areas, the 450 yd² and 1,750 ft² triangles with their heights, 13, 15 and 7 for the missing sides, the hexagon's 90 ft, 585 sq ft, 30 ft and 25.98 ft, the 640 sq ft shaded area, and the circles' 94.2 m, 706.5 m², 62.8 m, 314 m², 17.84 ft and 79.6 m). The uploaded chapter ends partway through section 8-3, so the hexagon, irregular-figure and circle tools follow the chapter preview's problems and the standard formulas.
 
+# ELECREV: electricity exam review
+
+A separate study app for the exam on Units 9 (Kirchhoff's laws, Thevenin's, Norton's and the superposition theorems), 11 (conductors) and 13 (batteries and other small sources). Delete it after the exam without affecting the other apps. Calculator only.
+
+![Home screen](docs/screens/rev_home.png) ![Notes page](docs/screens/rev_notes_thevenin.png)
+
+Download [`ELECREV.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/ELECREV.zip), unzip it, and drag `ELECREV.hpappdir` onto **Application Library** (or `ELECREV.hpprgm` onto **Programs**).
+
+**Notes (the bulk of the app).** Four tiles open lists of pages: **Unit 9 notes** (12 pages), **Unit 11 notes** (21), **Unit 13 notes** (24) and **Key terms** (7, with a quick-facts page). They cover every section's main points, each worked example, the tables (resistivity K, AWG circular mils, ambient correction and adjustment factors, primary and secondary cells), the summaries, a formula page per unit, and worked answers to the review questions and practice problems.
+
+**Calculators (18 tiles), each with the book's example as its default values:** KCL, KVL, two-source Kirchhoff network, Thevenin / Norton equivalents, equivalent with a load, superposition, R = K L / CM (solving for R, CM, L or K, with temperature), voltage drop (2 KIL/CM or 1.732 KIL/CM), wire size for a long run (and parallel conductors), ampacity derating (NEC Table 310.15(B)(16)/(17), temperature and more-than-3-conductor factors), conductor for a load (the Example 11-8 method), temperature coefficient, the NEC 310.15(C) formula, battery bank in series and parallel, cells needed (solar), capacity and run time (mA-hr, W-hr, 1/10 charging rule), internal resistance and Ohm's law. `tools/test_elecrev.py` checks them against the textbook's examples and answers and checks that every notes page fits the screen (41 checks).
+
 # Android apps
 
-Every app except GEOMETRY also runs on an Android phone or tablet (Android 5 or newer) as its own app, with its own icon. It is the same program as on the calculator: the calculator screen at the top (tap it the same way) and the calculator's keys below it (the arrows, Enter, Esc, Del, the digits and Help, Menu, Symb, Plot and Num). Turn the phone sideways for a bigger screen. Number boxes open the phone's keyboard; choice boxes open a list. The phone's Back button works as Esc.
+Every app except GEOMETRY and ELECREV also runs on an Android phone or tablet (Android 5 or newer) as its own app, with its own icon. It is the same program as on the calculator: the calculator screen at the top (tap it the same way) and the calculator's keys below it (the arrows, Enter, Esc, Del, the digits and Help, Menu, Symb, Plot and Num). Turn the phone sideways for a bigger screen. Number boxes open the phone's keyboard; choice boxes open a list. The phone's Back button works as Esc.
 
 | App | Download |
 |---|---|
@@ -482,6 +495,7 @@ calculator/               ready-to-install files (built, do not edit by hand)
   REFCYCLE.hpappdir/, REFCYCLE.hpprgm, REFCYCLE.zip   the same for REFCYCLE
   CIRCUITS.hpappdir/, CIRCUITS.hpprgm, CIRCUITS.zip   the same for CIRCUITS
   GEOMETRY.hpappdir/, GEOMETRY.hpprgm, GEOMETRY.zip   the same for GEOMETRY
+  ELECREV.hpappdir/, ELECREV.hpprgm, ELECREV.zip      the same for ELECREV
 android/NAME.apk          the Android apps (built, do not edit by hand)
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)
 hp-prime/HVACELEC.txt     HVACELEC's readable source (HP PPL)
@@ -491,6 +505,7 @@ hp-prime/HVACGAS.txt      HVACGAS's readable source (HP PPL)
 hp-prime/REFCYCLE.txt     REFCYCLE's readable source (HP PPL)
 hp-prime/CIRCUITS.txt     CIRCUITS's readable source (HP PPL)
 hp-prime/GEOMETRY.txt     GEOMETRY's readable source (HP PPL)
+hp-prime/ELECREV.txt      ELECREV's readable source (HP PPL)
 tools/gen_pt_tables.py    builds the P-T data block inside SUPERSUB.txt
 tools/gen_elec_tables.py  builds the tool, input-box and NEC table block inside HVACELEC.txt
 tools/gen_air_tables.py   builds the tool and input-box block inside HVACAIR.txt
@@ -499,6 +514,7 @@ tools/gen_gas_tables.py   builds the tool, input-box and code table block inside
 tools/gen_cycle_tables.py builds the tool, input-box and refrigerant property block inside REFCYCLE.txt (needs CoolProp)
 tools/gen_circ_tables.py  builds the tool and input-box block inside CIRCUITS.txt
 tools/gen_geom_tables.py  builds the tool and input-box block inside GEOMETRY.txt
+tools/gen_rev_tables.py   builds the tool, input-box and wire table block inside ELECREV.txt
 tools/ppltables.py        helpers both table generators share
 tools/build_calc_files.py builds the calculator/ folder from both sources
 tools/hpfile.py           writes the calculator's program-file format
@@ -514,6 +530,7 @@ tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
 tools/test_refcycle.py    the same for REFCYCLE (checked against CoolProp and the EPA rules)
 tools/test_circuits.py    the same for CIRCUITS (checked against the homework problems)
 tools/test_geometry.py    the same for GEOMETRY (checked against the textbook's examples)
+tools/test_elecrev.py     the same for ELECREV (checked against the textbook's examples)
 tools/ppl2js.py           translates a PPL program into JavaScript for the Android apps
 tools/android/            the Android runtime (runtime.js), page (shell.html), signing key and test drivers
 tools/build_android.py    builds android/NAME.apk (needs the Android SDK, a JDK and Node)

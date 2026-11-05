@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY, ELECREV):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -209,6 +209,23 @@ def icon_geometry(path, size=38):
     im.resize((size, size), Image.LANCZOS).save(path)
 
 
+def icon_review(path, size=38):
+    """38 x 38 app icon: a notebook page with a battery symbol."""
+    big = 4 * -(-size // 38)
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(24, 27, 38, 255))
+    P = lambda *pts: [(x * big, y * big) for x, y in pts]  # noqa: E731
+    d.rounded_rectangle(P((6, 4), (32, 34)), 2 * big, fill=(236, 236, 236))
+    for y in (10, 15, 20):
+        d.line(P((10, y), (28, y)), fill=(110, 170, 250), width=int(1.2 * big))
+    d.line(P((12, 28), (17, 28)), fill=(245, 70, 70), width=int(1.4 * big))
+    d.line(P((17, 24), (17, 32)), fill=(25, 25, 25), width=int(1.6 * big))
+    d.line(P((20, 26), (20, 30)), fill=(25, 25, 25), width=int(2.4 * big))
+    d.line(P((20, 28), (26, 28)), fill=(25, 25, 25), width=int(1.4 * big))
+    im.resize((size, size), Image.LANCZOS).save(path)
+
+
 APPS = [
     dict(name="SUPERSUB", icon=icon_gauges,
          test=os.path.join(ROOT, "tools", "ppl_sim.py"),
@@ -284,6 +301,15 @@ Open the app and tap a tile. 22 tools, each with a drawing that lights up the pa
 Word problems: give whatever the problem gives (an area, a perimeter, a diagonal...) and leave the size you want at 0; the tool finds it and everything else.
 
 In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. A box showing ? is the one to find. HELP shows the formulas.
+
+Source and instructions: """ + REPO),
+    dict(name="ELECREV", icon=icon_review, android=False,
+         test=os.path.join(ROOT, "tools", "test_elecrev.py"),
+         note="""ELECREV - electricity class exam review: Units 9, 11 and 13
+
+Notes and key terms (64 pages): Kirchhoff's laws, Thevenin's, Norton's and the superposition theorems; AWG, NEC wire tables, insulation, correction factors, resistance, voltage drop, parallel conductors, eddy currents, MEGGER testing; cells and batteries, lead-acid charging, nicad, Ni-MH, lithium, series and parallel batteries, solar cells, thermocouples, piezoelectricity and fuel cells; review and practice answers.
+
+18 calculators: KCL, KVL, two-source network, Thevenin / Norton, equivalent with a load, superposition, R = KL/CM, voltage drop, wire size for a long run, ampacity derating, conductor for a load, temperature coefficient, NEC 310.15(C), battery bank, cells needed, capacity and run time, internal resistance, Ohm's law.
 
 Source and instructions: """ + REPO),
 ]
