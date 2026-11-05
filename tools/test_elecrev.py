@@ -126,8 +126,10 @@ def main():
         e1, e2, r1, r2, r3 = 24, 10, 330, 200, 100      # review Q6-10
         v = (e1 / r1 + e2 / r2) / (1 / r1 + 1 / r2 + 1 / r3)
         r = calc(it, 3)
+        txt = " | ".join(it.g["gRV"])
         return (close(val(r, "I1"), (e1 - v) / r1) and close(val(r, "I2"), (e2 - v) / r2)
-                and close(val(r, "E3 (R3)"), v) and close(val(r, "E1 (R1)"), e1 - v))
+                and close(val(r, "E3 (R3)"), v) and close(val(r, "E1 (R1)"), e1 - v)
+                and "L1: 24 = 430 I1 + 100 I2" in txt and "L2: 10 = 100 I1 + 300 I2" in txt)
 
     def t_thev(it):
         r = calc(it, 4)                                 # Fig 9-9: 18 V, 1.5 ohm, 1.565 A
@@ -228,11 +230,24 @@ def main():
         r = calc(it, 16)                                # D cell: 100 h, 15 W-hr
         ok = val(r, "Run time") == 100 and val(r, "Watt-hours") == 15
         r = calc(it, 16, v102=80, v103=2, v104=12, v105=0)
-        return ok and val(r, "Max charge") == 8 and val(r, "20-hr rate") == 4
+        ok &= val(r, "Max charge") == 8 and val(r, "20-hr rate") == 4
+        r = calc(it, 16, v102=60, v103=2, v104=12, v105=0)   # load test slide
+        return ok and val(r, "Load test") == 180 and val(r, "Must stay") == 9.6
 
     def t_ri(it):
         r = calc(it, 17)
-        return close(val(r, "Book way"), 0.5 / 4.5)
+        ok = close(val(r, "Book way"), 0.5 / 4.5)
+        r = calc(it, 17, v107=1.595, v108=1.493, v110=4)      # handout: 0.273 ohm
+        i = 1.493 / 4
+        return ok and close(val(r, "I = VL/RL"), i) and close(val(r, "RI = VI/I"), 0.102 / i)
+
+    def t_small(it):                                         # 240.4(D) on the chart
+        r = calc(it, 10, v66=sz("12"), v67=1, v69=1, v70=30)
+        ok = val(r, "Max breaker") == 20
+        r = calc(it, 10, v66=sz("10"), v67=2, v69=1, v70=30)
+        ok &= val(r, "Max breaker") == 25
+        r = calc(it, 10, v66=sz("8"))
+        return ok and "Max breaker" not in r
 
     def t_ohm(it):
         r = calc(it, 18)
@@ -252,17 +267,19 @@ def main():
                     bad.append((k, line))
         if bad:
             print("page problems:", bad[:8])
-        groups = (it.g["gGrpA"], it.g["gGrpB"])
-        ok = groups[0][0] == 1 and groups[1][-1] == n
-        ok &= all(groups[0][i + 1] == groups[1][i] + 1 for i in range(3))
-        return not bad and n == 64 and ok
+        used = sorted(int(x) for g in it.g["gGrp"] for x in g)
+        ok = used == list(range(1, n + 1))          # every page in exactly one notes tile
+        if not ok:
+            print("pages not grouped once:", used)
+        return not bad and n == 69 and ok
 
     tool_checks = [t_kcl, t_kvl, t_net, t_thev, t_eqv, t_sup, t_wire, t_vd, t_run, t_amp, t_load,
                    t_temp, t_neh, t_bank, t_need, t_cap, t_ri, t_ohm]
     names = re.findall(r'"([^"]*)"', re.search(r"gTName:=\{(.*?)\};", src).group(1))
     assert len(names) == len(tool_checks)
 
-    ev = [shot("rev_home.png"), check("every notes page fits the screen", t_pages)]
+    ev = [shot("rev_home.png"), check("every notes page fits the screen", t_pages),
+          check("ampacity: 240.4(D) small-conductor breaker limits", t_small)]
     for k, fn in enumerate(tool_checks, 1):
         slug = re.sub(r"[^a-z0-9]+", "_", names[k - 1].lower()).strip("_")
         ev += [*tap(*tile(k)),
@@ -281,13 +298,14 @@ def main():
         check("Up scrolls back", lambda it: it.g["gSTop"] == 3),
         [0, 160, 200], [1, 160, 172], [1, 160, 144], [2], [3, 160, 144],
         check("dragging the text up 56 px scrolls 4 lines (no page jump)", lambda it: it.g["gSTop"] == 7),
-        KEY["right"], KEY["right"], KEY["right"], KEY["right"],
+        KEY["right"], KEY["right"], KEY["right"], KEY["right"], KEY["right"],
         check("Right jumps to the next section (Thevenin)",
-              lambda it: it.g["gSTop"] == sum(len(fn_call(it, "pageLines", k)) + 1 for k in range(1, 5)) + 1),
+              lambda it: it.g["gSTop"] == sum(len(fn_call(it, "pageLines", k)) + 1 for k in (1, 2, 3, 4, 65)) + 1),
         shot("rev_notes_thevenin.png"),
         KEY["left"],
-        check("Left jumps back a section",
-              lambda it: it.g["gSTop"] == sum(len(fn_call(it, "pageLines", k)) + 1 for k in range(1, 4)) + 1),
+        check("Left jumps back a section (HW #6)",
+              lambda it: it.g["gSTop"] == sum(len(fn_call(it, "pageLines", k)) + 1 for k in range(1, 5)) + 1),
+        shot("rev_notes_hw6.png"),
         KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"],
         KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"], KEY["plus"],
         check("+ pages down and stops at the end", lambda it: it.g["gSTop"] > 150),

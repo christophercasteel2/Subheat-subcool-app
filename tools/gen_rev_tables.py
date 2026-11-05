@@ -180,6 +180,7 @@ SLOTS = [
     N(107, "V no load", "V", 1.5, "Open-circuit (no-load) voltage"),
     N(108, "V loaded", "V", 0.5, "Terminal voltage with the current"),
     N(109, "Current", "A", 4.5, "Current flowing (short: ammeter)"),
+    N(110, "R load", "Ω", 0, "Load resistor RL (0 = use Current)", 1),
 ]
 
 TOOLS = [
@@ -199,7 +200,7 @@ TOOLS = [
     ("Battery bank", "Battery", "bank", 3, [94, 95, 96, 97]),
     ("Cells needed", "Cells", "needed", 3, [98, 99, 100, 101]),
     ("Capacity / run time", "Capacity", "run time", 3, [102, 103, 104, 105, 106]),
-    ("Internal resistance", "Internal", "resist.", 3, [107, 108, 109]),
+    ("Internal resistance", "Internal", "resist.", 3, [107, 108, 110, 109]),
     ("Ohm's law / power", "Ohm's", "law", 3, [25, 26, 27, 28]),
 ]
 

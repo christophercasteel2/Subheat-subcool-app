@@ -20,17 +20,17 @@ gTCat:={1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,3,3};
 // input boxes: value, default, label, unit, decimals (-1 = as needed),
 // Up/Down step, lowest, highest, choice list (0 = number),
 // blank (1: 0 shows --, 2: 0 shows ?)
-gV:={9,4,6,0,0,10,0,0,0,120,5,32,18,24,6,0,0,0,24,10,1,330,200,100,24,3,0,0,24,2,6,0,10,1,18,1.5,10,24,600,300,1200,12,1,1,4,10.4,7,26250,550,0.218,20,1,4,5,10380,24,250,240,1,1,480,3,86,2800,15,5,1,5,2,40,2,1,50,3,480,1,18,1,125,1,3,1,4,2,250,87,2,90,20,0,25.7,0.01,60,12,60,2,2,0.5,0.25,14,0.5,10000,1,1.5,100,1,1.5,0.5,4.5};
-gDef:={9,4,6,0,0,10,0,0,0,120,5,32,18,24,6,0,0,0,24,10,1,330,200,100,24,3,0,0,24,2,6,0,10,1,18,1.5,10,24,600,300,1200,12,1,1,4,10.4,7,26250,550,0.218,20,1,4,5,10380,24,250,240,1,1,480,3,86,2800,15,5,1,5,2,40,2,1,50,3,480,1,18,1,125,1,3,1,4,2,250,87,2,90,20,0,25.7,0.01,60,12,60,2,2,0.5,0.25,14,0.5,10000,1,1.5,100,1,1.5,0.5,4.5};
-gSL:={"Unknown","In 1","In 2","In 3","In 4","Out 1","Out 2","Out 3","Out 4","ET","Drops","E1","E2","E3","E4","E5","E6","E7","Es1","Es2","Es2 is","R1","R2","R3","Volts E","Amps I","Ohms R","Watts P","Es","R1","R2","R3","RL","Given","ETH / IN","RTH / RN","RL","Es1","R1","R2","R3","Es2","Es2 is","Find","Material","K custom","Size","CM custom","Length L","R","Temp","Phase","Material","Size","CM custom","Amps I","Length","Volts","Phase","Material","Volts","Max drop","Amps I","Length","Parallel","Size","Material","Insulat.","Table","Ambient","Amb. unit","Conduct.","Load","Load is","Volts","Contin.","Insulat.","Material","Ambient","Amb. unit","Conduct.","Termin.","Material","Size","Length","Temp","Temp unit","TC","TA","ΔTD","RDC","YC","RCA","Each V","Each Ah","In series","Strings","Cell V","Cell A","Need V","Need A","Capacity","Cap. unit","Volts","Load","Load unit","V no load","V loaded","Current"};
-gSU:={"","A","A","A","A","A","A","A","A","V","","V","V","V","V","V","V","V","V","V","","Ω","Ω","Ω","V","A","Ω","W","V","Ω","Ω","Ω","Ω","","","Ω","Ω","V","Ω","Ω","Ω","V","","","","","","CM","ft","Ω","°C","","","","CM","A","ft","V","","","V","%","A","ft","","","","","","","","","","","V","","","","","","","","","","ft","","","°C","°C","°C","","","","V","Ah","","","V","A","V","A","","","V","","","V","V","A"};
-gSD:={0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,-1,0,-1,-1,-1,-1,0,0,0,-1,-1,-1,-1,0,0,-1,-1,-1,-1,0,0,0,0,0,-1,0,0,-1,0,-1,0,0,0,-1,0,0,0,0,0,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1};
-gSS:={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-gSLo:={1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,-100,1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,-40,1,1,0,1,0,1,1,1,-40,1,1,1,1,1,0,-100,1,0,-50,-100,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,0};
-gSHi:={9,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,7,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,2,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,2,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,2,4,15,1000000000,31,1000000000,1000000000,1000000000,1000,2,15,31,1000000000,1000000000,1000000000,1000000000,2,15,1000000000,1000000000,1000000000,1000000000,30,30,2,27,2,400,2,200,1000000000,7,1000000000,2,27,2,400,2,200,4,14,30,1000000000,2000,2,1000000000,500,500,1000000000,1000000000,1000000000,1000000000,1000000000,10000,10000,1000000000,1000000000,1000000000,1000000000,1000000000,2,1000000000,1000000000,2,1000000000,1000000000,1000000000};
-gSC:={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,2,4,5,0,6,0,0,0,0,7,5,6,0,0,0,0,7,5,0,0,0,0,17,17,8,9,10,0,11,0,0,12,0,13,9,8,0,11,0,14,18,17,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,16,0,0,0};
-gSZ:={0,2,2,2,2,2,2,2,2,2,0,2,2,2,2,2,2,2,0,0,0,0,0,0,2,2,2,2,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0};
-gSH:={"Which current to solve for","Current into the point (0 = unknown)","Current into the point (0 = unknown)","Current into the point (0 = unknown)","Current into the point (0 = unknown)","Current leaving the point (0 = unknown)","Current leaving the point (0 = unknown)","Current leaving the point (0 = unknown)","Current leaving the point (0 = unknown)","Source voltage (0 if unknown)","How many voltage drops in the loop","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Left source voltage","Right source voltage","Es2 turned the same way as Es1?","Left resistor (with Es1)","Right resistor (with Es2)","Middle resistor (top to bottom)","Voltage (0 if unknown)","Current (0 if unknown)","Resistance (0 if unknown)","Power (0 if unknown)","Source voltage","Series resistor (source to A)","Resistor across terminals A-B","Extra series R to terminal A (0 none)","Load across A-B (0 = no load)","Which equivalent you have","ETH volts, or IN amps","RTH or RN","Load resistance","Left source","Left resistor (with Es1)","Middle resistor (find its current)","Right resistor (with Es2)","Right source","Es2 turned the same way as Es1?","Which value to work out","Sets K (ohms-CM per ft at 20°C)","K when Material = Custom K","Wire size (sets CM)","CM when Size = Custom CM","Length of wire, ft","Resistance (when finding CM, L or K)","Wire temperature, °C (K is at 20°C)","Single-phase (2 KIL) or 3-phase (1.732 KIL)","Conductor material (K)","Conductor size (CM)","CM when Size = Custom CM","Load current","One-way distance to the load, ft","Source voltage (for % drop)","Single-phase or 3-phase","Conductor material (K)","Source voltage","Allowed voltage drop, percent","Load current","One-way distance to the load, ft","Size for parallel conductors","Conductor size","Copper or aluminum","Insulation type (sets the column)","Raceway/cable, or single in free air","Ambient temperature","Unit of the ambient temperature","Current-carrying conductors together","Load: amps, watts, kW or hp","Unit of the load (and phase)","Supply voltage","Continuous (3 h or more): x 1.25","Insulation type","Copper or aluminum","Ambient temperature","Unit of the ambient temperature","Current-carrying conductors in raceway","Termination temperature rating","Conductor material","Wire size","Length, ft","Conductor temperature","Unit of that temperature","Conductor temperature, °C","Ambient temperature, °C","Dielectric loss temperature rise","DC resistance at TC, microhm per ft","AC component: skin and proximity","Thermal resistance, °C-cm/watt","Voltage of one cell or battery","Ampere-hours of one","How many in series in each string","How many strings in parallel","Voltage of one cell (solar 0.5 V)","Current of one cell (or Ah)","Voltage needed","Current (or Ah) needed","Capacity rating","mA-hr or A-hr","Cell or battery voltage","Load current (0 = none)","mA or A","Open-circuit (no-load) voltage","Terminal voltage with the current","Current flowing (short: ammeter)"};
+gV:={9,4,6,0,0,10,0,0,0,120,5,32,18,24,6,0,0,0,24,10,1,330,200,100,24,3,0,0,24,2,6,0,10,1,18,1.5,10,24,600,300,1200,12,1,1,4,10.4,7,26250,550,0.218,20,1,4,5,10380,24,250,240,1,1,480,3,86,2800,15,5,1,5,2,40,2,1,50,3,480,1,18,1,125,1,3,1,4,2,250,87,2,90,20,0,25.7,0.01,60,12,60,2,2,0.5,0.25,14,0.5,10000,1,1.5,100,1,1.5,0.5,4.5,0};
+gDef:={9,4,6,0,0,10,0,0,0,120,5,32,18,24,6,0,0,0,24,10,1,330,200,100,24,3,0,0,24,2,6,0,10,1,18,1.5,10,24,600,300,1200,12,1,1,4,10.4,7,26250,550,0.218,20,1,4,5,10380,24,250,240,1,1,480,3,86,2800,15,5,1,5,2,40,2,1,50,3,480,1,18,1,125,1,3,1,4,2,250,87,2,90,20,0,25.7,0.01,60,12,60,2,2,0.5,0.25,14,0.5,10000,1,1.5,100,1,1.5,0.5,4.5,0};
+gSL:={"Unknown","In 1","In 2","In 3","In 4","Out 1","Out 2","Out 3","Out 4","ET","Drops","E1","E2","E3","E4","E5","E6","E7","Es1","Es2","Es2 is","R1","R2","R3","Volts E","Amps I","Ohms R","Watts P","Es","R1","R2","R3","RL","Given","ETH / IN","RTH / RN","RL","Es1","R1","R2","R3","Es2","Es2 is","Find","Material","K custom","Size","CM custom","Length L","R","Temp","Phase","Material","Size","CM custom","Amps I","Length","Volts","Phase","Material","Volts","Max drop","Amps I","Length","Parallel","Size","Material","Insulat.","Table","Ambient","Amb. unit","Conduct.","Load","Load is","Volts","Contin.","Insulat.","Material","Ambient","Amb. unit","Conduct.","Termin.","Material","Size","Length","Temp","Temp unit","TC","TA","ΔTD","RDC","YC","RCA","Each V","Each Ah","In series","Strings","Cell V","Cell A","Need V","Need A","Capacity","Cap. unit","Volts","Load","Load unit","V no load","V loaded","Current","R load"};
+gSU:={"","A","A","A","A","A","A","A","A","V","","V","V","V","V","V","V","V","V","V","","Ω","Ω","Ω","V","A","Ω","W","V","Ω","Ω","Ω","Ω","","","Ω","Ω","V","Ω","Ω","Ω","V","","","","","","CM","ft","Ω","°C","","","","CM","A","ft","V","","","V","%","A","ft","","","","","","","","","","","V","","","","","","","","","","ft","","","°C","°C","°C","","","","V","Ah","","","V","A","V","A","","","V","","","V","V","A","Ω"};
+gSD:={0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,-1,0,-1,-1,-1,-1,0,0,0,-1,-1,-1,-1,0,0,-1,-1,-1,-1,0,0,0,0,0,-1,0,0,-1,0,-1,0,0,0,-1,0,0,0,0,0,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,-1,-1,-1,-1,-1,0,-1,-1,0,-1,-1,-1,-1};
+gSS:={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+gSLo:={1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,-100,1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,-40,1,1,0,1,0,1,1,1,-40,1,1,1,1,1,0,-100,1,0,-50,-100,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,0,0};
+gSHi:={9,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,7,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,2,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,2,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,1000000000,2,4,15,1000000000,31,1000000000,1000000000,1000000000,1000,2,15,31,1000000000,1000000000,1000000000,1000000000,2,15,1000000000,1000000000,1000000000,1000000000,30,30,2,27,2,400,2,200,1000000000,7,1000000000,2,27,2,400,2,200,4,14,30,1000000000,2000,2,1000000000,500,500,1000000000,1000000000,1000000000,1000000000,1000000000,10000,10000,1000000000,1000000000,1000000000,1000000000,1000000000,2,1000000000,1000000000,2,1000000000,1000000000,1000000000,1000000000};
+gSC:={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,2,4,5,0,6,0,0,0,0,7,5,6,0,0,0,0,7,5,0,0,0,0,17,17,8,9,10,0,11,0,0,12,0,13,9,8,0,11,0,14,18,17,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,16,0,0,0,0};
+gSZ:={0,2,2,2,2,2,2,2,2,2,0,2,2,2,2,2,2,2,0,0,0,0,0,0,2,2,2,2,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1};
+gSH:={"Which current to solve for","Current into the point (0 = unknown)","Current into the point (0 = unknown)","Current into the point (0 = unknown)","Current into the point (0 = unknown)","Current leaving the point (0 = unknown)","Current leaving the point (0 = unknown)","Current leaving the point (0 = unknown)","Current leaving the point (0 = unknown)","Source voltage (0 if unknown)","How many voltage drops in the loop","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Voltage drop (0 = the unknown one)","Left source voltage","Right source voltage","Es2 turned the same way as Es1?","Left resistor (with Es1)","Right resistor (with Es2)","Middle resistor (top to bottom)","Voltage (0 if unknown)","Current (0 if unknown)","Resistance (0 if unknown)","Power (0 if unknown)","Source voltage","Series resistor (source to A)","Resistor across terminals A-B","Extra series R to terminal A (0 none)","Load across A-B (0 = no load)","Which equivalent you have","ETH volts, or IN amps","RTH or RN","Load resistance","Left source","Left resistor (with Es1)","Middle resistor (find its current)","Right resistor (with Es2)","Right source","Es2 turned the same way as Es1?","Which value to work out","Sets K (ohms-CM per ft at 20°C)","K when Material = Custom K","Wire size (sets CM)","CM when Size = Custom CM","Length of wire, ft","Resistance (when finding CM, L or K)","Wire temperature, °C (K is at 20°C)","Single-phase (2 KIL) or 3-phase (1.732 KIL)","Conductor material (K)","Conductor size (CM)","CM when Size = Custom CM","Load current","One-way distance to the load, ft","Source voltage (for % drop)","Single-phase or 3-phase","Conductor material (K)","Source voltage","Allowed voltage drop, percent","Load current","One-way distance to the load, ft","Size for parallel conductors","Conductor size","Copper or aluminum","Insulation type (sets the column)","Raceway/cable, or single in free air","Ambient temperature","Unit of the ambient temperature","Current-carrying conductors together","Load: amps, watts, kW or hp","Unit of the load (and phase)","Supply voltage","Continuous (3 h or more): x 1.25","Insulation type","Copper or aluminum","Ambient temperature","Unit of the ambient temperature","Current-carrying conductors in raceway","Termination temperature rating","Conductor material","Wire size","Length, ft","Conductor temperature","Unit of that temperature","Conductor temperature, °C","Ambient temperature, °C","Dielectric loss temperature rise","DC resistance at TC, microhm per ft","AC component: skin and proximity","Thermal resistance, °C-cm/watt","Voltage of one cell or battery","Ampere-hours of one","How many in series in each string","How many strings in parallel","Voltage of one cell (solar 0.5 V)","Current of one cell (or Ah)","Voltage needed","Current (or Ah) needed","Capacity rating","mA-hr or A-hr","Cell or battery voltage","Load current (0 = none)","mA or A","Open-circuit (no-load) voltage","Terminal voltage with the current","Current flowing (short: ammeter)","Load resistor RL (0 = use Current)"};
 // input boxes of each tool, one column down the left
 toolIns(t)
 BEGIN
@@ -50,7 +50,7 @@ BEGIN
   IF t==14 THEN RETURN {94,95,96,97}; END;
   IF t==15 THEN RETURN {98,99,100,101}; END;
   IF t==16 THEN RETURN {102,103,104,105,106}; END;
-  IF t==17 THEN RETURN {107,108,109}; END;
+  IF t==17 THEN RETURN {107,108,110,109}; END;
   IF t==18 THEN RETURN {25,26,27,28}; END;
   RETURN {};
 END;
@@ -125,10 +125,9 @@ cHit:=RGB(80,70,20);
 // tile colours, one per row of tiles; the last is Learn
 gCatC:={RGB(32,104,206),RGB(124,74,192),RGB(214,110,22),RGB(30,142,74),RGB(196,52,52),RGB(20,128,140)};
 gCatL:={RGB(110,170,250),RGB(190,150,250),RGB(255,180,90),RGB(110,215,140),RGB(250,130,130),RGB(100,210,220)};
-gLearn:={"9 Kirchhoff's two laws","9 Current law (KCL)","9 Voltage law (KVL)","9 Solving with Kirchhoff","9 Thevenin's theorem","9 Thevenin steps, example","9 Norton's theorem","9 Norton steps, example","9 Superposition theorem","9 Unit 9 formulas","9 Unit 9 summary","9 Review answers","11 AWG wire sizes","11 NEC wire tables","11 Material, insulation","11 Locations, insulation","11 Ambient correction","11 More than 3 conductors","11 Sizing steps (Ex 11-8)","11 Duct banks, 310.15(C)","11 Resistance, mil-foot","11 Resistivity K table","11 R = KL/CM","11 Long runs (Ex 2500 ft)","11 Voltage drop","11 Temperature coefficient","11 Parallel conductors","11 Eddy current, hysteresis","11 Testing: MEGGER","11 Unit 11 formulas","11 Unit 11 summary","11 Review answers","11 Practice answers","13 History of the battery","13 Voltaic cells","13 Cell voltage, metals","13 Primary cells table","13 Secondary cells table","13 Zinc-copper cell","13 Carbon-zinc, alkaline","13 Button and lithium cells","13 Capacity and ratings","13 Internal resistance","13 Lead-acid battery","13 Charging cycle","13 Charging cautions","13 Sealed lead-acid, ratings","13 Nickel-iron (Edison)","13 Nicad, NiMH","13 Lithium-ion","13 Series and parallel","13 Solar cells","13 Thermocouples","13 Piezoelectricity","13 Fuel cells","13 Unit 13 formulas","13 Unit 13 summary","T Unit 9 key terms","T Unit 11 key terms 1","T Unit 11 key terms 2","T Unit 13 key terms 1","T Unit 13 key terms 2","T Unit 13 key terms 3","T Quick facts"};
+gLearn:={"9 Kirchhoff's two laws","9 Current law (KCL)","9 Voltage law (KVL)","9 Solving with Kirchhoff","9 Thevenin's theorem","9 Thevenin steps, example","9 Norton's theorem","9 Norton steps, example","9 Superposition theorem","9 Unit 9 formulas","9 Unit 9 summary","9 Review answers","11 AWG wire sizes","11 NEC wire tables","11 Material, insulation","11 Locations, insulation","11 Ambient correction","11 More than 3 conductors","11 Sizing steps (Ex 11-8)","11 Duct banks, 310.15(C)","11 Resistance, mil-foot","11 Resistivity K table","11 R = KL/CM","11 Long runs (Ex 2500 ft)","11 Voltage drop","11 Temperature coefficient","11 Parallel conductors","11 Eddy current, hysteresis","11 Testing: MEGGER","11 Unit 11 formulas","11 Unit 11 summary","11 Review answers","11 Practice answers","13 History of the battery","13 Voltaic cells","13 Cell voltage, metals","13 Primary cells table","13 Secondary cells table","13 Zinc-copper cell","13 Carbon-zinc, alkaline","13 Button and lithium cells","13 Capacity and ratings","13 Internal resistance","13 Lead-acid battery","13 Charging cycle","13 Charging cautions","13 Sealed lead-acid, ratings","13 Nickel-iron (Edison)","13 Nicad, NiMH","13 Lithium-ion","13 Series and parallel","13 Solar cells","13 Thermocouples","13 Piezoelectricity","13 Fuel cells","13 Unit 13 formulas","13 Unit 13 summary","T Unit 9 key terms","T Unit 11 key terms 1","T Unit 11 key terms 2","T Unit 13 key terms 1","T Unit 13 key terms 2","T Unit 13 key terms 3","T Quick facts","9 HW #6: loop equations","11 Ampacity chart (2017)","13 Measuring internal R","13 Testing lead-acid","T Handout key terms"};
 // note tiles: first and last page of each group
-gGrpA:={1,13,34,58};
-gGrpB:={12,33,57,64};
+gGrp:={{1,2,3,4,65,5,6,7,8,9,10,11,12},{13,14,15,16,17,18,66,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33},{34,35,36,37,38,39,40,41,42,43,67,44,45,46,68,47,48,49,50,51,52,53,54,55,56,57},{58,59,60,61,62,63,69,64}};
 gGrpN:={"Unit 9 notes","Unit 11 notes","Unit 13 notes","Key terms"};
 gSTop:=1;       // first line shown on a scrolling notes page
 
@@ -1543,6 +1542,85 @@ BEGIN
     " Charge current max A-hr / 10; lead-acid limit",
     " 110°F (43°C); gel valve 2-6 PSI.",
     " Largest AWG 4/0 = 211,600 CM; duct spacing 7.5 in"}; END;
+  IF n==65 THEN h:={
+    "HW REVIEW #6: SOLVING WITH LOOP EQUATIONS",
+    " Fig 9-33: Es1 24 V, R1 330; Es2 10 V, R2 200;",
+    " R3 100 in the middle. Loops L1 (ABEF), L2 (CBED).",
+    " KVL L1: Es1 - E1 - E3 = 0, so 24 = E1 + E3",
+    " KVL L2: Es2 - E2 - E3 = 0, so 10 = E2 + E3",
+    " Ohm: E1 = 330 I1, E2 = 200 I2, E3 = 100 I3",
+    " KCL: I1 and I2 go into R3: I3 = I1 + I2",
+    " L1: 24 = 330 I1 + 100(I1 + I2) = 430 I1 + 100 I2",
+    " L2: 10 = 200 I2 + 100(I1 + I2) = 100 I1 + 300 I2",
+    " Multiply L1 by -3: -72 = -1290 I1 - 300 I2",
+    " Add L2:              10 =   100 I1 + 300 I2",
+    "   -62 = -1190 I1  ->  I1 = 0.0521 A",
+    " Put I1 in L2: I2 = (10 - 5.21)/300 = 0.0160 A",
+    " I3 = I1 + I2 = 0.0681 A, E3 = 6.81 V",
+    " Tool: Kirchhoff 2 sources shows these equations."}; END;
+  IF n==66 THEN h:={
+    "AMPACITY CHART HANDOUT (2017 NEC, copper)",
+    " Table 310.15(B)(16) (formerly 310.16): not more",
+    " than 3 current-carrying conductors in raceway,",
+    " cable or earth, ambient 30°C (86°F).",
+    " Table 310.15(B)(17) (formerly 310.17): single",
+    " conductors in free air, 30°C. (2023 NEC: 310.16,",
+    " 310.17 again.) Same values as the app's tables.",
+    " 60°C TW UF   75°C RHW THHW THW THWN XHHW USE ZW",
+    " 90°C THHN THW-2 THWN-2 XHHW-2 RHH RHW-2 USE-2 ...",
+    " * 240.4(D): breaker no more than 15 A on #14 Cu,",
+    "   20 A on #12 Cu, 30 A on #10 Cu, AFTER the",
+    "   correction and adjustment factors.",
+    " 310.15(B)(3)(a) count does NOT include the ground.",
+    " Correction 310.15(B)(2)(a): multiply by the factor",
+    " for ambient temperatures other than 30°C."}; END;
+  IF n==67 THEN h:={
+    "MEASURING INTERNAL RESISTANCE (handout)",
+    " Model: an ideal voltage source with a resistor RI",
+    " in series. Size, chemistry, age and temperature",
+    " all limit a real battery.",
+    " 1 Open-circuit voltage VOC (no load): no current,",
+    "   so no drop on RI: VOC = the source voltage.",
+    " 2 Connect a load RL, measure the terminal VL.",
+    " 3 Ohm: I = VL / RL",
+    " 4 KVL: VOC = VI + VL, so VI = VOC - VL",
+    " 5 Ohm: RI = VI / I",
+    "EXAMPLE (AA alkaline, 4 Ω load)",
+    " VOC 1.595 V, VL 1.493 V: I = 1.493/4 = 0.373 A,",
+    " VI = 0.102 V, RI = 0.102/0.373 = 0.273 Ω",
+    " Only a snapshot: it changes with age and temp.",
+    " A common AA: 0.1 to 0.9 Ω. Tool: Internal resist."}; END;
+  IF n==68 THEN h:={
+    "TESTING LEAD-ACID BATTERIES (slides)",
+    " CHARGE: test with a HYDROMETER (specific gravity;",
+    " lower reading = more discharged).",
+    " LOAD TEST: gives more information about battery",
+    " condition than any other test.",
+    "  Test current = 3 x the ampere-hour capacity",
+    "  The voltage should NOT drop below 80% of the",
+    "  terminal voltage for a period of 3 MINUTES.",
+    " Example: 12 V, 60 A-hr: test at 180 A; it must",
+    " stay at or above 9.6 V for 3 minutes.",
+    "OTHER SLIDE POINTS",
+    " Discharge cycle: a load connected between + and -",
+    " draws the stored energy. Secondary cells can not",
+    " be discharged and recharged indefinitely.",
+    " Tool: Capacity / run time shows the load test."}; END;
+  IF n==69 THEN h:={
+    "HANDOUT AND SLIDE KEY TERMS",
+    " IDEAL VOLTAGE SOURCE: keeps the same terminal",
+    "  voltage no matter what load is connected.",
+    " OPEN-CIRCUIT VOLTAGE (VOC): voltage across the",
+    "  terminals with no load connected.",
+    " LOADED VOLTAGE (VL): terminal voltage with a load.",
+    " LOAD TEST: battery test at 3 x A-hr for 3 minutes;",
+    "  must stay at 80% of terminal voltage or more.",
+    " ALTERNATORS: large rotating machines that make",
+    "  most of the world's electric power.",
+    " ELECTROMOTIVE SERIES: metals listed in order of",
+    "  their ability to accept or give up electrons.",
+    " CURRENT SOURCE: delivers a set current; drawn with",
+    "  a parallel resistance (Norton)."}; END;
   RETURN h;
 END;
 
@@ -1632,8 +1710,8 @@ BEGIN
   LOCAL t:={};
   LOCAL st:={};
   LOCAL k, j, h;
-  FOR k FROM gGrpA(g) TO gGrpB(g) DO
-    h:=pageLines(k);
+  FOR k FROM 1 TO SIZE(gGrp(g)) DO
+    h:=pageLines(gGrp(g,k));
     IF SIZE(t)>0 THEN t(SIZE(t)+1):=""; END;
     st(SIZE(st)+1):=SIZE(t)+1;
     FOR j FROM 1 TO SIZE(h) DO
@@ -1645,7 +1723,7 @@ END;
 
 toolHelp(t)
 BEGIN
-  LOCAL pg:={2,3,4,6,8,9,23,25,24,19,19,26,20,51,52,42,43,10};
+  LOCAL pg:={2,3,65,6,8,9,23,25,24,66,19,26,20,51,52,42,67,10};
   learnPage(pg(t));
 END;
 
@@ -1761,7 +1839,8 @@ BEGIN
   addRow("E2 (R2)",fmtE(i2*r2)+" V","",cSelc);
   addRow("E3 (R3)",fmtE(i3*r3)+" V","",cSelc);
   addRow("KCL check","I1 + I2 = "+fmtE(i1+i2),"",cDim);
-  addRow("","V = (E1/R1+E2/R2)/(1/R1+1/R2+1/R3)","",cDim);
+  addRow("","L1: "+fmtE(e1)+" = "+fmtE(r1+r3)+" I1 + "+fmtE(r3)+" I2","",cDim);
+  addRow("","L2: "+fmtE(e2)+" = "+fmtE(r3)+" I1 + "+fmtE(r2+r3)+" I2","",cDim);
   IF i1<0 OR i2<0 OR i3<0 THEN
     addRow("","Negative = flows opposite","",cWarn);
   END;
@@ -1961,6 +2040,7 @@ BEGIN
   LOCAL a:=ampT(gV(69),gV(66),m,c);
   LOCAL tf:=corrF(IFTE(ic==4,3,ic),t);
   LOCAL af:=IFTE(gV(69)==2,1,adjF(gV(72)));
+  LOCAL bk;
   IF a==0 THEN
     addRow("Not listed","for this size","",cWarn);
     RETURN 0;
@@ -1974,6 +2054,10 @@ BEGIN
   addRow("Temp factor",fmtE(tf),"",cText);
   addRow("Adj. factor",fmtE(af),IFTE(gV(69)==2,"free air",istr(gV(72))+" conductors"),cText);
   addRow("Ampacity",fmtE(a*tf*af)+" A","table x factors",cSelc);
+  IF gV(66)>=3 AND gV(66)<=5 AND NOT (m==2 AND gV(66)==3) THEN
+    bk:={15,20,30,0,15,25};
+    addRow("Max breaker",istr(bk(3*(m-1)+gV(66)-2))+" A","240.4(D)",cWarn);
+  END;
   RETURN 1;
 END;
 
@@ -2088,16 +2172,31 @@ BEGIN
   END;
   addRow("20-hr rate",fmtE(ah/20)+" A","A-hr / 20 h",cText);
   addRow("Max charge",fmtE(ah/10)+" A","A-hr / 10",cText);
+  addRow("Load test",fmtE(3*ah)+" A","3 x A-hr, 3 min",cText);
+  addRow("Must stay",fmtE(0.8*gV(104))+" V","80% of terminal V",cText);
   RETURN 1;
 END;
 
 // 17 internal resistance
 calcRi()
 BEGIN
+  LOCAL ia, vi;
+  IF gV(110)>0 THEN
+    ia:=gV(108)/gV(110);
+    vi:=gV(107)-gV(108);
+    addRow("I = VL/RL",fmtE(ia)+" A","",cText);
+    addRow("VI = VOC-VL",fmtE(vi)+" V","KVL",cText);
+    addRow("RI = VI/I",fmtE(vi/ia)+" Ω","",cSelc);
+    addRow("","Handout: 1.595, 1.493 V, 4 Ω","",cDim);
+    addRow("","= 0.373 A, 0.102 V, 0.273 Ω","",cDim);
+    addRow("","A common AA: 0.1 to 0.9 Ω","",cDim);
+    RETURN 1;
+  END;
   IF gV(109)<=0 THEN RETURN 0; END;
   addRow("Book way",fmtE(gV(108)/gV(109))+" Ω","V loaded / I",cSelc);
   addRow("From drop",fmtE((gV(107)-gV(108))/gV(109))+" Ω","(V no-load - V) / I",cSelc);
   addRow("Voltage lost",fmtE(gV(107)-gV(108))+" V","inside the cell",cText);
+  addRow("","Or enter R load for VL/RL","",cDim);
   addRow("","Fig 13-16: 0.5 V / 4.5 A = 0.111 Ω","",cDim);
   addRow("","Aging raises internal R","",cDim);
   RETURN 1;
