@@ -260,9 +260,13 @@ def main():
         n = len(it.g["gLearn"])
         for k in range(1, n + 1):
             h = fn_call(it, "pageLines", k)
-            if len(h) > 15:
-                bad.append((k, "lines", len(h)))
-            for line in h:
+            for j, line in enumerate(h):
+                if line.startswith("@"):
+                    if line != "@":                  # a drawing: "@n" and 5 more lines
+                        ok_dg = line[1:].isdigit() and 1 <= int(line[1:]) <= 42 and h[j + 1:j + 6] == ["@"] * 5
+                        if not ok_dg:
+                            bad.append((k, "drawing", line))
+                    continue
                 if 6 + f.getlength(line) > 316:
                     bad.append((k, line))
         if bad:
@@ -323,7 +327,8 @@ def main():
         check("key terms tile", lambda it: it.g["gHome"] == 22),
         *tap(*tile(8)), *tap(*box(5)), ("dialog", 24),
         check("tap a box: amps 24", lambda it: it.g["gV"][55] == 24),
-        *tap(300, 10), shot("rev_help_tool.png"), *tap(160, 120),
+        *tap(300, 10), shot("rev_help_tool.png"), KEY["esc"],
+        check("tool HELP closes back to the tool", lambda it: it.g["gScr"] == 2 and it.g["gTool"] == 8),
         *tap(*menu(2)), KEY["esc"],
         KEY["right"], KEY["right"],
         check("arrows on the tiles", lambda it: it.g["gHome"] == 10),

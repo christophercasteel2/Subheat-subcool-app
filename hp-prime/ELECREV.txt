@@ -130,6 +130,15 @@ gLearn:={"9 Kirchhoff's two laws","9 Current law (KCL)","9 Voltage law (KVL)","9
 gGrp:={{1,2,3,4,65,5,6,7,8,9,10,11,12},{13,14,15,16,17,18,66,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33},{34,35,36,37,38,39,40,41,42,43,67,44,45,46,68,47,48,49,50,51,52,53,54,55,56,57},{58,59,60,61,62,63,69,64}};
 gGrpN:={"Unit 9 notes","Unit 11 notes","Unit 13 notes","Key terms"};
 gSTop:=1;       // first line shown on a scrolling notes page
+gCurS:=0;       // the input box selected (lit up on the drawing)
+gDgN:=0;        // 1 while a notes page draws (labels without values)
+cWr:=RGB(205,208,220);
+cRs:=RGB(255,160,60);
+cBt:=RGB(250,90,90);
+cAr:=RGB(60,210,110);
+cLn:=RGB(70,170,240);
+gCs:={1,0.9239,0.7071,0.3827,0,-0.3827,-0.7071,-0.9239,-1,-0.9239,-0.7071,-0.3827,0,0.3827,0.7071,0.9239,1};
+gSn:={0,0.3827,0.7071,0.9239,1,0.9239,0.7071,0.3827,0,-0.3827,-0.7071,-0.9239,-1,-0.9239,-0.7071,-0.3827,0};
 
 // ================= number formatting =================
 
@@ -566,6 +575,808 @@ BEGIN
     " Esc: back to the tiles; Esc on the tiles quits."});
 END;
 
+// ================= diagrams =================
+// Each drawing fits a 156 x 72 box whose top left is ox, oy: in a tool it
+// sits at the top right; on a notes page it is drawn between the lines.
+// Wires are drawn first, then the parts over them.
+
+// colour of a label for input box s: yellow while that box is selected
+hl(s)
+BEGIN
+  IF s>0 AND s==gCurS THEN RETURN cSelc; END;
+  RETURN cText;
+END;
+
+// colour of a part for input box s
+pc(s,c)
+BEGIN
+  IF s>0 AND s==gCurS THEN RETURN cSelc; END;
+  RETURN c;
+END;
+
+// a part's name and, in a tool, its value (? while it is 0)
+lb(nm,s)
+BEGIN
+  IF gDgN==1 OR s<=0 THEN RETURN nm; END;
+  IF gV(s)==0 THEN RETURN nm+IFTE(gSZ(s)==1,""," ?"); END;
+  RETURN nm+" "+fmtE(gV(s));
+END;
+
+// a label centred at x, on a dark patch
+lab(s,x,y,c)
+BEGIN
+  LOCAL w:=textw(s,1);
+  RECT_P(G1,x-w/2-1,y,x+w/2+1,y+11,cBg);
+  ctext(s,x,y,1,c);
+END;
+
+wire(x1,y1,x2,y2)
+BEGIN
+  LINE_P(G1,x1,y1,x2,y2,cWr);
+END;
+
+dot(x,y)
+BEGIN
+  RECT_P(G1,x-1,y-1,x+1,y+1,cWr);
+END;
+
+// circle of radius r (16 sides)
+circ(x,y,r,c)
+BEGIN
+  LOCAL k;
+  FOR k FROM 1 TO 16 DO
+    LINE_P(G1,ROUND(x+r*gCs(k),0),ROUND(y-r*gSn(k),0),ROUND(x+r*gCs(k+1),0),ROUND(y-r*gSn(k+1),0),c);
+  END;
+END;
+
+// filled circle
+disc(x,y,r,c)
+BEGIN
+  LOCAL k;
+  FOR k FROM 1 TO 16 DO
+    TRIANGLE_P(G1,x,y,ROUND(x+r*gCs(k),0),ROUND(y-r*gSn(k),0),ROUND(x+r*gCs(k+1),0),ROUND(y-r*gSn(k+1),0),c);
+  END;
+END;
+
+// arrow from (x1,y1) to (x2,y2)
+arr(x1,y1,x2,y2,c)
+BEGIN
+  LOCAL dx:=x2-x1;
+  LOCAL dy:=y2-y1;
+  LOCAL l:=MAX(0.001,sqroot(dx*dx+dy*dy));
+  LOCAL ux, uy;
+  ux:=dx/l;
+  uy:=dy/l;
+  LINE_P(G1,x1,y1,x2,y2,c);
+  TRIANGLE_P(G1,x2,y2,ROUND(x2-5*ux-3*uy,0),ROUND(y2-5*uy+3*ux,0),ROUND(x2-5*ux+3*uy,0),ROUND(y2-5*uy-3*ux,0),c);
+END;
+
+// resistor centred at x,y on a wire; vt 1 = on a vertical wire
+zig(x,y,vt,c)
+BEGIN
+  LOCAL xs:={-12,-10,-6,-2,2,6,10,12};
+  LOCAL ys:={0,-4,4,-4,4,-4,4,0};
+  LOCAL k;
+  IF vt THEN
+    RECT_P(G1,x-6,y-12,x+6,y+12,cBg);
+    FOR k FROM 1 TO 7 DO LINE_P(G1,x+ys(k),y+xs(k),x+ys(k+1),y+xs(k+1),c); END;
+  ELSE
+    RECT_P(G1,x-12,y-6,x+12,y+6,cBg);
+    FOR k FROM 1 TO 7 DO LINE_P(G1,x+xs(k),y+ys(k),x+xs(k+1),y+ys(k+1),c); END;
+  END;
+END;
+
+// cell symbol centred at x,y; vt 1 = on a vertical wire; pf 1 = the +
+// (long) plate toward the top (or the left)
+bat(x,y,vt,pf,c)
+BEGIN
+  LOCAL d:=IFTE(pf,-1,1);
+  IF vt THEN
+    RECT_P(G1,x-11,y-6,x+11,y+6,cBg);
+    LINE_P(G1,x,y-6,x,y-3,cWr);
+    LINE_P(G1,x,y+3,x,y+6,cWr);
+    RECT_P(G1,x-9,y+3*d,x+9,y+3*d,c);
+    RECT_P(G1,x-5,y-3*d-1,x+5,y-3*d+1,c);
+    TEXTOUT_P("+",G1,x+7,y+3*d-IFTE(pf,9,-1),1,c);
+  ELSE
+    RECT_P(G1,x-6,y-11,x+6,y+11,cBg);
+    LINE_P(G1,x-6,y,x-3,y,cWr);
+    LINE_P(G1,x+3,y,x+6,y,cWr);
+    RECT_P(G1,x+3*d,y-9,x+3*d,y+9,c);
+    RECT_P(G1,x-3*d-1,y-5,x-3*d+1,y+5,c);
+    TEXTOUT_P("+",G1,x+3*d-IFTE(pf,8,-2),y-10,1,c);
+  END;
+END;
+
+// current source: a circle with an arrow, on a vertical wire
+isrc(x,y,c)
+BEGIN
+  RECT_P(G1,x-10,y-10,x+10,y+10,cBg);
+  circ(x,y,9,c);
+  arr(x,y+6,x,y-6,c);
+END;
+
+// terminal: a small open circle and its name
+term(x,y,nm)
+BEGIN
+  RECT_P(G1,x-3,y-3,x+3,y+3,cBg);
+  circ(x,y,3,cText);
+  lab(nm,x+9,y-5,cText);
+END;
+
+// a length of wire seen from the side, x1 to x2 at height y
+cyl(x1,x2,y,c)
+BEGIN
+  RECT_P(G1,x1,y-6,x2,y+6,c);
+  LINE_P(G1,x1,y-4,x2,y-4,RGB(250,200,150));
+  circ(x2,y,6,RGB(120,60,30));
+END;
+
+// thermometer at x, from y to y+40
+thermo(x,y,c)
+BEGIN
+  RECT_P(G1,x-3,y,x+3,y+34,cText,cBg);
+  RECT_P(G1,x-1,y+14,x+1,y+34,cBt);
+  disc(x,y+38,5,cBt);
+END;
+
+// ---- tool and notes drawings ----
+
+// 1 KCL: currents into and out of one point
+dgKcl(ox,oy)
+BEGIN
+  LOCAL cx:=ox+78;
+  LOCAL cy:=oy+36;
+  LOCAL u:=gV(1);
+  LOCAL ys:={-26,-9,9,26};
+  LOCAL k, s, on;
+  FOR k FROM 1 TO 4 DO
+    s:=1+k;
+    on:=IFTE(gDgN==1,k==1 OR k==4,gV(s)>0 OR u==k);
+    IF on THEN
+      arr(ox+6,cy+ys(k),cx-5,cy+ROUND(ys(k)/5,0),pc(s,IFTE(u==k,cSelc,cAr)));
+      lab(IFTE(gDgN==1,"I in",IFTE(u==k,"In "+istr(k)+" ?",fmtE(gV(s))+" A")),ox+24,cy+ys(k)-12,hl(s));
+    END;
+    s:=5+k;
+    on:=IFTE(gDgN==1,k==2,gV(s)>0 OR u==k+4);
+    IF on THEN
+      arr(cx+5,cy+ROUND(ys(k)/5,0),ox+150,cy+ys(k),pc(s,IFTE(u==k+4,cSelc,cBt)));
+      lab(IFTE(gDgN==1,"I out",IFTE(u==k+4,"Out "+istr(k)+" ?",fmtE(gV(s))+" A")),ox+132,cy+ys(k)-12,hl(s));
+    END;
+  END;
+  disc(cx,cy,4,cWr);
+  lab("in (+) = out (-)",cx,oy+62,cDim);
+END;
+
+// 2 KVL: one loop, the source and its drops
+dgKvl(ox,oy)
+BEGIN
+  LOCAL n:=IFTE(gDgN==1,4,gV(11));
+  LOCAL px:={45,85,125,150,125,85,45};
+  LOCAL py:={12,12,12,37,62,62,62};
+  LOCAL k, s, lx, ly;
+  wire(ox+14,oy+12,ox+150,oy+12);
+  wire(ox+150,oy+12,ox+150,oy+62);
+  wire(ox+150,oy+62,ox+14,oy+62);
+  wire(ox+14,oy+62,ox+14,oy+12);
+  bat(ox+14,oy+37,1,1,pc(10,cBt));
+  lab(lb("ET",10),ox+42,oy+31,hl(10));
+  FOR k FROM 1 TO MIN(7,n) DO
+    s:=11+k;
+    zig(ox+px(k),oy+py(k),k==4,pc(s,cRs));
+    lx:=ox+px(k);
+    ly:=IFTE(k<=3,oy,oy+66);
+    IF k==4 THEN
+      lx:=ox+124;
+      ly:=oy+31;
+    END;
+    lab(lb("E"+istr(k),s),lx,ly,hl(s));
+  END;
+  arr(ox+72,oy+46,ox+92,oy+46,cAr);
+  lab("loop",ox+82,oy+32,cDim);
+END;
+
+// 3, 6 two sources, each with a resistor, and one in the middle; sh 1
+// or 2: that source replaced by a short (superposition)
+dgTwo(ox,oy,se1,sr1,srm,sr2,se2,spol,nm,sh)
+BEGIN
+  LOCAL l:=ox+12;
+  LOCAL m:=ox+78;
+  LOCAL r:=ox+144;
+  LOCAL t:=oy+14;
+  LOCAL b:=oy+62;
+  LOCAL n2:=IFTE(nm==1,"R3","R2");
+  LOCAL n3:=IFTE(nm==1,"R2","R3");
+  wire(l,t,r,t);
+  wire(l,b,r,b);
+  wire(l,t,l,b);
+  wire(m,t,m,b);
+  wire(r,t,r,b);
+  dot(m,t);
+  dot(m,b);
+  IF sh<>1 THEN bat(l,oy+38,1,1,pc(se1,cBt)); END;
+  IF sh<>2 THEN bat(r,oy+38,1,IFTE(gDgN==1,1,gV(spol)==1),pc(se2,cBt)); END;
+  zig(ox+45,t,0,pc(sr1,cRs));
+  zig(ox+111,t,0,pc(sr2,cRs));
+  zig(m,oy+38,1,pc(srm,cRs));
+  lab(lb("R1",sr1),ox+45,oy,hl(sr1));
+  lab(lb(n2,sr2),ox+111,oy,hl(sr2));
+  lab(lb(n3,srm),ox+100,oy+33,hl(srm));
+  lab(IFTE(sh==1,"short",lb("Es1",se1)),ox+36,oy+21,hl(se1));
+  lab(IFTE(sh==2,"short",lb("Es2",se2)),ox+122,oy+45,hl(se2));
+  arr(ox+20,oy+20,ox+32,oy+20,cAr);
+  arr(ox+136,oy+20,ox+124,oy+20,cAr);
+  arr(m-8,oy+48,m-8,oy+58,cAr);
+END;
+
+// 4 a divider network with terminals A-B; md 1: source shorted and an
+// ohmmeter on A-B (RTH), md 2: A-B shorted with an ammeter (IN)
+dgThev(ox,oy,md)
+BEGIN
+  LOCAL l:=ox+12;
+  LOCAL n:=ox+64;
+  LOCAL a:=ox+132;
+  LOCAL t:=oy+14;
+  LOCAL b:=oy+60;
+  wire(l,t,a,t);
+  wire(l,b,a,b);
+  wire(l,t,l,b);
+  wire(n,t,n,b);
+  IF md<>1 THEN
+    bat(l,oy+37,1,1,pc(29,cBt));
+    lab(lb("Es",29),ox+36,oy+31,hl(29));
+  ELSE
+    lab("short",ox+30,oy+31,cWarn);
+  END;
+  zig(ox+38,t,0,pc(30,cRs));
+  zig(n,oy+37,1,pc(31,cRs));
+  zig(ox+98,t,0,pc(32,cRs));
+  lab(lb("R1",30),ox+38,oy,hl(30));
+  lab(lb("R2",31),n+22,oy+31,hl(31));
+  lab(lb("R3",32),ox+98,oy,hl(32));
+  IF md==0 AND (gDgN==1 OR gV(33)>0) THEN
+    wire(a,t,ox+150,t);
+    wire(a,b,ox+150,b);
+    wire(ox+150,t,ox+150,b);
+    zig(ox+150,oy+37,1,pc(33,cGood));
+    lab(lb("RL",33),ox+128,oy+44,hl(33));
+  END;
+  IF md==1 THEN
+    lab("Ω meter: RTH",ox+110,oy+31,cGood);
+  END;
+  IF md==2 THEN
+    wire(a,t,a,b);
+    lab("A meter: IN",ox+110,oy+31,cGood);
+  END;
+  term(a,t,"A");
+  term(a,b,"B");
+END;
+
+// 5 Thevenin (md 1) or Norton (md 2) equivalent with a load
+dgEqv(ox,oy,md)
+BEGIN
+  LOCAL l:=ox+14;
+  LOCAL t:=oy+14;
+  LOCAL b:=oy+60;
+  LOCAL r:=ox+128;
+  wire(l,t,r,t);
+  wire(l,b,r,b);
+  wire(l,t,l,b);
+  wire(r,t,r,b);
+  IF md==1 THEN
+    bat(l,oy+37,1,1,pc(35,cBt));
+    zig(ox+60,t,0,pc(36,cRs));
+    lab(lb("ETH",35),ox+40,oy+31,hl(35));
+    lab(lb("RTH",36),ox+60,oy,hl(36));
+  ELSE
+    wire(ox+66,t,ox+66,b);
+    isrc(l,oy+37,pc(35,cBt));
+    zig(ox+66,oy+37,1,pc(36,cRs));
+    lab(lb("IN",35),ox+38,oy+44,hl(35));
+    lab(lb("RN",36),ox+88,oy+20,hl(36));
+  END;
+  term(ox+98,t,"A");
+  term(ox+98,b,"B");
+  zig(r,oy+37,1,pc(37,cGood));
+  lab(lb("RL",37),ox+144,oy+44,hl(37));
+  lab(IFTE(md==1,"series R","parallel R"),ox+60,oy+64,cDim);
+END;
+
+// 7 resistance of a wire: material K, length L, area CM
+dgWire(ox,oy)
+BEGIN
+  cyl(ox+12,ox+116,oy+30,pc(45,RGB(200,120,60)));
+  circ(ox+136,oy+30,10,pc(47,cText));
+  disc(ox+136,oy+30,7,RGB(200,120,60));
+  arr(ox+64,oy+48,ox+12,oy+48,pc(49,cAr));
+  arr(ox+64,oy+48,ox+116,oy+48,pc(49,cAr));
+  lab(lb("L",49)+IFTE(gDgN==1,""," ft"),ox+64,oy+43,hl(49));
+  lab(IFTE(gDgN==1,"K: material",slotText(45)),ox+56,oy+8,hl(45));
+  lab(IFTE(gDgN==1,"CM area",slotText(47)),ox+136,oy+8,hl(47));
+  lab("R = K x L / CM",ox+78,oy+60,IFTE(gCurS==50,cSelc,cDim));
+END;
+
+// 8, 9 a load fed by two wires (th 1: three-phase, three wires to a motor)
+dgLine(ox,oy,th,sv,si,sl,sz)
+BEGIN
+  LOCAL k;
+  IF th THEN
+    RECT_P(G1,ox+2,oy+10,ox+22,oy+62,cEdge,cPanel);
+    lab("3φ",ox+12,oy+30,cText);
+    FOR k FROM 0 TO 2 DO
+      wire(ox+22,oy+16+21*k,ox+118,oy+16+21*k);
+    END;
+    circ(ox+132,oy+37,16,cText);
+    lab("M",ox+132,oy+31,cText);
+    lab("L x 2 x 0.866",ox+70,oy+19,cDim);
+  ELSE
+    wire(ox+14,oy+14,ox+118,oy+14);
+    wire(ox+14,oy+60,ox+118,oy+60);
+    wire(ox+14,oy+14,ox+14,oy+60);
+    bat(ox+14,oy+37,1,1,pc(sv,cBt));
+    RECT_P(G1,ox+118,oy+8,ox+152,oy+66,cEdge,cPanel);
+    lab("LOAD",ox+135,oy+31,cText);
+    lab("ED: 2 wires",ox+70,oy+31,cDim);
+    lab(lb("V",sv),ox+36,oy+44,hl(sv));
+  END;
+  arr(ox+40,oy+14,ox+60,oy+14,pc(si,cAr));
+  lab(lb("I",si),ox+44,oy+1,hl(si));
+  IF sz>0 THEN lab(IFTE(gDgN==1,"size CM",slotText(sz)),ox+96,oy+1,hl(sz)); END;
+  arr(ox+70,oy+70,ox+24,oy+70,pc(sl,cAr));
+  arr(ox+70,oy+70,ox+116,oy+70,pc(sl,cAr));
+  lab(lb("L",sl)+" one way",ox+70,oy+64,hl(sl));
+END;
+
+// 10 conductors in a raceway (or one in free air) and the ambient
+dgCond(ox,oy,n,fa,st,sc)
+BEGIN
+  LOCAL px:={0,-12,12,0,-12,12,0,-12,12};
+  LOCAL py:={0,0,0,-12,-12,-12,12,12,12};
+  LOCAL k, c;
+  IF fa THEN
+    disc(ox+40,oy+34,9,RGB(200,120,60));
+    circ(ox+40,oy+34,13,cText);
+    lab("free air",ox+40,oy+56,cDim);
+  ELSE
+    circ(ox+40,oy+34,28,pc(sc,cText));
+    FOR k FROM 1 TO MIN(9,n) DO
+      c:=IFTE(n<=3,cGood,IFTE(n<=6,cWarn,cBad));
+      disc(ox+40+px(k),oy+34+py(k),4,RGB(200,120,60));
+      circ(ox+40+px(k),oy+34+py(k),5,c);
+    END;
+    lab(istr(n)+IFTE(n==1," conductor"," conductors"),ox+40,oy+64,hl(sc));
+  END;
+  thermo(ox+124,oy+8,pc(st,cBt));
+  lab(IFTE(gDgN==1,"ambient",lb("amb.",st)),ox+124,oy+60,hl(st));
+END;
+
+// 11 a load fed from a panel through a raceway
+dgLoad(ox,oy)
+BEGIN
+  LOCAL k;
+  RECT_P(G1,ox+2,oy+10,ox+28,oy+62,cEdge,cPanel);
+  lab("panel",ox+15,oy+30,cText);
+  RECT_P(G1,ox+28,oy+28,ox+110,oy+44,cEdge,cBg);
+  FOR k FROM 0 TO 2 DO LINE_P(G1,ox+28,oy+32+4*k,ox+110,oy+32+4*k,RGB(200,120,60)); END;
+  RECT_P(G1,ox+110,oy+14,ox+154,oy+58,pc(73,cEdge),cPanel);
+  lab(IFTE(gDgN==1,"load",fmtE(gV(73))),ox+132,oy+24,hl(73));
+  lab(IFTE(gDgN==1,"kW hp A",slotText(74)),ox+132,oy+38,hl(74));
+  lab(IFTE(gDgN==1,"ambient",lb("amb.",79)),ox+70,oy+50,hl(79));
+  lab(IFTE(gDgN==1,"insulation",slotText(77)),ox+70,oy+14,hl(77));
+  lab("x 1.25 if 3 h or more",ox+78,oy+64,IFTE(gCurS==76,cSelc,cDim));
+END;
+
+// 12 a wire and its temperature
+dgTemp(ox,oy)
+BEGIN
+  cyl(ox+12,ox+100,oy+30,pc(83,RGB(200,120,60)));
+  thermo(ox+132,oy+6,pc(86,cBt));
+  lab(IFTE(gDgN==1,"material α",slotText(83)),ox+56,oy+8,hl(83));
+  lab(IFTE(gDgN==1,"T",lb("T",86)),ox+132,oy+58,hl(86));
+  arr(ox+56,oy+48,ox+12,oy+48,pc(85,cAr));
+  arr(ox+56,oy+48,ox+100,oy+48,pc(85,cAr));
+  lab(lb("L",85),ox+56,oy+43,hl(85));
+  lab("K(T) = K20 (1 + α ΔT)",ox+70,oy+62,cDim);
+END;
+
+// 13 NEC 310.15(C): conductor, insulation and the surroundings
+dgNec(ox,oy)
+BEGIN
+  circ(ox+44,oy+34,26,cDim);
+  disc(ox+44,oy+34,18,RGB(60,60,70));
+  disc(ox+44,oy+34,10,RGB(200,120,60));
+  lab("TC",ox+44,oy+29,hl(88));
+  lab("ΔTD insul.",ox+44,oy+1,hl(90));
+  lab("RDC YC",ox+44,oy+62,IFTE(gCurS==91 OR gCurS==92,cSelc,cText));
+  arr(ox+72,oy+34,ox+110,oy+34,pc(93,cAr));
+  lab("RCA",ox+92,oy+38,hl(93));
+  lab("TA",ox+130,oy+28,hl(89));
+  lab("ambient",ox+130,oy+42,cDim);
+END;
+
+// 14, 15 cells or batteries: ns in series in each string, np strings
+dgBank(ox,oy,ns,np,sol,ttl)
+BEGIN
+  LOCAL sx:=MIN(4,ns);
+  LOCAL sy:=MIN(3,np);
+  LOCAL k, j, y, x;
+  FOR j FROM 0 TO sy-1 DO
+    y:=oy+18+j*16;
+    wire(ox+8,y,ox+150,y);
+    FOR k FROM 0 TO sx-1 DO
+      x:=ox+24+k*32;
+      IF sol THEN
+        RECT_P(G1,x-1,y-8,x+22,y+8,cBg);
+        circ(x+11,y,7,cLn);
+        RECT_P(G1,x+8,y-4,x+8,y+4,cLn);
+        RECT_P(G1,x+13,y-2,x+14,y+2,cLn);
+        arr(x+1,y-11,x+5,y-6,cWarn);
+      ELSE
+        RECT_P(G1,x,y-6,x+22,y+6,cBt,RGB(80,50,110));
+        TEXTOUT_P("+  -",G1,x+2,y-5,1,cText);
+      END;
+    END;
+    IF ns>4 THEN lab("...",ox+136,y-6,cText); END;
+  END;
+  wire(ox+8,oy+18,ox+8,oy+18+(sy-1)*16);
+  wire(ox+150,oy+18,ox+150,oy+18+(sy-1)*16);
+  lab(ttl,ox+78,oy+1,cText);
+  IF ns*np>1 THEN lab(istr(ns)+" in series x "+istr(np)+IFTE(np==1," string"," strings"),ox+78,oy+18+sy*16-4,cDim); END;
+END;
+
+// 16 a battery and a lamp
+dgCap(ox,oy)
+BEGIN
+  wire(ox+48,oy+20,ox+120,oy+20);
+  wire(ox+48,oy+52,ox+120,oy+52);
+  wire(ox+120,oy+20,ox+120,oy+52);
+  RECT_P(G1,ox+8,oy+12,ox+48,oy+60,pc(102,cBt),RGB(80,50,110));
+  lab("+",ox+40,oy+14,cText);
+  lab(IFTE(gDgN==1,"A-hr",fmtE(gV(102))),ox+28,oy+26,hl(102));
+  lab(IFTE(gDgN==1,"","x "+fmtE(gV(104))+" V"),ox+28,oy+40,hl(104));
+  RECT_P(G1,ox+108,oy+24,ox+132,oy+48,cBg);
+  circ(ox+120,oy+36,11,pc(105,cWarn));
+  LINE_P(G1,ox+113,oy+29,ox+127,oy+43,pc(105,cWarn));
+  LINE_P(G1,ox+113,oy+43,ox+127,oy+29,pc(105,cWarn));
+  arr(ox+66,oy+20,ox+86,oy+20,cAr);
+  lab(IFTE(gDgN==1,"load I",lb("I",105)),ox+80,oy+7,hl(105));
+  lab("hours = A-hr / I",ox+78,oy+62,cDim);
+END;
+
+// 17 battery as an ideal source with RI inside, and a load RL
+dgRi(ox,oy)
+BEGIN
+  RECT_P(G1,ox+2,oy+2,ox+74,oy+72,cDim,cBg);
+  wire(ox+26,oy+14,ox+132,oy+14);
+  wire(ox+26,oy+64,ox+132,oy+64);
+  wire(ox+26,oy+14,ox+26,oy+64);
+  wire(ox+132,oy+14,ox+132,oy+64);
+  zig(ox+26,oy+28,1,cRs);
+  RECT_P(G1,ox+16,oy+40,ox+36,oy+60,cBg);
+  circ(ox+26,oy+50,9,pc(107,cBt));
+  lab("+",ox+26,oy+40,cBt);
+  lab("RI",ox+48,oy+23,cSelc);
+  lab(IFTE(gDgN==1,"VOC",lb("VOC",107)),ox+50,oy+45,hl(107));
+  zig(ox+132,oy+39,1,pc(110,cGood));
+  lab(IFTE(gDgN==1,"RL",lb("RL",110)),ox+144,oy+50,hl(110));
+  lab(IFTE(gDgN==1,"VL",lb("VL",108)),ox+104,oy+33,hl(108));
+  arr(ox+86,oy+14,ox+106,oy+14,pc(109,cAr));
+  lab(IFTE(gDgN==1,"I",lb("I",109)),ox+100,oy+1,hl(109));
+  lab("battery",ox+38,oy+3,cDim);
+  dot(ox+74,oy+14);
+  dot(ox+74,oy+64);
+END;
+
+// 18 Ohm's law circuit
+dgOhm(ox,oy)
+BEGIN
+  wire(ox+20,oy+14,ox+128,oy+14);
+  wire(ox+20,oy+60,ox+128,oy+60);
+  wire(ox+20,oy+14,ox+20,oy+60);
+  wire(ox+128,oy+14,ox+128,oy+60);
+  bat(ox+20,oy+37,1,1,pc(25,cBt));
+  zig(ox+128,oy+37,1,pc(27,cRs));
+  lab(lb("E",25),ox+46,oy+31,hl(25));
+  lab(lb("R",27),ox+104,oy+31,hl(27));
+  arr(ox+64,oy+14,ox+84,oy+14,pc(26,cAr));
+  lab(lb("I",26),ox+74,oy+1,hl(26));
+  lab(lb("P",28)+" = E x I",ox+74,oy+64,hl(28));
+END;
+
+// ---- drawings for the notes only ----
+
+// mil-foot
+dgMil(ox,oy)
+BEGIN
+  cyl(ox+20,ox+120,oy+30,RGB(200,120,60));
+  arr(ox+70,oy+50,ox+20,oy+50,cAr);
+  arr(ox+70,oy+50,ox+120,oy+50,cAr);
+  lab("1 foot",ox+70,oy+45,cText);
+  arr(ox+10,oy+12,ox+10,oy+24,cAr);
+  arr(ox+10,oy+48,ox+10,oy+36,cAr);
+  lab("0.001 in (1 mil)",ox+70,oy+6,cText);
+  lab("1 CM = area of 1 mil dia.",ox+78,oy+62,cDim);
+END;
+
+// parallel conductors: two per phase, joined at both ends
+dgParc(ox,oy)
+BEGIN
+  RECT_P(G1,ox+2,oy+18,ox+24,oy+54,cEdge,cPanel);
+  RECT_P(G1,ox+132,oy+18,ox+154,oy+54,cEdge,cPanel);
+  lab("src",ox+13,oy+30,cText);
+  lab("load",ox+143,oy+30,cText);
+  wire(ox+24,oy+36,ox+40,oy+36);
+  wire(ox+116,oy+36,ox+132,oy+36);
+  wire(ox+40,oy+24,ox+40,oy+48);
+  wire(ox+116,oy+24,ox+116,oy+48);
+  RECT_P(G1,ox+40,oy+23,ox+116,oy+25,RGB(200,120,60));
+  RECT_P(G1,ox+40,oy+47,ox+116,oy+49,RGB(200,120,60));
+  lab("same L, metal, CM,",ox+78,oy+2,cDim);
+  lab("insulation, ends",ox+78,oy+60,cDim);
+END;
+
+// eddy currents: one phase alone in a metal conduit, three phases together
+dgEddy(ox,oy)
+BEGIN
+  circ(ox+36,oy+34,24,cText);
+  circ(ox+36,oy+34,22,cText);
+  disc(ox+36,oy+34,5,RGB(200,120,60));
+  circ(ox+36,oy+34,12,cWarn);
+  circ(ox+36,oy+34,30,cWarn);
+  lab("1 phase: HEAT",ox+36,oy+64,cBad);
+  circ(ox+118,oy+34,24,cText);
+  circ(ox+118,oy+34,22,cText);
+  disc(ox+110,oy+28,5,RGB(245,70,70));
+  disc(ox+126,oy+28,5,RGB(80,150,245));
+  disc(ox+118,oy+42,5,RGB(250,210,0));
+  lab("L1 L2 L3: cancel",ox+118,oy+64,cGood);
+END;
+
+// MEGGER test: gd 0 shorts (conductor to conductor), 1 grounds
+dgMeg(ox,oy,gd)
+BEGIN
+  RECT_P(G1,ox+4,oy+16,ox+70,oy+48,cDim,cBg);
+  RECT_P(G1,ox+4,oy+22,ox+70,oy+26,RGB(245,70,70));
+  RECT_P(G1,ox+4,oy+36,ox+70,oy+40,RGB(80,150,245));
+  RECT_P(G1,ox+104,oy+22,ox+150,oy+52,cEdge,RGB(60,90,150));
+  lab("MEGGER",ox+127,oy+31,cText);
+  wire(ox+70,oy+24,ox+104,oy+28);
+  IF gd THEN
+    wire(ox+70,oy+46,ox+104,oy+46);
+    lab("conductor to conduit",ox+78,oy+60,cText);
+    lab("GROUNDS",ox+38,oy+2,cSelc);
+  ELSE
+    wire(ox+70,oy+38,ox+104,oy+42);
+    lab("conductor to conductor",ox+78,oy+60,cText);
+    lab("SHORTS",ox+38,oy+2,cSelc);
+  END;
+END;
+
+// duct bank: ducts 7.5 in apart
+dgDuct(ox,oy)
+BEGIN
+  LOCAL k, j;
+  RECT_P(G1,ox+40,oy+4,ox+116,oy+68,cEdge,RGB(40,60,80));
+  FOR k FROM 0 TO 2 DO
+    FOR j FROM 0 TO 2 DO
+      circ(ox+54+24*k,oy+14+24*j,6,cText);
+      disc(ox+54+24*k,oy+16+24*j,3,cLn);
+    END;
+  END;
+  arr(ox+66,oy+72,ox+54,oy+72,cAr);
+  arr(ox+66,oy+72,ox+78,oy+72,cAr);
+  lab("7.5 in",ox+136,oy+30,cText);
+  lab("centers",ox+136,oy+44,cDim);
+END;
+
+// cell and battery symbols
+dgSym(ox,oy)
+BEGIN
+  wire(ox+40,oy+14,ox+40,oy+58);
+  bat(ox+40,oy+36,1,1,cBt);
+  lab("cell",ox+40,oy+62,cText);
+  wire(ox+110,oy+4,ox+110,oy+64);
+  bat(ox+110,oy+16,1,1,cBt);
+  bat(ox+110,oy+32,1,1,cBt);
+  bat(ox+110,oy+48,1,1,cBt);
+  lab("battery",ox+110,oy+64,cText);
+  lab("long = +",ox+78,oy+28,cDim);
+END;
+
+// a cell in a jar: two plates in the electrolyte; ld 1 lead-acid,
+// ld 2 lead-acid charging
+dgJar(ox,oy,ld)
+BEGIN
+  RECT_P(G1,ox+28,oy+26,ox+128,oy+70,cEdge,RGB(40,70,110));
+  RECT_P(G1,ox+46,oy+16,ox+56,oy+62,IFTE(ld,RGB(150,150,160),RGB(170,170,180)));
+  RECT_P(G1,ox+100,oy+16,ox+110,oy+62,IFTE(ld,RGB(120,70,40),RGB(200,110,60)));
+  wire(ox+51,oy+16,ox+51,oy+6);
+  wire(ox+105,oy+16,ox+105,oy+6);
+  wire(ox+51,oy+6,ox+105,oy+6);
+  IF ld==2 THEN
+    RECT_P(G1,ox+64,oy,ox+92,oy+12,cEdge,cPanel);
+    lab("charger",ox+78,oy+14,cText);
+    lab("- to -   + to +",ox+78,oy+56,cDim);
+  ELSE
+    disc(ox+78,oy+6,5,cWarn);
+    arr(ox+60,oy+2,ox+70,oy+2,cAr);
+    lab(IFTE(ld,"H2SO4 + water","acid electrolyte"),ox+78,oy+40,cText);
+  END;
+  lab(IFTE(ld,"Pb -","zinc -"),ox+14,oy+30,cText);
+  lab(IFTE(ld,"PbO2 +","copper +"),ox+144,oy+30,cText);
+END;
+
+// carbon-zinc dry cell, cut away
+dgDry(ox,oy)
+BEGIN
+  RECT_P(G1,ox+50,oy+8,ox+106,oy+70,RGB(170,170,180),RGB(60,60,100));
+  RECT_P(G1,ox+74,oy+4,ox+82,oy+62,RGB(40,40,40));
+  RECT_P(G1,ox+72,oy+1,ox+84,oy+6,cText);
+  lab("carbon +",ox+130,oy+2,cText);
+  lab("paste",ox+64,oy+40,cText);
+  lab("zinc can -",ox+24,oy+56,cText);
+END;
+
+// discharge curves, lead-acid and nicad
+dgCurve(ox,oy)
+BEGIN
+  LOCAL la:={2.1,2.05,2.0,1.95,1.9,1.85,1.75,1.5,0.9,0.1};
+  LOCAL nc:={1.35,1.27,1.25,1.22,1.2,1.2,1.2,1.15,0.9,0.1};
+  LOCAL k;
+  wire(ox+20,oy+4,ox+20,oy+64);
+  wire(ox+20,oy+64,ox+150,oy+64);
+  FOR k FROM 1 TO 9 DO
+    LINE_P(G1,ox+20+13*(k-1),oy+64-ROUND(26*la(k),0),ox+20+13*k,oy+64-ROUND(26*la(k+1),0),cBt);
+    LINE_P(G1,ox+20+13*(k-1),oy+64-ROUND(26*nc(k),0),ox+20+13*k,oy+64-ROUND(26*nc(k+1),0),cLn);
+  END;
+  lab("lead-acid",ox+60,oy+2,cBt);
+  lab("nicad (flat)",ox+64,oy+44,cLn);
+  lab("% discharged",ox+86,oy+66,cDim);
+  lab("V",ox+10,oy+30,cDim);
+END;
+
+// solar cell: N on P, light, a load
+dgSolar(ox,oy)
+BEGIN
+  LOCAL k;
+  RECT_P(G1,ox+10,oy+34,ox+100,oy+44,RGB(40,150,110));
+  RECT_P(G1,ox+10,oy+45,ox+100,oy+55,RGB(220,50,60));
+  lab("N",ox+56,oy+33,cText);
+  lab("P",ox+56,oy+44,cText);
+  FOR k FROM 0 TO 4 DO arr(ox+18+18*k,oy+4,ox+18+18*k,oy+30,cWarn); END;
+  wire(ox+100,oy+38,ox+140,oy+38);
+  wire(ox+100,oy+52,ox+140,oy+52);
+  zig(ox+140,oy+45,1,cRs);
+  lab("light: photons",ox+110,oy+4,cWarn);
+  lab("0.5 V each (silicon)",ox+78,oy+62,cDim);
+END;
+
+// thermocouple: two metals joined, the junction heated
+dgThc(ox,oy)
+BEGIN
+  LINE_P(G1,ox+30,oy+36,ox+110,oy+22,cLn);
+  LINE_P(G1,ox+30,oy+36,ox+110,oy+50,cText);
+  disc(ox+30,oy+36,4,cWarn);
+  TRIANGLE_P(G1,ox+24,oy+60,ox+36,oy+60,ox+30,oy+44,RGB(250,140,40));
+  circ(ox+126,oy+36,14,cText);
+  lab("mV",ox+126,oy+30,cText);
+  wire(ox+110,oy+22,ox+120,oy+26);
+  wire(ox+110,oy+50,ox+120,oy+46);
+  lab("metal A",ox+76,oy+12,cLn);
+  lab("metal B",ox+76,oy+50,cText);
+  lab("heated junction",ox+40,oy+64,cWarn);
+END;
+
+// piezoelectric crystal struck by a hammer
+dgPiezo(ox,oy)
+BEGIN
+  RECT_P(G1,ox+40,oy+30,ox+80,oy+60,RGB(120,150,200));
+  arr(ox+60,oy+2,ox+60,oy+26,cWarn);
+  lab("pressure",ox+60,oy+2,cWarn);
+  wire(ox+80,oy+36,ox+120,oy+36);
+  wire(ox+80,oy+54,ox+120,oy+54);
+  circ(ox+128,oy+45,10,cWarn);
+  lab("neon",ox+128,oy+58,cText);
+  lab("crystal",ox+60,oy+62,cText);
+END;
+
+// hydrogen-oxygen fuel cell
+dgFuel(ox,oy)
+BEGIN
+  RECT_P(G1,ox+20,oy+24,ox+136,oy+68,cEdge,cBg);
+  RECT_P(G1,ox+21,oy+25,ox+56,oy+67,RGB(120,130,200));
+  RECT_P(G1,ox+57,oy+25,ox+62,oy+67,RGB(70,70,70));
+  RECT_P(G1,ox+63,oy+25,ox+93,oy+67,RGB(220,170,90));
+  RECT_P(G1,ox+94,oy+25,ox+99,oy+67,RGB(70,70,70));
+  RECT_P(G1,ox+100,oy+25,ox+135,oy+67,RGB(110,190,110));
+  lab("H2",ox+38,oy+42,cText);
+  lab("KOH",ox+78,oy+42,cBg);
+  lab("O2",ox+118,oy+42,cText);
+  wire(ox+60,oy+24,ox+60,oy+8);
+  wire(ox+96,oy+24,ox+96,oy+8);
+  wire(ox+60,oy+8,ox+96,oy+8);
+  disc(ox+78,oy+8,5,cWarn);
+  lab("-",ox+50,oy+12,cText);
+  lab("+",ox+106,oy+12,cText);
+END;
+
+// notes drawing number id, top left at ox, oy
+drawNoteDg(dn,ox,oy)
+BEGIN
+  IF dn==1 THEN dgKcl(ox,oy); END;
+  IF dn==2 THEN dgKvl(ox,oy); END;
+  IF dn==3 THEN dgTwo(ox,oy,19,22,24,23,20,21,0,0); END;
+  IF dn==4 THEN dgThev(ox,oy,0); END;
+  IF dn==5 THEN dgEqv(ox,oy,1); END;
+  IF dn==6 THEN dgThev(ox,oy,1); END;
+  IF dn==7 THEN dgEqv(ox,oy,2); END;
+  IF dn==8 THEN dgThev(ox,oy,2); END;
+  IF dn==9 THEN dgTwo(ox,oy,38,39,40,41,42,43,1,0); END;
+  IF dn==10 THEN dgTwo(ox,oy,38,39,40,41,42,43,1,2); END;
+  IF dn==11 THEN dgCond(ox,oy,3,0,0,0); END;
+  IF dn==12 THEN dgCond(ox,oy,6,0,0,0); END;
+  IF dn==13 THEN dgLoad(ox,oy); END;
+  IF dn==14 THEN dgDuct(ox,oy); END;
+  IF dn==15 THEN dgNec(ox,oy); END;
+  IF dn==16 THEN dgMil(ox,oy); END;
+  IF dn==17 THEN dgWire(ox,oy); END;
+  IF dn==18 THEN dgLine(ox,oy,1,0,0,0,0); END;
+  IF dn==19 THEN dgLine(ox,oy,0,0,0,0,0); END;
+  IF dn==20 THEN dgTemp(ox,oy); END;
+  IF dn==21 THEN dgParc(ox,oy); END;
+  IF dn==22 THEN dgEddy(ox,oy); END;
+  IF dn==23 THEN dgMeg(ox,oy,0); END;
+  IF dn==24 THEN dgMeg(ox,oy,1); END;
+  IF dn==25 THEN dgSym(ox,oy); END;
+  IF dn==26 THEN dgJar(ox,oy,0); END;
+  IF dn==27 THEN dgDry(ox,oy); END;
+  IF dn==28 THEN dgCap(ox,oy); END;
+  IF dn==29 THEN dgRi(ox,oy); END;
+  IF dn==30 THEN dgJar(ox,oy,1); END;
+  IF dn==31 THEN dgJar(ox,oy,2); END;
+  IF dn==32 THEN dgCurve(ox,oy); END;
+  IF dn==33 THEN dgBank(ox,oy,4,1,0,"12 V 60 A-hr each: 48 V 60 A-hr"); END;
+  IF dn==34 THEN dgBank(ox,oy,1,4,0,"in parallel: 12 V 240 A-hr"); END;
+  IF dn==35 THEN dgBank(ox,oy,2,2,0,"series-parallel: 24 V 120 A-hr"); END;
+  IF dn==36 THEN dgSolar(ox,oy); END;
+  IF dn==37 THEN dgBank(ox,oy,1,1,1,"solar cell symbol"); END;
+  IF dn==38 THEN dgBank(ox,oy,28,2,1,"0.5 V 0.25 A cells: 14 V 0.5 A"); END;
+  IF dn==39 THEN dgThc(ox,oy); END;
+  IF dn==40 THEN dgPiezo(ox,oy); END;
+  IF dn==41 THEN dgFuel(ox,oy); END;
+  IF dn==42 THEN dgOhm(ox,oy); END;
+END;
+
+// the drawing of tool t, at the top right of the tool screen
+toolDiag(t)
+BEGIN
+  LOCAL ox:=161;
+  LOCAL oy:=23;
+  LOCAL s, p;
+  IF t==1 THEN dgKcl(ox,oy); END;
+  IF t==2 THEN dgKvl(ox,oy); END;
+  IF t==3 THEN dgTwo(ox,oy,19,22,24,23,20,21,0,0); END;
+  IF t==4 THEN dgThev(ox,oy,0); END;
+  IF t==5 THEN dgEqv(ox,oy,gV(34)); END;
+  IF t==6 THEN dgTwo(ox,oy,38,39,40,41,42,43,1,0); END;
+  IF t==7 THEN dgWire(ox,oy); END;
+  IF t==8 THEN dgLine(ox,oy,gV(52)==2,58,56,57,54); END;
+  IF t==9 THEN dgLine(ox,oy,gV(59)==2,61,63,64,0); END;
+  IF t==10 THEN dgCond(ox,oy,gV(72),gV(69)==2,70,72); END;
+  IF t==11 THEN dgLoad(ox,oy); END;
+  IF t==12 THEN dgTemp(ox,oy); END;
+  IF t==13 THEN dgNec(ox,oy); END;
+  IF t==14 THEN dgBank(ox,oy,gV(96),gV(97),0,fmtE(gV(94))+" V "+fmtE(gV(95))+" A-hr each"); END;
+  IF t==15 THEN
+    s:=CEILING(gV(100)/MAX(0.000001,gV(98))-0.0000001);
+    p:=CEILING(gV(101)/MAX(0.000001,gV(99))-0.0000001);
+    dgBank(ox,oy,s,p,1,fmtE(gV(98))+" V "+fmtE(gV(99))+" A per cell");
+  END;
+  IF t==16 THEN dgCap(ox,oy); END;
+  IF t==17 THEN dgRi(ox,oy); END;
+  IF t==18 THEN dgOhm(ox,oy); END;
+END;
+
 // the lines of reference page n
 pageLines(n)
 BEGIN
@@ -587,6 +1398,8 @@ BEGIN
     " Usually you must solve simultaneous equations."}; END;
   IF n==2 THEN h:={
     "KIRCHHOFF'S CURRENT LAW (KCL)",
+    "@1",
+    "@","@","@","@","@",
     " The algebraic sum of the currents entering and",
     " leaving any particular point must equal zero.",
     " Proof: if more current entered a point than left,",
@@ -603,6 +1416,8 @@ BEGIN
     " flows the other way (the amount is correct)."}; END;
   IF n==3 THEN h:={
     "KIRCHHOFF'S VOLTAGE LAW (KVL)",
+    "@2",
+    "@","@","@","@","@",
     " The algebraic sum of the voltages around any",
     " closed loop must equal zero.",
     "POLARITY",
@@ -619,6 +1434,8 @@ BEGIN
     " Start at a point, go around, return to it."}; END;
   IF n==4 THEN h:={
     "SOLVING PROBLEMS WITH KIRCHHOFF'S LAWS",
+    "@3",
+    "@","@","@","@","@",
     " 1 Assume a direction of current in each branch.",
     " 2 Mark the polarity of every drop (current enters",
     "   at -, leaves at +).",
@@ -634,6 +1451,10 @@ BEGIN
     " voltage V = (Es1/R1 + Es2/R2)/(1/R1+1/R2+1/R3))."}; END;
   IF n==5 THEN h:={
     "THEVENIN'S THEOREM (M. L. Thevenin, France)",
+    "@4",
+    "@","@","@","@","@",
+    "@5",
+    "@","@","@","@","@",
     " Simplifies a circuit network into an equivalent",
     " circuit with a SINGLE VOLTAGE SOURCE (ETH) and a",
     " SERIES RESISTOR (RTH).",
@@ -649,6 +1470,8 @@ BEGIN
     " different load resistances."}; END;
   IF n==6 THEN h:={
     "THEVENIN STEPS",
+    "@6",
+    "@","@","@","@","@",
     " 1 Remove the load from A-B.",
     " 2 ETH = voltage across A-B (often a divider:",
     "   ETH = Es x R2 / (R1 + R2)).",
@@ -663,6 +1486,8 @@ BEGIN
     " Tool: Thevenin / Norton, Equivalent + load."}; END;
   IF n==7 THEN h:={
     "NORTON'S THEOREM (E. L. Norton, American)",
+    "@7",
+    "@","@","@","@","@",
     " Reduces a circuit network to a simple CURRENT",
     " SOURCE (IN) and a single PARALLEL resistance (RN).",
     " The opposite of Thevenin (voltage source and",
@@ -678,6 +1503,8 @@ BEGIN
     " through RN). Symbol: circle with an arrow."}; END;
   IF n==8 THEN h:={
     "NORTON STEPS",
+    "@8",
+    "@","@","@","@","@",
     " 1 IN = current with the output terminals A-B",
     "   SHORTED (Es / R1 for the divider circuit).",
     " 2 RN = resistance across A-B with the source",
@@ -692,6 +1519,10 @@ BEGIN
     " I(RN) = 14.4/1.5 = 9.6 A, IL = 14.4/6 = 2.4 A"}; END;
   IF n==9 THEN h:={
     "SUPERPOSITION THEOREM",
+    "@9",
+    "@","@","@","@","@",
+    "@10",
+    "@","@","@","@","@",
     " Finds the current through any branch of a circuit",
     " with MORE THAN ONE power source. The current in a",
     " branch = the algebraic sum of the currents each",
@@ -707,6 +1538,8 @@ BEGIN
     "   directions subtract (direction of the larger)."}; END;
   IF n==10 THEN h:={
     "UNIT 9 FORMULAS",
+    "@42",
+    "@","@","@","@","@",
     " KCL: sum of I in = sum of I out (in +, out -)",
     " KVL: sum of drops = sum of sources (loop sum 0)",
     " E = I x R   I = E / R   R = E / I   P = E x I",
@@ -768,6 +1601,8 @@ BEGIN
     " to pull; parallel conductors may be used instead."}; END;
   IF n==14 THEN h:={
     "11-2 NEC WIRE TABLES (National Electrical Code)",
+    "@11",
+    "@","@","@","@","@",
     " The NEC is used to size conductors for most work.",
     " 310.15(B)(16): not more than 3 current-carrying",
     "  conductors in raceway, cable or earth; ambient",
@@ -828,6 +1663,8 @@ BEGIN
     "  56-60   -    0.58  0.71   132-140 (61-65 .47 .65)"}; END;
   IF n==18 THEN h:={
     "MORE THAN THREE CONDUCTORS IN A RACEWAY",
+    "@12",
+    "@","@","@","@","@",
     " (B)(16) and (B)(18) allow 3 current-carrying",
     " conductors. More conductors: heat adds up, so",
     " DERATE with Table 310.15(B)(3)(a):",
@@ -843,6 +1680,8 @@ BEGIN
     " Tool: Ampacity derating"}; END;
   IF n==19 THEN h:={
     "SIZING A CONDUCTOR (Ex 11-8)",
+    "@13",
+    "@","@","@","@","@",
     " 50 kW oven, 480 V, Cu THHN, ambient 125°F,",
     " continuous (3 hours or more), termination unknown",
     " 1 I = P / E = 50,000 / 480 = 104.167 A",
@@ -858,6 +1697,10 @@ BEGIN
     " Tool: Conductor for load"}; END;
   IF n==20 THEN h:={
     "DUCT BANKS",
+    "@14",
+    "@","@","@","@","@",
+    "@15",
+    "@","@","@","@","@",
     " Electric duct = a single metallic or nonmetallic",
     " conduit; duct bank = a group of ducts buried",
     " together. Centers of ducts: not less than 7.5 in",
@@ -874,6 +1717,8 @@ BEGIN
     " (The book prints TA - ΔTD; NEC is TA + ΔTD.)"}; END;
   IF n==21 THEN h:={
     "LONG WIRE LENGTHS / RESISTANCE",
+    "@16",
+    "@","@","@","@","@",
     " Code tables assume length does not add much",
     " resistance; very long runs must be CALCULATED.",
     " Resistance of wire depends on 4 factors:",
@@ -904,6 +1749,8 @@ BEGIN
     "  3/0 167,800  4/0 211,600  then kcmil x 1000"}; END;
   IF n==23 THEN h:={
     "CALCULATING RESISTANCE",
+    "@17",
+    "@","@","@","@","@",
     "  R = K x L / CM",
     "  R resistance   K ohms-CM per foot",
     "  L length in feet   CM circular mil area",
@@ -919,6 +1766,8 @@ BEGIN
     " 2 x one-way distance. Tool: Wire R = KL/CM"}; END;
   IF n==24 THEN h:={
     "SIZING WIRE FOR A LONG RUN",
+    "@18",
+    "@","@","@","@","@",
     " 1 Allowed drop: ED = source V x percent",
     " 2 Max wire resistance: R = ED / I",
     " 3 Length: 1-phase L = 2 x distance",
@@ -934,6 +1783,10 @@ BEGIN
     " Tool: Size for long run"}; END;
   IF n==25 THEN h:={
     "11-6 VOLTAGE DROP",
+    "@19",
+    "@","@","@","@","@",
+    "@18",
+    "@","@","@","@","@",
     " Single-phase:  ED = 2 x K x I x L / CM",
     " Three-phase:   ED = 1.732 x K x I x L / CM",
     "  ED voltage drop   K ohms per mil foot",
@@ -949,6 +1802,8 @@ BEGIN
     " Tool: Voltage drop"}; END;
   IF n==26 THEN h:={
     "COEFFICIENT OF TEMPERATURE",
+    "@20",
+    "@","@","@","@","@",
     " K values are given at 20°C (the American",
     " Engineers Handbook standard). At another",
     " temperature:",
@@ -964,6 +1819,8 @@ BEGIN
     " °C = (°F - 32) / 1.8. Tool: Temp coefficient"}; END;
   IF n==27 THEN h:={
     "11-7 PARALLEL CONDUCTORS",
+    "@21",
+    "@","@","@","@","@",
     " Used when a conductor would be very large (hard to",
     " handle or pull). NEC 310.10(H): five conditions:",
     " 1 Same LENGTH",
@@ -979,6 +1836,8 @@ BEGIN
     " Tool: Size for long run (Parallel box)."}; END;
   IF n==28 THEN h:={
     "SINGLE PHASE IN A METAL CONDUIT",
+    "@22",
+    "@","@","@","@","@",
     " Conductors of one phase may NOT run alone in a",
     " metal conduit (NEC 300.5(I), 300.20(A), (B)).",
     " AC current changes direction and size, so its",
@@ -994,6 +1853,10 @@ BEGIN
     " induced in the conduit walls."}; END;
   IF n==29 THEN h:={
     "11-8 TESTING WIRE INSTALLATIONS: MEGGER",
+    "@23",
+    "@","@","@","@","@",
+    "@24",
+    "@","@","@","@","@",
     " MEGGER (megohmmeter): a high-voltage ohmmeter for",
     " testing insulation; reads very high resistance",
     " (megohms). Hand-crank or electronic.",
@@ -1069,6 +1932,8 @@ BEGIN
     " Use the tools to check each one."}; END;
   IF n==34 THEN h:={
     "13-1 HISTORY OF THE BATTERY",
+    "@25",
+    "@","@","@","@","@",
     " 1791 Luigi GALVANI: frog legs in salt solution,",
     " copper wire and iron scalpel: the leg twitched.",
     " He thought the muscle made the electricity. First",
@@ -1085,6 +1950,8 @@ BEGIN
     " several; long plate = positive (+)."}; END;
   IF n==35 THEN h:={
     "13-2 VOLTAIC CELLS",
+    "@26",
+    "@","@","@","@","@",
     " A voltaic cell converts CHEMICAL energy into",
     " ELECTRICAL energy. It can be made from almost any",
     " two UNLIKE METALS and an ELECTROLYTE: an acid,",
@@ -1145,6 +2012,8 @@ BEGIN
     " KOH = potassium hydroxide."}; END;
   IF n==39 THEN h:={
     "13-4 ZINC-COPPER CELL (primary)",
+    "@26",
+    "@","@","@","@","@",
     " Zinc and copper electrodes in water and",
     " hydrochloric acid: about 1.08 V.",
     " The electrolyte has positive H+ ions that attract",
@@ -1160,6 +2029,8 @@ BEGIN
     " Over time the ZINC electrode DISSOLVES."}; END;
   IF n==40 THEN h:={
     "CARBON-ZINC (LECLANCHE) CELL",
+    "@27",
+    "@","@","@","@","@",
     " Carbon rod = positive electrode; paste of ammonium",
     " chloride, manganese dioxide and granulated carbon",
     " = electrolyte; ZINC CONTAINER = negative.",
@@ -1192,6 +2063,8 @@ BEGIN
     " wrong charging current can make them EXPLODE."}; END;
   IF n==42 THEN h:={
     "CURRENT CAPACITY AND CELL RATINGS",
+    "@28",
+    "@","@","@","@","@",
     " Current a cell can deliver is set by the SURFACE",
     " AREA OF ITS PLATES (D > C > AA). Energy a cell",
     " can deliver = its CURRENT CAPACITY (depends on",
@@ -1208,6 +2081,8 @@ BEGIN
     " silver-zinc.  Tool: Capacity / run time"}; END;
   IF n==43 THEN h:={
     "INTERNAL RESISTANCE",
+    "@29",
+    "@","@","@","@","@",
     " Batteries have 2 voltage ratings: NO LOAD and",
     " normal LOAD; the load rating is the one used. The",
     " no-load voltage is higher because of the cell's",
@@ -1224,6 +2099,8 @@ BEGIN
     " terminal voltage goes DOWN."}; END;
   IF n==44 THEN h:={
     "13-5 LEAD-ACID BATTERY (secondary)",
+    "@30",
+    "@","@","@","@","@",
     " Once depleted, it can be recharged. One cell:",
     " a plate of pure LEAD (Pb, negative), a plate of",
     " LEAD DIOXIDE (PbO2, positive), electrolyte of",
@@ -1239,6 +2116,8 @@ BEGIN
     " LOWER specific gravity reading."}; END;
   IF n==45 THEN h:={
     "CHARGING CYCLE",
+    "@31",
+    "@","@","@","@","@",
     " Reverse the chemical action: connect a DC power",
     " supply or generator, + to + and - to -. The",
     " supply voltage must be GREATER than the battery.",
@@ -1300,6 +2179,8 @@ BEGIN
     " start gasoline or diesel engines)."}; END;
   IF n==49 THEN h:={
     "NICKEL-CADMIUM (NICAD), Junger and Berg 1898",
+    "@32",
+    "@","@","@","@","@",
     " Positive: nickel hydroxide + graphite (graphite",
     " adds conductivity). Negative: cadmium oxide.",
     " Electrolyte: potassium hydroxide, SG about 1.2.",
@@ -1332,6 +2213,12 @@ BEGIN
     " current); overcurrent / overvoltage shortens life."}; END;
   IF n==51 THEN h:={
     "13-7 SERIES AND PARALLEL CONNECTIONS",
+    "@33",
+    "@","@","@","@","@",
+    "@34",
+    "@","@","@","@","@",
+    "@35",
+    "@","@","@","@","@",
     " SERIES: VOLTAGES ADD, A-hr capacity stays the SAME",
     " (same plate area, more cells).",
     "  Four 12 V 60 A-hr in series = 48 V, 60 A-hr",
@@ -1347,6 +2234,12 @@ BEGIN
     " Tools: Battery bank, Cells needed"}; END;
   IF n==52 THEN h:={
     "13-8 SOLAR (PHOTOVOLTAIC) CELLS",
+    "@36",
+    "@","@","@","@","@",
+    "@37",
+    "@","@","@","@","@",
+    "@38",
+    "@","@","@","@","@",
     " P- and N-type semiconductor (4 valence electrons:",
     " silicon, germanium). Add a 3-valence impurity:",
     " P-type (lack of electrons). Add 5-valence: N-type",
@@ -1363,6 +2256,8 @@ BEGIN
     " strings of 28 in parallel = 14 V 0.5 A (56 cells)."}; END;
   IF n==53 THEN h:={
     "THERMOCOUPLES",
+    "@39",
+    "@","@","@","@","@",
     " Seebeck (German, 1822): two DISSIMILAR METALS",
     " joined at one end; heating the junction produces",
     " a voltage: the SEEBECK EFFECT.",
@@ -1379,6 +2274,8 @@ BEGIN
     " valve open; pilot out = no current = valve closes."}; END;
   IF n==54 THEN h:={
     "PIEZOELECTRICITY (piezo = pressure, pee-ay-zo)",
+    "@40",
+    "@","@","@","@","@",
     " Voltage produced by some materials (crystals)",
     " under PRESSURE: compression, twisting, bending or",
     " stretching: the PIEZOELECTRIC EFFECT.",
@@ -1394,6 +2291,8 @@ BEGIN
     " CONSTANT frequency (two-way radios)."}; END;
   IF n==55 THEN h:={
     "FUEL CELLS",
+    "@41",
+    "@","@","@","@","@",
     " Chemical processes make electricity, transferring",
     " electrons from one material to another like a",
     " voltaic cell, BUT the materials giving and taking",
@@ -1544,6 +2443,8 @@ BEGIN
     " Largest AWG 4/0 = 211,600 CM; duct spacing 7.5 in"}; END;
   IF n==65 THEN h:={
     "HW REVIEW #6: SOLVING WITH LOOP EQUATIONS",
+    "@3",
+    "@","@","@","@","@",
     " Fig 9-33: Es1 24 V, R1 330; Es2 10 V, R2 200;",
     " R3 100 in the middle. Loops L1 (ABEF), L2 (CBED).",
     " KVL L1: Es1 - E1 - E3 = 0, so 24 = E1 + E3",
@@ -1576,6 +2477,8 @@ BEGIN
     " for ambient temperatures other than 30°C."}; END;
   IF n==67 THEN h:={
     "MEASURING INTERNAL RESISTANCE (handout)",
+    "@29",
+    "@","@","@","@","@",
     " Model: an ideal voltage source with a resistor RI",
     " in series. Size, chemistry, age and temperature",
     " all limit a real battery.",
@@ -1624,12 +2527,6 @@ BEGIN
   RETURN h;
 END;
 
-// one page on its own (each tool's HELP)
-learnPage(n)
-BEGIN
-  showText(gLearn(n),pageLines(n));
-END;
-
 // one long page of lines t, scrolled with Up/Down, + / -, or a finger;
 // Left/Right jump to the previous / next section (st: first line of
 // each section); Esc or Enter (or CLOSE) goes back
@@ -1641,20 +2538,43 @@ BEGIN
   LOCAL done:=0;
   LOCAL dragged:=0;
   LOCAL y0:=0;
-  LOCAL k, ev, dy, tx, bh, by;
+  LOCAL dg:={};
+  LOCAL k, ev, dy, tx, bh, by, j;
+  // drawing number of each line: 0 text, -1 part of a drawing
+  FOR k FROM 1 TO n DO
+    tx:=t(k);
+    dg(k):=0;
+    IF DIM(tx)>0 THEN
+      IF LEFT(tx,1)=="@" THEN
+        dg(k):=-1;
+        FOR j FROM 1 TO 42 DO
+          IF tx=="@"+istr(j) THEN dg(k):=j; END;
+        END;
+      END;
+    END;
+  END;
   gSTop:=1;
+  gCurS:=0;
+  gDgN:=1;
   REPEAT
     RECT_P(G1,0,0,319,239,cBg);
-    RECT_P(G1,0,0,319,20,cPanel);
+    FOR k FROM -5 TO nr-1 DO
+      j:=gSTop+k;
+      IF j>=1 AND j<=n THEN
+        IF dg(j)>0 THEN
+          drawNoteDg(dg(j),82,24+k*14+2);
+        ELSE
+          IF k>=0 AND dg(j)==0 THEN
+            tx:=t(j);
+            TEXTOUT_P(tx,G1,6,24+k*14,1,IFTE(LEFT(tx,1)==" ",cText,cSelc));
+          END;
+        END;
+      END;
+    END;
+    RECT_P(G1,0,0,319,21,cPanel);
     TEXTOUT_P(ttl,G1,5,4,2,cText);
     rtext(istr(gSTop)+"-"+istr(MIN(n,gSTop+nr-1))+" of "+istr(n),262,6,1,cDim);
     chip("CLOSE",268);
-    FOR k FROM 0 TO nr-1 DO
-      IF gSTop+k<=n THEN
-        tx:=t(gSTop+k);
-        TEXTOUT_P(tx,G1,6,24+k*14,1,IFTE(LEFT(tx,1)==" ",cText,cSelc));
-      END;
-    END;
     // scroll bar
     bh:=MAX(10,ROUND(214*MIN(1,nr/MAX(1,n)),0));
     by:=22+ROUND((214-bh)*(gSTop-1)/MAX(1,mx-1),0);
@@ -1701,7 +2621,14 @@ BEGIN
     END;
     gSTop:=MAX(1,MIN(mx,gSTop));
   UNTIL done;
+  gDgN:=0;
   gDown:=0;
+END;
+
+// one page on its own (each tool's HELP)
+learnPage(n)
+BEGIN
+  showScroll(gLearn(n),pageLines(n),{1});
 END;
 
 // all the pages of note tile g as one scrolling page
@@ -2310,21 +3237,35 @@ BEGIN
   BLIT_P(G0,G1);
 END;
 
+// one answer row between x1 and x2
+drawRow(k,x1,x2,y)
+BEGIN
+  LOCAL fv;
+  IF (k MOD 2)==0 THEN RECT_P(G1,x1,y,x2,y+14,cRow); END;
+  IF gRL(k)=="" THEN
+    TEXTOUT_P(gRV(k),G1,x1+3,y+2,1,gRC(k));
+  ELSE
+    TEXTOUT_P(gRL(k),G1,x1+3,y+2,1,cDim);
+    fv:=IFTE(textw(gRV(k),2)+textw(gRL(k),1)>x2-x1-12,1,2);
+    rtext(gRV(k),x2-3,y+IFTE(fv==2,1,2),fv,gRC(k));
+  END;
+END;
+
 drawTool()
 BEGIN
   LOCAL sl:=toolIns(gTool);
   LOCAL n:=SIZE(sl);
-  LOCAL k, s, y, txt, big, fv;
+  LOCAL k, s, y, txt, big;
   toolCalc(gTool);
+  gCurS:=0;
+  gDgN:=0;
+  IF gTSel>=1 AND gTSel<=n THEN gCurS:=sl(gTSel); END;
   RECT_P(G1,0,0,319,239,cBg);
-  RECT_P(G1,0,0,319,20,gCatC(gTCat(gTool)));
-  TEXTOUT_P(gTName(gTool),G1,5,3,3,cWhite);
-  chip("HELP",272);
   // input boxes down the left
   FOR k FROM 1 TO n DO
     s:=sl(k);
     y:=23+(k-1)*19;
-    TEXTOUT_P(slotName(s),G1,3,y+4,1,cDim);
+    TEXTOUT_P(slotName(s),G1,3,y+4,1,IFTE(k==gTSel,cSelc,cDim));
     IF k==gTSel AND gEnt THEN
       RECT_P(G1,60,y,157,y+17,cSelc,cHit);
       txt:=entText()+"_";
@@ -2335,20 +3276,22 @@ BEGIN
     big:=textw(txt,2)<=92;
     TEXTOUT_P(txt,G1,64,y+IFTE(big,2,4),IFTE(big,2,1),cText);
   END;
-  // answers down the right
-  LINE_P(G1,160,22,160,217,cEdge);
-  y:=23;
-  FOR k FROM 1 TO MIN(13,SIZE(gRL)) DO
-    IF (k MOD 2)==0 THEN RECT_P(G1,161,y,319,y+14,cRow); END;
-    IF gRL(k)=="" THEN
-      TEXTOUT_P(gRV(k),G1,164,y+2,1,gRC(k));
+  // the drawing, top right; the part being typed is yellow
+  toolDiag(gTool);
+  LINE_P(G1,159,22,159,217,cEdge);
+  LINE_P(G1,160,99,319,99,cEdge);
+  // answers under the drawing, then under the boxes
+  FOR k FROM 1 TO SIZE(gRL) DO
+    IF k<=8 THEN
+      drawRow(k,161,319,100+(k-1)*15);
     ELSE
-      TEXTOUT_P(gRL(k),G1,164,y+2,1,cDim);
-      fv:=IFTE(textw(gRV(k),2)+textw(gRL(k),1)>146,1,2);
-      rtext(gRV(k),316,y+IFTE(fv==2,1,2),fv,gRC(k));
+      y:=23+n*19+4+(k-9)*15;
+      IF y+14<=218 THEN drawRow(k,0,158,y); END;
     END;
-    y:=y+15;
   END;
+  RECT_P(G1,0,0,319,20,gCatC(gTCat(gTool)));
+  TEXTOUT_P(gTName(gTool),G1,5,3,3,cWhite);
+  chip("HELP",272);
   drawMenu({"EDIT","RESET","< PREV","NEXT >","HOME"});
   BLIT_P(G0,G1);
 END;
