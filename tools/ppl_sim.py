@@ -614,6 +614,10 @@ class Interp:
     def b_SIZE(self, s): return float(len(s))
     def b_LEFT(self, s, n): return s[:int(n)]
     def b_RIGHT(self, s, n): return s[len(s) - int(n):] if int(n) > 0 else ""
+    def b_MID(self, s, k, n=None):
+        k = max(int(k), 1) - 1
+        return s[k:] if n is None else s[k:k + max(int(n), 0)]
+    def b_INSTRING(self, s, t): return float(s.find(t) + 1)
 
     def b_TYPE(self, v):
         if isinstance(v, str): return 2.0

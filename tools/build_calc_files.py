@@ -296,11 +296,13 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_geometry.py"),
          note="""GEOMETRY - practical plane geometry for a trades math class (Chapter 8)
 
-Open the app and tap a tile. 22 tools, each with a drawing that lights up the part you are typing: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, perimeter, rectangle, square, parallelogram, trapezoid, cost and material, Pythagorean theorem, triangle area (base and height, or three sides with an optional height), regular hexagon, irregular (L-shaped) figures, circle, ring, sector and arc, feet and inches, equilateral triangle, Hero's formula step by step and composite figures (one shape added to or cut out of another), plus Learn (the chapter's formulas).
+Open the app and tap a tile: Angles, Four-sided shapes, Triangles, Circles, Polygons, Combine 2 shapes, Money and units, Formulas. 22 shapes and tools: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, rectangle, square, parallelogram, trapezoid, triangle (base and height), right triangle (Pythagorean), any triangle (Hero's formula), isosceles, equilateral, circle, semicircle, quarter circle, ring, sector and arc, regular hexagon, polygon perimeter, cost and material, feet and inches.
 
-Word problems: give whatever the problem gives (an area, a perimeter, a diagonal...) and leave the size you want at 0; the tool finds it and everything else.
+Each shape is a big drawing with every size written on it as a label. Tap a label to type its value (or pick it with Left/Right and type on the keypad). White = you entered it, green = worked out, orange ? = not known yet. Under the drawing are the answers and then HOW IT WAS FOUND: each formula, the numbers put into it, and the answer. Tap the work (or WORK) to read it all on one page.
 
-In a tool, tap a box to change it, or select it with Left/Right and type the number on the keypad. A box showing ? is the one to find. HELP shows the formulas.
+Word problems: enter whatever the problem gives (an area, a perimeter, a diagonal...) and leave the rest at ?; the app works back to the sides.
+
+Combine 2 shapes: pick shape A and shape B (SHAPES), then PLACE: add B onto a side of A, cut it out of a side (a notch) or out of the middle (a hole). The total area and perimeter are worked out step by step.
 
 Source and instructions: """ + REPO),
     dict(name="ELECREV", icon=icon_review, android=False,
