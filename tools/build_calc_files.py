@@ -302,7 +302,9 @@ Each shape is a big drawing with every size written on it as a label. Tap a labe
 
 Word problems: enter whatever the problem gives (an area, a perimeter, a diagonal...) and leave the rest at ?; the app works back to the sides.
 
-Combine 2 shapes: pick shape A and shape B (SHAPES), then PLACE: add B onto a side of A, cut it out of a side (a notch) or out of the middle (a hole). The total area and perimeter are worked out step by step.
+Combine shapes: pick shape A, B and (if you want) C (SHAPES), then PLACE: add each onto a side of A, cut it out of a side (a notch) or out of the middle (a hole). The total area, perimeter and cost are worked out step by step.
+
+SETUP: units (feet are typed as feet and inches), rounding (to 0.1, 0.01...), answers in terms of π, save the problem. On the home screen, FIND opens the right shape for a kind of problem, and MORE has 19 practice problems, the answers so far and the saved problems.
 
 Source and instructions: """ + REPO),
     dict(name="ELECREV", icon=icon_review, android=False,

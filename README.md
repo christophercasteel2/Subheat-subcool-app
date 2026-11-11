@@ -440,10 +440,24 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 - a sector's radius or angle from its arc or area
 - a polygon's missing side from its perimeter
 
-**Combine 2 shapes.**
-- **SHAPES** picks shape A and shape B: a rectangle, square, parallelogram, trapezoid, any of the triangles, a hexagon, circle, semicircle or quarter circle. It also loads one of five examples: a house (rectangle and roof), a rectangle with a half circle on the end, the L-shaped room, a square with a round hole, and a hexagon with a square cut out.
-- **PLACE** adds B onto a side of A, cuts it out of a side (a notch) or out of the middle (a hole), on the top, right, bottom or left side, centred or at either end. A is drawn blue and B green (red when it is cut out).
-- **The answers:** total area = A + B (or A − B), and total perimeter = PA + PB − 2 × the shared edge, each step shown. The house gives 240 + 80 = 320 ft² and 69.61 ft; the L-shaped room gives 252 + 240 = 492 ft²; the hexagon minus the square gives 1040 − 400 = 640 ft². A notch or hole bigger than A is flagged.
+**Combine 2 or 3 shapes.**
+- **SHAPES** picks shape A, shape B and (if you want) shape C: a rectangle, square, parallelogram, trapezoid, any of the triangles, a hexagon, circle, semicircle or quarter circle. It also loads one of five examples: a house (rectangle and roof), a rectangle with a half circle on the end, the L-shaped room, a square with a round hole, and a hexagon with a square cut out.
+- **PLACE** (it asks which shape when there are three) adds B or C onto a side of A, cuts it out of a side (a notch) or out of the middle (a hole), on the top, right, bottom or left side, centred or at either end. A is drawn blue and B green (red when it is cut out).
+- **The answers:** total area = A + B + C (minus any part cut out), and total perimeter = PA + PB − 2 × the shared edge (and the same for C), each step shown. Give a price per square foot (SHAPES) for the cost: the L-shaped room at $4.75 is $2,337.00. A sixth example has three shapes: a room with a closet and a bay window (280 + 24 + 8π = 329.13 ft²). The house gives 240 + 80 = 320 ft² and 69.61 ft; the L-shaped room gives 252 + 240 = 492 ft²; the hexagon minus the square gives 1040 − 400 = 640 ft². A notch or hole bigger than A is flagged.
+
+**SETUP** (on a shape; under SHAPES when combining):
+- **Units.** In feet or yards, a length is typed in two boxes: feet and inches (10 ft 6 in), or yards and feet.
+- **Rounding.** Answers can be rounded to a whole number, tenths, hundredths or thousandths, shown next to the full answer: d = 11.6297 ft ≈ 11.63.
+- **π answers.** Circle answers also show in terms of π: A = 78.5398 = 25π.
+- **Save this problem** keeps it to open again later.
+
+**On the home screen:**
+- **FIND** asks what the problem is about (a ladder, a path around a pond, a room made of shapes...). It opens the right shape, empty, with a tip on what to enter.
+- **MORE** opens:
+  - **19 practice problems.** ANSWER checks your answer, HINT names the tile and formula, and WORK opens the problem on its shape with the answer picked.
+  - **The answers so far.** Each shape's answers are kept when you leave it.
+  - **Saved problems**, and setup.
+- History and saved problems stay until the app is installed again.
 
 | Tile | Shapes and tools |
 |---|---|
@@ -457,15 +471,15 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 Lengths in feet are also given in feet and inches (the ladder: 6.63 ft = 6 ft 7 5/8 in), and angles in degrees, minutes and seconds.
 
-The tests (`tools/test_geometry.py`, 89 checks) work the chapter's examples and answers again with plain arithmetic:
+The tests (`tools/test_geometry.py`, 112 checks) work the chapter's examples and answers again with plain arithmetic:
 - costs: the fence ($9,888), drywall ($123.90) and driveway ($4,335.14)
 - the Pythagorean examples: 41 ft, 17, the 6.63 ft ladder and the stairway
 - the triangle areas: 52 in², 200, 26
 - Hero's 84 for 13-14-15
 - the class homework: the 450 and 1,750 triangles from their heights, 15-20-25, the hexagon's 90 ft, 585 sq ft, 30 ft and 25.98 ft, the circles' 94.2 m, 706.5 m², 62.8 m, 314 m², 17.84 ft and 79.62
-- the word problems and the five combined shapes
+- the word problems, the combined shapes (two holes, a notch, three shapes, the cost) and all 19 practice answers
 
-They also play through the screens: tapping labels, keypad typing, CLEAR, EXAMPLE, UNITS, the work page, SHAPES and PLACE. They check that no two labels on any screen cover each other.
+They also play through the screens: tapping labels, feet-and-inches boxes, keypad typing, CLEAR, EXAMPLE, SETUP (units, rounding, save), the work page, SHAPES and PLACE, FIND, practice, history and saved problems. They check that no two labels on any screen cover each other.
 
 # ELECREV: electricity exam review
 

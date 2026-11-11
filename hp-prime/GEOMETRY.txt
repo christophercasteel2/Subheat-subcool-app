@@ -65,6 +65,19 @@ gRnd:=1;        // round answers: 1 no, 2 whole, 3 tenths, 4 hundredths, 5 thous
 gPiF:=1;        // 1 = also show answers as a number of π (25π)
 gPrc:=0;        // combining: price per square unit (0 = no cost)
 gMsg:="";       // a problem with the arrangement
+gHint:="";      // a tip shown under the drawing until a size is entered
+gRet:=0;        // where BACK goes from a shape: 0 its group, 1 home, 4 practice
+// kept while the program is on the calculator: answers so far, saved
+// problems, and the practice problems (number, right first time, tried)
+gHis:={};
+gSv:={};
+gQn:=1;
+gQok:=0;
+gQtr:=0;
+gQf:=0;
+gQh:=0;
+gQres:="";
+gQrc:=0;
 // the selected label: part, value number and (for angle picks) the pick
 gSelP:=1;
 gSelI:=0;
@@ -771,8 +784,8 @@ BEGIN
       IF NOT kv(1) AND kv(4) AND kv(5) THEN lwPair(wv(4)/2,((wv(4)/2)^2-wv(5)^2)/2,"P ÷ 2 = "+fs(4)+" ÷ 2","(sum² - d²) ÷ 2 = ("+fmtE(wv(4)/2)+"² - "+fs(5)+"²) ÷ 2"); END;
     END;
     IF kv(1) AND kv(2) THEN
-      sv(3,wv(1)*wv(2),"A = L x W",fs(1)+" x "+fs(2));
-      sv(4,2*wv(1)+2*wv(2),"P = 2 x L + 2 x W","2 x "+fs(1)+" + 2 x "+fs(2));
+      sv(3,wv(1)*wv(2),"A = L x W  (rows of squares x how many rows)",fs(1)+" x "+fs(2));
+      sv(4,2*wv(1)+2*wv(2),"P = 2 x L + 2 x W  (two of each side)","2 x "+fs(1)+" + 2 x "+fs(2));
       sv(5,sqroot(wv(1)^2+wv(2)^2),"d = √(L² + W²)  (Pythagorean)","√("+fs(1)+"² + "+fs(2)+"²)");
     END;
   END;
@@ -785,8 +798,8 @@ BEGIN
   IF kv(3) THEN sv(1,wv(3)/4,"s = P ÷ 4",fs(3)+" ÷ 4"); END;
   IF kv(4) THEN sv(1,wv(4)/sqroot(2),"s = d ÷ √2",fs(4)+" ÷ 1.41421"); END;
   IF kv(1) THEN
-    sv(2,wv(1)^2,"A = s x s",fs(1)+" x "+fs(1));
-    sv(3,4*wv(1),"P = 4 x s","4 x "+fs(1));
+    sv(2,wv(1)^2,"A = s x s  (all four sides are the same)",fs(1)+" x "+fs(1));
+    sv(3,4*wv(1),"P = 4 x s  (4 equal sides)","4 x "+fs(1));
     sv(4,wv(1)*sqroot(2),"d = s x √2",fs(1)+" x 1.41421");
   END;
 END;
@@ -814,7 +827,7 @@ BEGIN
     IF kv(6) AND kv(3) AND kv(1) AND wv(3)>0 THEN sv(2,2*wv(6)/wv(3)-wv(1),"b2 = 2 x A ÷ h - b1","2 x "+fs(6)+" ÷ "+fs(3)+" - "+fs(1)); END;
     IF kv(6) AND kv(1) AND kv(2) AND wv(1)+wv(2)>0 THEN sv(3,2*wv(6)/(wv(1)+wv(2)),"h = 2 x A ÷ (b1 + b2)","2 x "+fs(6)+" ÷ ("+fs(1)+" + "+fs(2)+")"); END;
     missSide({1,2,4,5},7);
-    IF kv(1) AND kv(2) AND kv(3) THEN sv(6,(wv(1)+wv(2))/2*wv(3),"A = (b1 + b2) ÷ 2 x h","("+fs(1)+" + "+fs(2)+") ÷ 2 x "+fs(3)); END;
+    IF kv(1) AND kv(2) AND kv(3) THEN sv(6,(wv(1)+wv(2))/2*wv(3),"A = (b1 + b2) ÷ 2 x h  (average base x height)","("+fs(1)+" + "+fs(2)+") ÷ 2 x "+fs(3)); END;
     IF kv(1) AND kv(2) AND kv(4) AND kv(5) THEN sv(7,wv(1)+wv(2)+wv(4)+wv(5),"P = b1 + b2 + c + d",fs(1)+" + "+fs(2)+" + "+fs(4)+" + "+fs(5)); END;
   END;
 END;
@@ -853,7 +866,7 @@ BEGIN
       sv(2,(s1-d1)/2,"b = (sum - difference) ÷ 2","("+fmtE(s1)+" - "+fmtE(d1)+") ÷ 2");
     END;
     missSide({1,2,3},5);
-    IF kv(1) AND kv(2) THEN sv(4,wv(1)*wv(2)/2,"A = a x b ÷ 2",fs(1)+" x "+fs(2)+" ÷ 2"); END;
+    IF kv(1) AND kv(2) THEN sv(4,wv(1)*wv(2)/2,"A = a x b ÷ 2  (the legs are base and height)",fs(1)+" x "+fs(2)+" ÷ 2"); END;
     IF kv(1) AND kv(2) AND kv(3) THEN sv(5,wv(1)+wv(2)+wv(3),"P = a + b + c",fs(1)+" + "+fs(2)+" + "+fs(3)); END;
   END;
   IF gG(gPart,1)==1 AND gG(gPart,2)==1 AND gG(gPart,3)==1 THEN
@@ -945,7 +958,7 @@ BEGIN
   IF kv(1) THEN
     sv(2,wv(1)*sqroot(3)/2,"h = s x √3 ÷ 2  (s x 0.866)",fs(1)+" x 1.73205 ÷ 2");
     sv(3,wv(1)^2*sqroot(3)/4,"A = s² x √3 ÷ 4  (0.433 x s²)",fs(1)+"² x 1.73205 ÷ 4");
-    sv(4,3*wv(1),"P = 3 x s","3 x "+fs(1));
+    sv(4,3*wv(1),"P = 3 x s  (3 equal sides)","3 x "+fs(1));
   END;
 END;
 
@@ -960,9 +973,9 @@ BEGIN
   IF kv(4) THEN sv(1,sqroot(wv(4)/f),"s = √(A ÷ "+ft+")","√("+fs(4)+" ÷ "+ft+")"); END;
   IF kv(1) THEN
     sv(2,wv(1)*sqroot(3),"F = s x √3  (s x 1.732)",fs(1)+" x 1.73205");
-    sv(3,2*wv(1),"C = 2 x s",  "2 x "+fs(1));
+    sv(3,2*wv(1),"C = 2 x s  (corner to corner = 2 sides)",  "2 x "+fs(1));
     sv(4,f*wv(1)^2,"A = "+ft+" x s²",ft+" x "+fs(1)+"²");
-    sv(5,6*wv(1),"P = 6 x s","6 x "+fs(1));
+    sv(5,6*wv(1),"P = 6 x s  (6 equal sides)","6 x "+fs(1));
   END;
 END;
 
@@ -989,25 +1002,25 @@ END;
 // 12 circle: r d C A (5: π)
 solCi()
 BEGIN
-  IF kv(2) THEN sv(1,wv(2)/2,"r = d ÷ 2",fs(2)+" ÷ 2"); END;
+  IF kv(2) THEN sv(1,wv(2)/2,"r = d ÷ 2  (the radius is half way across)",fs(2)+" ÷ 2"); END;
   IF kv(3) THEN sv(1,wv(3)/(2*pV(5)),"r = C ÷ (2 x π)",fs(3)+" ÷ (2 x "+pT(5)+")"); END;
   IF kv(4) THEN sv(1,sqroot(wv(4)/pV(5)),"r = √(A ÷ π)","√("+fs(4)+" ÷ "+pT(5)+")"); END;
   IF kv(1) THEN
-    sv(2,2*wv(1),"d = 2 x r","2 x "+fs(1));
+    sv(2,2*wv(1),"d = 2 x r  (all the way across = 2 radii)","2 x "+fs(1));
     sv(3,2*pV(5)*wv(1),"C = 2 x π x r  (or π x d)","2 x "+pT(5)+" x "+fs(1));
-    sv(4,pV(5)*wv(1)^2,"A = π x r²",pT(5)+" x "+fs(1)+"²");
+    sv(4,pV(5)*wv(1)^2,"A = π x r²  (π x r x r)",pT(5)+" x "+fs(1)+"²");
   END;
 END;
 
 // 13 semicircle: r d arc P A (6: π)
 solSc()
 BEGIN
-  IF kv(2) THEN sv(1,wv(2)/2,"r = d ÷ 2",fs(2)+" ÷ 2"); END;
+  IF kv(2) THEN sv(1,wv(2)/2,"r = d ÷ 2  (the radius is half way across)",fs(2)+" ÷ 2"); END;
   IF kv(3) THEN sv(1,wv(3)/pV(6),"r = arc ÷ π",fs(3)+" ÷ "+pT(6)); END;
   IF kv(4) THEN sv(1,wv(4)/(pV(6)+2),"r = P ÷ (π + 2)",fs(4)+" ÷ ("+pT(6)+" + 2)"); END;
   IF kv(5) THEN sv(1,sqroot(2*wv(5)/pV(6)),"r = √(2 x A ÷ π)","√(2 x "+fs(5)+" ÷ "+pT(6)+")"); END;
   IF kv(1) THEN
-    sv(2,2*wv(1),"d = 2 x r","2 x "+fs(1));
+    sv(2,2*wv(1),"d = 2 x r  (all the way across = 2 radii)","2 x "+fs(1));
     sv(3,pV(6)*wv(1),"arc = π x r  (half of 2 x π x r)",pT(6)+" x "+fs(1));
     sv(4,wv(3)+wv(2),"P = arc + d",fs(3)+" + "+fs(2));
     sv(5,pV(6)*wv(1)^2/2,"A = π x r² ÷ 2",pT(6)+" x "+fs(1)+"² ÷ 2");
@@ -1637,6 +1650,38 @@ BEGIN
   LOCAL w:=TEXTOUT_P(s,G9,0,0,fnt);
   IF w<=0 THEN w:=DIM(s)*(4+fnt); END;
   RETURN w;
+END;
+
+// s cut into lines no wider than w pixels (font f)
+wrapPx(s,w,f)
+BEGIN
+  LOCAL res:={};
+  LOCAL tl:="";
+  LOCAL wd:="";
+  LOCAL k, ch;
+  FOR k FROM 1 TO DIM(s)+1 DO
+    ch:=" ";
+    IF k<=DIM(s) THEN ch:=MID(s,k,1); END;
+    IF ch==" " THEN
+      IF wd<>"" THEN
+        IF tl<>"" AND textw(tl+" "+wd,f)>w THEN
+          res(SIZE(res)+1):=tl;
+          tl:=wd;
+        ELSE
+          IF tl=="" THEN
+            tl:=wd;
+          ELSE
+            tl:=tl+" "+wd;
+          END;
+        END;
+        wd:="";
+      END;
+    ELSE
+      wd:=wd+ch;
+    END;
+  END;
+  IF tl<>"" THEN res(SIZE(res)+1):=tl; END;
+  RETURN res;
 END;
 
 ctext(s,x,y,fnt,c)
@@ -2726,6 +2771,7 @@ END;
 setVal(p,k,x)
 BEGIN
   LOCAL kd:=vKinds(gT(p));
+  gHint:="";
   IF kd(k)==9 THEN
     gV(p,k):=MAX(1,ROUND(x,0));
     gG(p,k):=1;
@@ -3037,13 +3083,25 @@ BEGIN
     " perimeter, a diagonal ...) and leave the rest ?.",
     " UNITS changes in, ft, yd, mm, cm, m. EXAMPLE",
     " puts the textbook's example back; CLEAR erases.",
-    "COMBINE 2 SHAPES",
+    "COMBINE SHAPES",
     " SHAPES: pick shape A and shape B, or an example.",
     " PLACE: add B onto a side of A, cut B out of a side",
     " (a notch) or out of the middle (a hole), the side",
     " and where on it. A is blue, B green (red = cut).",
     " Area = A + B (or A - B). The perimeter takes off",
     " the edge the two shapes share.",
+    " SHAPES can add a third shape C. A price gives the",
+    " cost of the whole shape.",
+    "SETUP",
+    " Units; feet are typed as feet and inches. Round",
+    " answers to 0.1, 0.01 ... (shown as ≈). Answers",
+    " with π (A = 25π). Save this problem.",
+    "HOME SCREEN",
+    " FIND: pick what the problem is about; it opens",
+    " the right shape, empty, with a tip.",
+    " MORE: practice problems (ANSWER checks yours,",
+    " HINT names the tile, WORK shows how), the answers",
+    " so far, saved problems, setup.",
     "KEYS",
     " Esc: back.  Help: this page.  Menu: the work."};
 END;
@@ -3280,7 +3338,8 @@ BEGIN
   RECT_P(G1,0,0,319,239,cBg);
   RECT_P(G1,0,0,319,20,cPanel);
   TEXTOUT_P("GEOMETRY",G1,6,3,3,cText);
-  rtext("chapter 8",218,6,1,cDim);
+  chip("FIND",128);
+  chip("MORE",176);
   chip("HELP",224);
   chip("EXIT",272);
   FOR k FROM 1 TO 8 DO
@@ -3375,6 +3434,10 @@ BEGIN
     tx:=IFTE(gCmb,lt(gSelP)+": ","")+IFTE(gSelK>0,"Tap the number of the angle you know",ds(gSelI));
     TEXTOUT_P(tx,G1,4,142,1,cHead);
   END;
+  IF gHint<>"" THEN
+    RECT_P(G1,0,141,319,153,cPanel);
+    TEXTOUT_P(gHint,G1,4,142,1,cSelc);
+  END;
   IF gCmb AND gMsg<>"" THEN
     RECT_P(G1,0,141,319,153,cPanel);
     TEXTOUT_P(gMsg,G1,4,142,1,cBad);
@@ -3384,7 +3447,7 @@ BEGIN
   FOR k FROM 0 TO 3 DO
     IF gTop+k<=SIZE(gOut) THEN TEXTOUT_P(gOut(gTop+k),G1,4,156+k*15,1,gOutC(gTop+k)); END;
   END;
-  IF SIZE(gOut)>4 THEN
+  IF SIZE(gOut)>4 AND gHint=="" THEN
     tx:=IFTE(gTop+3<SIZE(gOut),"more...  ","")+"tap: all work";
     RECT_P(G1,314-textw(tx,1),141,319,153,cPanel);
     rtext(tx,316,142,1,cDim);
@@ -3505,6 +3568,35 @@ BEGIN
   END;
 END;
 
+// save what is on the screen as a problem to open again (MORE, home)
+saveProb()
+BEGIN
+  LOCAL t:=gT(1);
+  LOCAL nm:=vNames(t);
+  LOCAL kd:=vKinds(t);
+  LOCAL k, s, c, nl;
+  IF gCmb THEN
+    s:="Combined: "+tTile(gT(1))+" + "+tTile(gT(2));
+    IF gT(3)>0 THEN s:=s+" + "+tTile(gT(3)); END;
+  ELSE
+    s:=tTile(t)+":";
+    c:=0;
+    FOR k FROM 1 TO nVars(t) DO
+      IF gG(1,k)==1 AND kd(k)<>9 AND c<3 THEN
+        s:=s+IFTE(c>0,",","")+" "+nm(k)+" "+fmtE(gV(1,k));
+        c:=c+1;
+      END;
+    END;
+  END;
+  IF SIZE(gSv)>=12 THEN
+    nl:={};
+    FOR k FROM 2 TO SIZE(gSv) DO nl(k-1):=gSv(k); END;
+    gSv:=nl;
+  END;
+  gSv(SIZE(gSv)+1):={s,gCmb,gT,gV,gG,gUnit,{gPm,gPs,gPa,gQm,gQs,gQa}};
+  gHint:="Saved. Open it again: MORE on the home screen.";
+END;
+
 // how part p (B or C) goes with A
 placeMenu(p)
 BEGIN
@@ -3535,13 +3627,16 @@ BEGIN
 END;
 
 // units, rounding and π answers
-setupMenu()
+setupMenu(sv)
 BEGIN
   LOCAL c:=1;
   LOCAL r:=gRnd;
   LOCAL q:=gPiF+1;
-  IF CHOOSE(c,"Setup",{"Units of length: "+lenU(gUnit),"Round answers: "+rndName(gRnd),"Answers with π (like 25π): "+IFTE(gPiF,"on","off")}) THEN
+  LOCAL lst:={"Units of length: "+lenU(gUnit),"Round answers: "+rndName(gRnd),"Answers with π (like 25π): "+IFTE(gPiF,"on","off")};
+  IF sv THEN lst(4):="Save this problem (open it later from MORE)"; END;
+  IF CHOOSE(c,"Setup",lst) THEN
     IF c==1 THEN pickUnit(); END;
+    IF c==4 THEN saveProb(); END;
     IF c==2 THEN
       IF CHOOSE(r,"Round answers to",{"No rounding (6 figures)","Whole number","Tenths (0.1)","Hundredths (0.01)","Thousandths (0.001)"}) THEN
         IF r>=1 THEN gRnd:=r; END;
@@ -3563,15 +3658,15 @@ BEGIN
   IF k==4 THEN workView(); END;
   IF k==3 THEN clearVals(); END;
   IF gCmb==0 THEN
-    IF k==1 THEN setupMenu(); END;
+    IF k==1 THEN setupMenu(1); END;
     IF k==2 THEN loadEx(1,gT(1)); END;
   ELSE
     IF k==1 THEN
       tc:="none (tap to add one)";
       IF gT(3)>0 THEN tc:=tTile(gT(3)); END;
-      IF CHOOSE(c,"Shapes",{"Change shape A: "+tTile(gT(1)),"Change shape B: "+tTile(gT(2)),"Shape C: "+tc,"Units, rounding, π: "+lenU(gUnit),"Price per "+lenU(gUnit)+"²: "+IFTE(gPrc>0,"$"+fmtN(gPrc,2),"none"),"Example: house (rectangle + roof)","Example: rectangle + half circle","Example: L-shaped room","Example: square with a round hole","Example: hexagon minus a square","Example: room + closet + bay window (3)"}) THEN
+      IF CHOOSE(c,"Shapes",{"Change shape A: "+tTile(gT(1)),"Change shape B: "+tTile(gT(2)),"Shape C: "+tc,"Units, rounding, π, save: "+lenU(gUnit),"Price per "+lenU(gUnit)+"²: "+IFTE(gPrc>0,"$"+fmtN(gPrc,2),"none"),"Example: house (rectangle + roof)","Example: rectangle + half circle","Example: L-shaped room","Example: square with a round hole","Example: hexagon minus a square","Example: room + closet + bay window (3)"}) THEN
         IF c>=1 AND c<=3 THEN pickPart(c); END;
-        IF c==4 THEN setupMenu(); END;
+        IF c==4 THEN setupMenu(1); END;
         IF c==5 THEN
           v:=gPrc;
           IF INPUT(v,"Cost of the combined shape","$ per "+lenU(gUnit)+"²:","Price of one square "+lenU(gUnit)+". 0 = no cost") THEN
@@ -3598,11 +3693,304 @@ BEGIN
   RETURN 1;
 END;
 
+// add the answers on the screen to the history
+histAdd()
+BEGIN
+  LOCAL k, h, nl;
+  IF SIZE(gAn)==0 THEN RETURN 0; END;
+  h:=tName(gT(1));
+  IF gCmb THEN
+    h:="Combined: "+tTile(gT(1))+" + "+tTile(gT(2));
+    IF gT(3)>0 THEN h:=h+" + "+tTile(gT(3)); END;
+  END;
+  gHis(SIZE(gHis)+1):=h;
+  FOR k FROM 1 TO MIN(8,SIZE(gAn)) DO gHis(SIZE(gHis)+1):=" "+gAn(k); END;
+  IF SIZE(gHis)>90 THEN
+    nl:={};
+    FOR k FROM SIZE(gHis)-89 TO SIZE(gHis) DO nl(SIZE(nl)+1):=gHis(k); END;
+    gHis:=nl;
+  END;
+END;
+
+// open saved problem k
+openSaved(k)
+BEGIN
+  LOCAL r:=gSv(k);
+  LOCAL m:=r(7);
+  gCmb:=r(2);
+  gT:=r(3);
+  gV:=r(4);
+  gG:=r(5);
+  gUnit:=r(6);
+  gPm:=m(1);
+  gPs:=m(2);
+  gPa:=m(3);
+  gQm:=m(4);
+  gQs:=m(5);
+  gQa:=m(6);
+  gSelP:=1;
+  gSelI:=0;
+  gSelK:=0;
+  gEnt:=0;
+  gTop:=1;
+  gRet:=1;
+  gScr:=3;
+  gHint:="Saved problem "+istr(k);
+END;
+
+// "Which tile do I need?": what the problem is about, the shape, a tip
+findNames()
+BEGIN
+  RETURN {"Floor, wall or room: area, perimeter","Square: side, area or perimeter","Slanted rectangle (parallelogram)","Two parallel sides (trapezoid)","Triangle with a base and a height","Ladder, rafter, diagonal (right triangle)","Triangle with 3 sides known","Triangle with 2 equal sides","Triangle with 3 equal sides","Circle: area, circumference, radius","Half circle or arch","Quarter circle (a corner)","Path or lawn around a circle (ring)","Slice of a circle, arc length","Hexagon (nut, bolt head, tile)","Distance around: add up the sides","Room made of 2 or 3 shapes (L, house, hole)","Add, subtract, multiply angles (° ' '')","Crossing lines: vertical, adjacent angles","Parallel lines cut by another line","Third angle of a triangle","Cost: price, waste, packages, posts","Feet and inches, sq ft to sq yd"};
+END;
+
+findTypes()
+BEGIN
+  RETURN {1,2,3,4,5,6,7,8,9,12,13,14,15,16,10,11,0,17,18,19,20,21,22};
+END;
+
+findHints()
+BEGIN
+  RETURN {"Enter L and W, or what the problem gives.","Enter s, the area or the perimeter.","Enter b and the height h (not the slant).","Enter b1, b2 and the height h.","Enter the base b and the height h.","Enter 2 sides; c is the long one.","Enter all 3 sides a, b and c.","Enter a (an equal side) and the base b.","Enter s, P, A or the height h.","Enter r, d, C or A; π is on the right.","Enter r or the width d.","Enter the radius r.","Enter the small r and the width w.","Enter r and the angle θ.","Enter s (or F, C, P or A).","Pick the number of sides, enter each.","SHAPES picks the shapes; PLACE joins them.","Enter A, B and what to do.","Enter the angle x you know.","Enter one angle; tap its number.","Enter the two angles you know.","Enter the amount, its unit and the price.","Enter feet and inches, or an area."};
+END;
+
+findMenu()
+BEGIN
+  LOCAL nm:=findNames();
+  LOCAL ty:=findTypes();
+  LOCAL hn:=findHints();
+  LOCAL c:=1;
+  IF CHOOSE(c,"What is the problem about?",nm) THEN
+    IF c>=1 THEN
+      IF ty(c)==0 THEN
+        openCombo();
+      ELSE
+        openShape(ty(c));
+        clearVals();
+      END;
+      gRet:=1;
+      gHint:=hn(c);
+    END;
+  END;
+  gDown:=0;
+END;
+
+// ---- practice problems: shape, value to find, unit, the values given,
+// the problem, which tile to use
+qzN()
+BEGIN
+  RETURN 19;
+END;
+
+qzP(n)
+BEGIN
+  IF n==1 THEN RETURN {1,3,2,{24,15},"A bedroom is 24 ft long and 15 ft wide. How many square feet of carpet cover the floor?","Four-sided shapes, Rectangle: A = L x W"}; END;
+  IF n==2 THEN RETURN {1,1,2,{0,15,180},"A rectangular patio has an area of 180 sq ft and is 15 ft wide. How long is it?","Rectangle: enter W and A. L = A ÷ W"}; END;
+  IF n==3 THEN RETURN {2,1,2,{0,0,64},"A square garden takes 64 ft of fence to go all the way around. How long is each side?","Square: enter P. s = P ÷ 4"}; END;
+  IF n==4 THEN RETURN {6,3,2,{16,12},"A ladder reaches 16 ft up a wall, and its foot is 12 ft from the wall. How long is the ladder?","Triangles, Right triangle: c = √(a² + b²)"}; END;
+  IF n==5 THEN RETURN {6,1,2,{0,5,13},"A 13 ft ladder stands with its foot 5 ft from a wall. How high up the wall does it reach?","Right triangle: enter b and c. a = √(c² - b²)"}; END;
+  IF n==6 THEN RETURN {5,5,2,{18,10},"The triangle at the end of a roof is 18 ft wide at the bottom and 10 ft high. Find its area.","Triangles, Triangle b x h: A = b x h ÷ 2"}; END;
+  IF n==7 THEN RETURN {7,5,6,{13,14,15},"A triangular lot has sides of 13 m, 14 m and 15 m. Find its area.","Triangles, Hero's formula"}; END;
+  IF n==8 THEN RETURN {8,3,1,{10,12},"A triangle has two 10 in sides and a 12 in base. How tall is it?","Triangles, Isosceles: h = √(a² - (b ÷ 2)²)"}; END;
+  IF n==9 THEN RETURN {9,3,5,{12},"An equilateral triangle has 12 cm sides. Find its area.","Triangles, Equilateral: A = 0.433 x s²"}; END;
+  IF n==10 THEN RETURN {3,4,2,{14,9},"A parallelogram has a base of 14 ft and a height of 9 ft. Find its area.","Four-sided shapes, Parallelogram: A = b x h"}; END;
+  IF n==11 THEN RETURN {4,6,1,{8,12,5},"A trapezoid has parallel sides of 8 in and 12 in, 5 in apart. Find its area.","Four-sided shapes, Trapezoid"}; END;
+  IF n==12 THEN RETURN {12,4,1,{0,20,0,0,2},"A round table top is 20 in across. Find its area. Use π = 3.14.","Circles, Circle: enter d. A = π x r²"}; END;
+  IF n==13 THEN RETURN {12,3,5,{6,0,0,0,2},"Find the circumference of a circle with a 6 cm radius. Use π = 3.14.","Circle: C = 2 x π x r"}; END;
+  IF n==14 THEN RETURN {12,1,2,{0,0,0,1000,1},"A round lawn covers 1000 sq ft. What is its radius? Use the π key.","Circle: enter A. r = √(A ÷ π)"}; END;
+  IF n==15 THEN RETURN {15,4,2,{5,0,3,0,2},"A 3 ft wide path goes around a round pond with a 5 ft radius. Find the area of the path. Use π = 3.14.","Circles, Ring: enter r and w"}; END;
+  IF n==16 THEN RETURN {13,5,2,{0,10,0,0,0,2},"A half-round window is 10 ft across the bottom. Find its area. Use π = 3.14.","Circles, Semicircle: A = π x r² ÷ 2"}; END;
+  IF n==17 THEN RETURN {16,3,1,{9,120,0,0,0,0,1},"Find the arc length of a 120° slice of a circle with a 9 in radius. Use the π key.","Circles, Sector: arc = θ ÷ 360 x 2 x π x r"}; END;
+  IF n==18 THEN RETURN {10,4,1,{10,0,0,0,0,1},"Find the area of a regular hexagon with 10 in sides.","Polygons, Hexagon: A = 2.598 x s²"}; END;
+  RETURN {20,3,1,{47,68,0,1},"Two angles of a triangle are 47° and 68°. Find the third angle.","Angles, Triangle angles: C = 180° - (A + B)"};
+END;
+
+// load practice problem n as shape 1 and solve it; returns the answer
+qzLoad(n)
+BEGIN
+  LOCAL q:=qzP(n);
+  gCmb:=0;
+  setPart(1,q(1),q(4));
+  gUnit:=q(3);
+  solveAll();
+  RETURN gC(1,q(2));
+END;
+
+// the description of value k of shape t
+vDesc1(t,k)
+BEGIN
+  LOCAL d:=vDesc(t);
+  RETURN d(k);
+END;
+
+drawQuiz()
+BEGIN
+  LOCAL q:=qzP(gQn);
+  LOCAL nm:=vNames(q(1));
+  LOCAL tl:=wrapPx(q(5),308,2);
+  LOCAL k, y;
+  RECT_P(G1,0,0,319,239,cBg);
+  RECT_P(G1,0,0,319,20,cPanel);
+  TEXTOUT_P("Practice "+istr(gQn)+" of "+istr(qzN()),G1,5,3,3,cText);
+  rtext("right first time: "+istr(gQok)+" of "+istr(gQtr),314,6,1,cDim);
+  y:=28;
+  FOR k FROM 1 TO SIZE(tl) DO
+    TEXTOUT_P(tl(k),G1,6,y,2,cText);
+    y:=y+17;
+  END;
+  y:=y+4;
+  TEXTOUT_P("Find "+nm(q(2))+": "+vDesc1(q(1),q(2)),G1,6,y,1,cHead);
+  y:=y+18;
+  IF gQres<>"" THEN
+    tl:=wrapPx(gQres,308,2);
+    FOR k FROM 1 TO SIZE(tl) DO TEXTOUT_P(tl(k),G1,6,y+(k-1)*17,2,gQrc); END;
+  END;
+  IF gQh THEN
+    TEXTOUT_P("Use: "+q(6),G1,6,202,1,cSelc);
+  ELSE
+    TEXTOUT_P("Work it out, then ANSWER (or Enter).",G1,6,202,1,cDim);
+  END;
+  drawMenu({"ANSWER","HINT","WORK","NEXT","BACK"});
+  BLIT_P(G0,G1);
+END;
+
+qzAnswer()
+BEGIN
+  LOCAL q:=qzP(gQn);
+  LOCAL nm:=vNames(q(1));
+  LOCAL a:=qzLoad(gQn);
+  LOCAL v:=0;
+  LOCAL ok;
+  IF INPUT(v,"Practice "+istr(gQn),nm(q(2))+" =","Type your answer (a number)") THEN
+    IF TYPE(v)==0 THEN
+      ok:=ABS(v-a)<=0.005*ABS(a)+0.01;
+      IF gQf==0 THEN
+        gQtr:=gQtr+1;
+        IF ok THEN gQok:=gQok+1; END;
+        gQf:=1;
+      END;
+      IF ok THEN
+        gQres:="Right! "+nm(q(2))+" = "+valT(q(1),q(2),a);
+        gQrc:=cGood;
+      ELSE
+        gQres:="Not quite ("+fmtE(v)+"). Try again, or WORK shows how.";
+        gQrc:=cWarn;
+      END;
+    END;
+  END;
+  gDown:=0;
+END;
+
+qzNext(d)
+BEGIN
+  gQn:=gQn+d;
+  IF gQn>qzN() THEN gQn:=1; END;
+  IF gQn<1 THEN gQn:=qzN(); END;
+  gQres:="";
+  gQh:=0;
+  gQf:=0;
+END;
+
+// the problem worked on its shape screen; BACK comes back here
+qzWork()
+BEGIN
+  LOCAL q:=qzP(gQn);
+  LOCAL nm:=vNames(q(1));
+  qzLoad(gQn);
+  gT(1):=q(1);
+  gSelP:=1;
+  gSelI:=q(2);
+  gSelK:=0;
+  gEnt:=0;
+  gTop:=1;
+  gRet:=4;
+  gScr:=3;
+  gHint:="Practice: the answer is the yellow label "+nm(q(2))+".";
+  IF gQf==0 THEN
+    gQtr:=gQtr+1;
+    gQf:=1;
+  END;
+END;
+
+onQuiz(ev)
+BEGIN
+  LOCAL k;
+  IF TYPE(ev)==6 THEN
+    IF ev(1)==0 THEN gDown:=1; END;
+    IF ev(1)<>3 OR gDown==0 OR SIZE(ev)<3 THEN RETURN 1; END;
+    gDown:=0;
+    IF ev(3)>=220 THEN
+      k:=IP(ev(2)/64)+1;
+      IF k==1 THEN qzAnswer(); END;
+      IF k==2 THEN gQh:=1-gQh; END;
+      IF k==3 THEN qzWork(); END;
+      IF k==4 THEN qzNext(1); END;
+      IF k==5 THEN gScr:=1; END;
+    END;
+    RETURN 1;
+  END;
+  IF ev==30 THEN qzAnswer(); END;
+  IF ev==8 THEN qzNext(1); END;
+  IF ev==7 THEN qzNext(-1); END;
+  IF ev==13 THEN qzWork(); END;
+  IF ev==3 THEN gQh:=1-gQh; END;
+  IF ev==4 THEN gScr:=1; END;
+  RETURN 1;
+END;
+
+// MORE on the home screen
+moreMenu()
+BEGIN
+  LOCAL c:=1;
+  LOCAL nm:={};
+  LOCAL k, r;
+  IF CHOOSE(c,"More",{"Practice problems ("+istr(qzN())+")","Answers so far (history)","Saved problems ("+istr(SIZE(gSv))+")","Clear the history","Setup: units, rounding, π"}) THEN
+    IF c==1 THEN gScr:=4; END;
+    IF c==2 THEN
+      IF SIZE(gHis)==0 THEN
+        showScroll("Answers so far",{"No answers yet: they are added here","when you leave a shape."},{cDim,cDim});
+      ELSE
+        showScroll("Answers so far",gHis,pageCol(gHis));
+      END;
+    END;
+    IF c==3 THEN
+      IF SIZE(gSv)==0 THEN
+        showScroll("Saved problems",{"None yet. On a shape: SETUP,","then Save this problem."},{cDim,cDim});
+      ELSE
+        FOR k FROM 1 TO SIZE(gSv) DO
+          r:=gSv(k);
+          nm(k):=istr(k)+". "+r(1);
+        END;
+        nm(SIZE(gSv)+1):="Delete all saved problems";
+        k:=1;
+        IF CHOOSE(k,"Saved problems",nm) THEN
+          IF k>=1 AND k<=SIZE(gSv) THEN
+            openSaved(k);
+          ELSE
+            IF k==SIZE(gSv)+1 THEN gSv:={}; END;
+          END;
+        END;
+      END;
+    END;
+    IF c==4 THEN gHis:={}; END;
+    IF c==5 THEN setupMenu(0); END;
+  END;
+  gDown:=0;
+END;
+
 leaveShape()
 BEGIN
-  saveCur();
   gEnt:=0;
-  gScr:=IFTE(gCmb,1,2);
+  gHint:="";
+  IF gRet==4 THEN
+    gRet:=0;
+    gScr:=4;
+    RETURN 0;
+  END;
+  histAdd();
+  saveCur();
+  gScr:=IFTE(gCmb OR gRet==1,1,2);
+  gRet:=0;
 END;
 
 // returns 0 to quit
@@ -3634,7 +4022,12 @@ BEGIN
     my:=ev(3);
     IF my<21 THEN
       IF mx>=272 THEN RETURN 0; END;
-      IF mx>=224 THEN showScroll("How to use",helpLines(),pageCol(helpLines())); END;
+      IF mx>=224 THEN
+        showScroll("How to use",helpLines(),pageCol(helpLines()));
+      ELSE
+        IF mx>=176 THEN moreMenu(); END;
+        IF mx>=128 AND mx<176 THEN findMenu(); END;
+      END;
       RETURN 1;
     END;
     k:=IP((my-24)/98)*4+MIN(3,IP(mx/80))+1;
@@ -3785,6 +4178,7 @@ BEGIN
     IF gScr==1 THEN drawHome(); END;
     IF gScr==2 THEN drawCat(); END;
     IF gScr==3 THEN drawShape(); END;
+    IF gScr==4 THEN drawQuiz(); END;
     ev:=WAIT(-1);   // key code, touch event list, or -1 after a 1 minute timeout
     IF gScr==1 THEN
       run:=onHome(ev);
@@ -3792,7 +4186,11 @@ BEGIN
       IF gScr==2 THEN
         run:=onCat(ev);
       ELSE
-        run:=onShape(ev);
+        IF gScr==4 THEN
+          run:=onQuiz(ev);
+        ELSE
+          run:=onShape(ev);
+        END;
       END;
     END;
   END;

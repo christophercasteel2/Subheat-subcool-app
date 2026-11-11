@@ -536,7 +536,16 @@ def main():
     def val(it, p, k):
         return it.g["gV"][p - 1][k - 1]
 
-    tests = [("8-1 angles: degrees, minutes, seconds", t_ang),
+    def t_quiz(it):
+        want = [360, 12, 16, 20, 12, 90, 84, 8, SQ3 / 4 * 144, 126, 50, 314, 37.68,
+                math.sqrt(1000 / math.pi), 3.14 * 39, 3.14 * 25 / 2, 6 * math.pi, 1.5 * SQ3 * 100, 65]
+        n = int(fn_call(it, "qzN"))
+        got = [fn_call(it, "qzLoad", k) for k in range(1, n + 1)]
+        it.g["gCmb"] = 0.0
+        return n == len(want) and all(close(g, w, 0.001) for g, w in zip(got, want))
+
+    tests = [("practice problems: all 19 answers", t_quiz),
+             ("8-1 angles: degrees, minutes, seconds", t_ang),
              ("8-1 vertical, adjacent, complement, n equal parts", t_facts),
              ("8-1 parallel lines and a transversal", t_par),
              ("8-1 triangle angles add to 180°", t_tri),
@@ -647,6 +656,46 @@ def main():
            KEY["esc"],
            check("Esc: back to the home screen", lambda it: it.g["gScr"] == 1),
            *tap(*tile(8)), shot("geom_formulas.png"), KEY["esc"],
+           # FIND: which tile do I need?
+           *tap(150, 10), ("dialog", 6),
+           check("FIND: a ladder problem opens the right triangle, empty, with a tip",
+                 lambda it: it.g["gScr"] == 3 and it.g["gT"][0] == 6 and sum(it.g["gG"][0][:5]) == 0
+                 and "c is the long one" in it.g["gHint"]),
+           shot("geom_find.png"),
+           *tap_hot("a"), ("dialog", 9), *tap_hot("b"), ("dialog", 12),
+           check("entering a size: c = 15 and the tip goes away",
+                 lambda it: it.g["gC"][0][2] == 15 and it.g["gHint"] == ""),
+           *tap(*menu(1)), ("dialog", 4),
+           check("SETUP: save this problem", lambda it: len(it.g["gSv"]) == 1 and "a 9, b 12" in it.g["gSv"][0][0]),
+           *tap(*menu(5)),
+           check("BACK from FIND goes home", lambda it: it.g["gScr"] == 1),
+           check("the history has the answers", lambda it: any("c = 15" in h for h in it.g["gHis"])),
+           *tap(198, 10), ("dialog", 2), shot("geom_history.png"), KEY["esc"],
+           *tap(198, 10), ("dialog", 3), ("dialog", 1),
+           check("MORE, saved problems: it opens again with a 9 and b 12",
+                 lambda it: it.g["gScr"] == 3 and it.g["gT"][0] == 6 and val(it, 1, 1) == 9 and val(it, 1, 2) == 12),
+           KEY["esc"],
+           # practice problems
+           *tap(198, 10), ("dialog", 1),
+           check("MORE: practice problems", lambda it: it.g["gScr"] == 4 and it.g["gQn"] == 1),
+           shot("geom_practice.png"),
+           *tap(*menu(1)), ("dialog", 360),
+           check("ANSWER 360: right first time", lambda it: "Right!" in it.g["gQres"] and it.g["gQok"] == 1),
+           shot("geom_practice_right.png"),
+           *tap(*menu(4)), *tap(*menu(1)), ("dialog", 15),
+           check("NEXT, a wrong answer: not quite, not counted right",
+                 lambda it: it.g["gQn"] == 2 and "Not quite" in it.g["gQres"] and it.g["gQok"] == 1 and it.g["gQtr"] == 2),
+           *tap(*menu(2)),
+           check("HINT names the tile", lambda it: it.g["gQh"] == 1),
+           shot("geom_practice_hint.png"),
+           *tap(*menu(3)),
+           check("WORK: the patio on the rectangle screen, L picked, L = 12",
+                 lambda it: it.g["gScr"] == 3 and it.g["gT"][0] == 1 and it.g["gSelI"] == 1 and it.g["gC"][0][0] == 12),
+           shot("geom_practice_work.png"),
+           *tap(*menu(5)),
+           check("BACK returns to the practice problem", lambda it: it.g["gScr"] == 4 and it.g["gQn"] == 2),
+           KEY["esc"],
+           check("Esc: practice back to home", lambda it: it.g["gScr"] == 1),
            KEY["help"], KEY["esc"],
            -1,
            *tap(295, 10)]
