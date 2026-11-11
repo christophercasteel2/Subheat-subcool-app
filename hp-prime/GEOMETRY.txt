@@ -52,6 +52,8 @@ gG:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
 gC:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
 gK:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
 gUnit:=1;       // length unit: 1 in, 2 ft, 3 yd, 4 mm, 5 cm, 6 m
+gUnitSet:=0;    // 1 once you pick a unit: then every shape keeps it
+gUnitK:=1;      // your unit, kept while a practice problem is shown
 gPm:=1;         // combining: 1 add B on a side, 2 cut a notch, 3 cut a hole
 gPs:=1;         // side of A: 1 top, 2 right, 3 bottom, 4 left
 gPa:=1;         // where on the side: 1 centred, 2 at the start, 3 at the end
@@ -2778,7 +2780,7 @@ END;
 loadEx(p,t)
 BEGIN
   setPart(p,t,exV(t));
-  gUnit:=exU(t);
+  IF gUnitSet==0 THEN gUnit:=exU(t); END;
 END;
 
 setVal(p,k,x)
@@ -2823,7 +2825,7 @@ BEGIN
   gT(3):=0;
   gV(3):={0,0,0,0,0,0,0,0,0,0};
   gG(3):={0,0,0,0,0,0,0,0,0,0};
-  gUnit:=2;
+  IF gUnitSet==0 THEN gUnit:=2; END;
   IF n==1 THEN
     setPart(1,1,{20,12});
     setPart(2,8,{0,20,8});
@@ -2842,7 +2844,7 @@ BEGIN
     setPart(1,2,{20});
     setPart(2,12,{5,0,0,0,1});
     gPm:=3;
-    gUnit:=1;
+    IF gUnitSet==0 THEN gUnit:=1; END;
   END;
   IF n==5 THEN
     setPart(1,10,{20,0,0,0,0,2});
@@ -2886,7 +2888,7 @@ BEGIN
   IF SIZE(gStV(t))>0 THEN
     gV(1):=gStV(t);
     gG(1):=gStG(t);
-    gUnit:=gStU(t);
+    IF gUnitSet==0 THEN gUnit:=gStU(t); END;
   ELSE
     loadEx(1,t);
   END;
@@ -2909,7 +2911,7 @@ BEGIN
     gG(2):=gStG(24);
     gV(3):=gStV(25);
     gG(3):=gStG(25);
-    gUnit:=gStU(23);
+    IF gUnitSet==0 THEN gUnit:=gStU(23); END;
     gPm:=gCbM(1);
     gPs:=gCbM(2);
     gPa:=gCbM(3);
@@ -3094,7 +3096,7 @@ BEGIN
     "WORD PROBLEMS",
     " Enter whatever the problem gives you (an area, a",
     " perimeter, a diagonal ...) and leave the rest ?.",
-    " UNITS changes in, ft, yd, mm, cm, m. EXAMPLE",
+    " UNIT changes in, ft, yd, mm, cm, m. EXAMPLE",
     " puts the textbook's example back; CLEAR erases.",
     "COMBINE SHAPES",
     " SHAPES: pick shape A and shape B, or an example.",
@@ -3105,7 +3107,11 @@ BEGIN
     " the edge the two shapes share.",
     " SHAPES can add a third shape C. A price gives the",
     " cost of the whole shape.",
-    "SETUP",
+    "UNITS",
+    " UNIT (bottom left; the box at the top when you",
+    " combine shapes) picks in, ft, yd, mm, cm or m in",
+    " one tap. The unit you pick stays for every shape.",
+    "SETUP (top right)",
     " Units; feet are typed as feet and inches. Round",
     " answers to 0.1, 0.01 ... (shown as ≈). Answers",
     " with π (A = 25π). Save this problem.",
@@ -3389,7 +3395,11 @@ BEGIN
     IF nParts()==3 THEN tx:=tx+IFTE(gQm==1," + C "," - C ")+tTile(gT(3)); END;
     IF textw(tx,2)>262 THEN tx:="A"+IFTE(gPm==1," + B"," - B")+IFTE(nParts()==3,IFTE(gQm==1," + C"," - C"),"")+": "+tTile(gT(1))+" ..."; END;
   END;
-  TEXTOUT_P(tx,G1,5,3,IFTE(textw(tx,3)<262,3,2),cText);
+  k:=IFTE(gCmb,166,214);
+  IF gCmb AND textw(tx,1)>k THEN tx:="A"+IFTE(gPm==1," + B"," - B")+IFTE(nParts()==3,IFTE(gQm==1," + C"," - C"),""); END;
+  TEXTOUT_P(tx,G1,5,3,IFTE(textw(tx,3)<=k,3,IFTE(textw(tx,2)<=k,2,1)),cText);
+  IF gCmb THEN chip("UNIT "+lenU(gUnit),176); END;
+  chip("SETUP",224);
   chip("HELP",272);
   // what the selected label is
   RECT_P(G1,0,141,319,153,cPanel);
@@ -3416,7 +3426,7 @@ BEGIN
     RECT_P(G1,314-textw(tx,1),141,319,153,cPanel);
     rtext(tx,316,142,1,cDim);
   END;
-  drawMenu(IFTE(gCmb,{"SHAPES","PLACE","CLEAR","WORK","BACK"},{"SETUP","EXAMPLE","CLEAR","WORK","BACK"}));
+  drawMenu(IFTE(gCmb,{"SHAPES","PLACE","CLEAR","WORK","BACK"},{"UNIT: "+lenU(gUnit),"EXAMPLE","CLEAR","WORK","BACK"}));
 END;
 
 drawShape()
@@ -3528,7 +3538,10 @@ pickUnit()
 BEGIN
   LOCAL u:=gUnit;
   IF CHOOSE(u,"Units of length",{"in (inches)","ft (feet)","yd (yards)","mm","cm","m (meters)"}) THEN
-    IF u>=1 THEN gUnit:=u; END;
+    IF u>=1 THEN
+      gUnit:=u;
+      gUnitSet:=1;
+    END;
   END;
 END;
 
@@ -3622,7 +3635,7 @@ BEGIN
   IF k==4 THEN workView(); END;
   IF k==3 THEN clearVals(); END;
   IF gCmb==0 THEN
-    IF k==1 THEN setupMenu(1); END;
+    IF k==1 THEN pickUnit(); END;
     IF k==2 THEN loadEx(1,gT(1)); END;
   ELSE
     IF k==1 THEN
@@ -3822,9 +3835,11 @@ qzAnswer()
 BEGIN
   LOCAL q:=qzP(gQn);
   LOCAL nm:=vNames(q(1));
+  LOCAL u0:=gUnit;
   LOCAL a:=qzLoad(gQn);
   LOCAL v:=0;
   LOCAL ok;
+  gUnit:=u0;
   IF INPUT(v,"Practice "+istr(gQn),nm(q(2))+" =","Type your answer (a number)") THEN
     IF TYPE(v)==0 THEN
       ok:=ABS(v-a)<=0.005*ABS(a)+0.01;
@@ -3860,6 +3875,7 @@ qzWork()
 BEGIN
   LOCAL q:=qzP(gQn);
   LOCAL nm:=vNames(q(1));
+  gUnitK:=gUnit;
   qzLoad(gQn);
   gT(1):=q(1);
   gSelP:=1;
@@ -3948,6 +3964,7 @@ BEGIN
   gHint:="";
   IF gRet==4 THEN
     gRet:=0;
+    gUnit:=gUnitK;
     gScr:=4;
     RETURN 0;
   END;
@@ -4011,7 +4028,13 @@ BEGIN
       RETURN 1;
     END;
     IF my<21 THEN
-      IF mx>=272 THEN showScroll("How to use",helpLines(),pageCol(helpLines())); END;
+      IF mx>=272 THEN
+        showScroll("How to use",helpLines(),pageCol(helpLines()));
+      ELSE
+        IF mx>=224 THEN setupMenu(1); END;
+        IF mx>=176 AND mx<224 AND gCmb THEN pickUnit(); END;
+      END;
+      gDown:=0;
       RETURN 1;
     END;
     IF my>=141 THEN

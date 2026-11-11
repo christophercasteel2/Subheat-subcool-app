@@ -446,7 +446,9 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 - **PLACE** (it asks which shape when there are three) adds B or C onto a side of A, cuts it out of a side (a notch) or out of the middle (a hole), on the top, right, bottom or left side, centred or at either end. A is drawn blue and B green (red when it is cut out).
 - **The answers:** total area = A + B + C (minus any part cut out), and total perimeter = PA + PB − 2 × the shared edge (and the same for C), each step shown. Give a price per square foot (SHAPES) for the cost: the L-shaped room at $4.75 is $2,337.00. A sixth example has three shapes: a room with a closet and a bay window (280 + 24 + 8π = 329.13 ft²). The house gives 240 + 80 = 320 ft² and 69.61 ft; the L-shaped room gives 252 + 240 = 492 ft²; the hexagon minus the square gives 1040 − 400 = 640 ft². A notch or hole bigger than A is flagged.
 
-**SETUP** (on a shape; under SHAPES when combining):
+**UNIT** (the first button under a shape; the UNIT box at the top when combining) picks in, ft, yd, mm, cm or m in one tap. The unit you pick stays for every shape until you change it.
+
+**SETUP** (top right of a shape; also under SHAPES when combining):
 - **Units.** In feet or yards, a length is typed in two boxes: feet and inches (10 ft 6 in), or yards and feet.
 - **Square yards.** Every area is also given in the next unit people ask for: ft² in yd² (600.25 ft² = 66.69 yd²), in² in ft², yd² in ft², and cm² in m².
 - **Rounding.** Answers can be rounded to a whole number, tenths, hundredths or thousandths, shown next to the full answer: d = 11.6297 ft ≈ 11.63.
@@ -473,7 +475,7 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 Lengths in feet are also given in feet and inches (the ladder: 6.63 ft = 6 ft 7 5/8 in), and angles in degrees, minutes and seconds.
 
-The tests (`tools/test_geometry.py`, 112 checks) work the chapter's examples and answers again with plain arithmetic:
+The tests (`tools/test_geometry.py`, 147 checks) work the chapter's examples and answers again with plain arithmetic:
 - costs: the fence ($9,888), drywall ($123.90) and driveway ($4,335.14)
 - the Pythagorean examples: 41 ft, 17, the 6.63 ft ladder and the stairway
 - the triangle areas: 52 in², 200, 26

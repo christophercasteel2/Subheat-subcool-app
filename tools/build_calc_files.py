@@ -304,7 +304,7 @@ Word problems: enter whatever the problem gives (an area, a perimeter, a diagona
 
 Combine shapes: pick shape A, B and (if you want) C (SHAPES), then PLACE: add each onto a side of A, cut it out of a side (a notch) or out of the middle (a hole). The total area, perimeter and cost are worked out step by step.
 
-SETUP: units (feet are typed as feet and inches), rounding (to 0.1, 0.01...), answers in terms of π, save the problem. On the home screen, FIND opens the right shape for a kind of problem, and MORE has 19 practice problems, the answers so far and the saved problems.
+UNIT (bottom left, or the box at the top when combining) changes the unit in one tap, and it stays for every shape. SETUP (top right): units (feet are typed as feet and inches), rounding (to 0.1, 0.01...), answers in terms of π, save the problem. On the home screen, FIND opens the right shape for a kind of problem, and MORE has 19 practice problems, the answers so far and the saved problems.
 
 Source and instructions: """ + REPO),
     dict(name="ELECREV", icon=icon_review, android=False,
