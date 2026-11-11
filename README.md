@@ -420,6 +420,8 @@ An app for a trades math class, covering Chapter 8, Practical Plane Geometry: an
 
 Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip), unzip it, and drag `GEOMETRY.hpappdir` onto **Application Library** (or `GEOMETRY.hpprgm` onto **Programs**).
 
+**GEOMETRY2** is the same app under its own name (and an icon with a green 2), so it can be installed next to an older GEOMETRY without replacing it: download [`GEOMETRY2.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY2.zip) and drag `GEOMETRY2.hpappdir` onto **Application Library**. It is built from the same source (`hp-prime/GEOMETRY.txt`, with the program renamed GEOMETRY2) and passes the same tests.
+
 **How it works.**
 - **Every tool has its own box on the home screen** (28 boxes, coloured by chapter section, as in the first version): the 22 shapes and tools, plus Irregular figure (opens the L-shaped room), Cut-out shape (the hexagon minus a square), Combine shapes, Formulas, Practice and Answers so far. Tap a box, or move with the arrows and press Enter.
 - **The drawing is the input.** Each shape fills the top of the screen, and every size is a label drawn on the part it measures: L under the bottom side, W beside the right side, h on the dashed height line, r along the radius, A inside the shape.
@@ -535,6 +537,7 @@ calculator/               ready-to-install files (built, do not edit by hand)
   REFCYCLE.hpappdir/, REFCYCLE.hpprgm, REFCYCLE.zip   the same for REFCYCLE
   CIRCUITS.hpappdir/, CIRCUITS.hpprgm, CIRCUITS.zip   the same for CIRCUITS
   GEOMETRY.hpappdir/, GEOMETRY.hpprgm, GEOMETRY.zip   the same for GEOMETRY
+  GEOMETRY2.hpappdir/, GEOMETRY2.hpprgm, GEOMETRY2.zip   GEOMETRY under its own name
   ELECREV.hpappdir/, ELECREV.hpprgm, ELECREV.zip      the same for ELECREV
 android/NAME.apk          the Android apps (built, do not edit by hand)
 hp-prime/SUPERSUB.txt     SUPERSUB's readable source (HP PPL)

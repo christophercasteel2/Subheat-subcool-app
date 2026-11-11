@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY, ELECREV):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY, ELECREV, and GEOMETRY2, the same program as GEOMETRY under its own name):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -23,7 +23,7 @@ import sys
 import tempfile
 import zipfile
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hpfile
@@ -209,6 +209,19 @@ def icon_geometry(path, size=38):
     im.resize((size, size), Image.LANCZOS).save(path)
 
 
+def icon_geometry2(path, size=38):
+    """GEOMETRY's icon with a green "2" badge, to tell the two copies apart."""
+    big = 4 * -(-size // 38)
+    icon_geometry(path, 38 * big)
+    im = Image.open(path).convert("RGBA")
+    d = ImageDraw.Draw(im)
+    d.ellipse([21 * big, 1 * big, 37 * big, 17 * big], fill=(46, 170, 90, 255), outline=(255, 255, 255, 255),
+              width=big)
+    font = ImageFont.load_default(size=13 * big)
+    d.text((29 * big, 9 * big), "2", font=font, fill=(255, 255, 255, 255), anchor="mm")
+    im.resize((size, size), Image.LANCZOS).save(path)
+
+
 def icon_review(path, size=38):
     """38 x 38 app icon: a notebook page with a battery symbol."""
     big = 4 * -(-size // 38)
@@ -318,6 +331,16 @@ Notes and key terms (four long scrolling pages: Up/Down or drag to scroll, + / -
 Source and instructions: """ + REPO),
 ]
 
+# GEOMETRY2: the newest GEOMETRY under its own name and icon, so it can sit
+# on the calculator next to an older GEOMETRY
+_geo = next(a for a in APPS if a["name"] == "GEOMETRY")
+APPS.append(dict(_geo, name="GEOMETRY2", source="GEOMETRY", icon=icon_geometry2,
+                 note=_geo["note"].replace(
+                     "GEOMETRY - practical plane geometry for a trades math class (Chapter 8)",
+                     "GEOMETRY2 - practical plane geometry for a trades math class (Chapter 8)\n\n"
+                     "The newest GEOMETRY under its own name, so it can be installed next to an "
+                     "older GEOMETRY.", 1)))
+
 APP_START = """
 // runs when the app is opened from the Application Library
 EXPORT START()
@@ -336,7 +359,12 @@ def program_file(text):
 
 def build(app):
     name = app["name"]
-    src = open(os.path.join(ROOT, "hp-prime", name + ".txt"), encoding="utf-8").read()
+    source = app.get("source", name)
+    src = open(os.path.join(ROOT, "hp-prime", source + ".txt"), encoding="utf-8").read()
+    if source != name:
+        # the same program under its own name, so both fit on one calculator
+        assert src.count(f"EXPORT {source}()") == 1
+        src = src.replace(f"EXPORT {source}()", f"EXPORT {name}()")
     app_src = src + APP_START.format(name=name)
     appdir = os.path.join(OUT, name + ".hpappdir")
     os.makedirs(appdir)

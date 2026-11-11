@@ -69,6 +69,8 @@ def main():
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "docs", "screens")
     os.makedirs(out, exist_ok=True)
     src = open(path, encoding="utf-8").read()
+    # the program's name (GEOMETRY, or GEOMETRY2 for the copy with a new name)
+    prog = re.search(r"^EXPORT (\w+)\(\)", src, re.M).group(1)
     checks = []
 
     def conv(a):
@@ -735,7 +737,7 @@ def main():
 
     it = Interp(src, ev)
     try:
-        it.start("GEOMETRY")
+        it.start(prog)
         finished = True
     except StopSim:
         finished = False
