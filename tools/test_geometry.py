@@ -463,7 +463,7 @@ def main():
         ans, out = combo(it, 1)                        # house: 20 x 12 + roof b 20 h 8
         roof = math.sqrt(8 ** 2 + 10 ** 2)
         ok = total(ans, "AREA") == 320 and close(total(ans, "PERIMETER"), 20 + 2 * 12 + 2 * roof)
-        ok &= any("Shared edge" in s for s in out)
+        ok &= any(s.startswith("Edge A and B share") for s in out)
         ans, out = combo(it, 2)                        # 30 x 16 + half circle d 16
         ok &= close(total(ans, "AREA"), 480 + 32 * math.pi)
         ok &= close(total(ans, "PERIMETER"), 30 + 30 + 16 + 8 * math.pi)
@@ -473,6 +473,17 @@ def main():
         ok &= close(total(ans, "AREA"), 400 - 25 * math.pi)
         ans, out = combo(it, 5)                        # hexagon 20 (2.6 s²) minus square 20
         ok &= total(ans, "AREA") == 640
+        ans, out = combo(it, 6)                        # room 20 x 14 + closet 6 x 4 + bay d 8
+        ok &= close(total(ans, "AREA"), 280 + 24 + 8 * math.pi)
+        ok &= close(total(ans, "PERIMETER"), 68 + 4 * math.pi)
+        ok &= sum(x.startswith("Edge A and") for x in out) == 2
+        # two holes: square 20 with round holes r 5 and r 3
+        fn_call(it, "comboEx", 4)
+        fn_call(it, "setPart", 3, 12, [3, 0, 0, 0, 1])
+        it.g["gQm"] = 3.0
+        fn_call(it, "solveAll")
+        ans = list(it.g["gAn"])
+        ok &= close(total(ans, "AREA"), 400 - 34 * math.pi) and total(ans, "PERIMETER") == 80
         # a notch: the L-room's 10 x 24 cut out of the side instead of added on
         fn_call(it, "comboEx", 3)
         it.g["gPm"] = 2.0
@@ -600,27 +611,38 @@ def main():
            KEY["esc"], KEY["esc"]]
     # combined shapes on the screen
     ev += [*tap(*tile(6)),
-           check("Combine 2 shapes opens the house example", lambda it: it.g["gCmb"] == 1 and it.g["gT"] == [1, 8]),
+           check("Combine 2 shapes opens the house example", lambda it: it.g["gCmb"] == 1 and it.g["gT"] == [1, 8, 0]),
            check("combined: labels do not cover each other", labels_apart),
            shot("geom_combo_house.png"),
-           *tap(*menu(1)), ("dialog", 6), shot("geom_combo_halfcircle.png"),
-           check("SHAPES: rectangle + half circle", lambda it: it.g["gT"] == [1, 13] and it.g["gPs"] == 2),
-           *tap(*menu(1)), ("dialog", 7),
-           *tap(*menu(1)), ("dialog", 4), ("dialog", 4.75), shot("geom_combo_lroom.png"),
+           *tap(*menu(1)), ("dialog", 7), shot("geom_combo_halfcircle.png"),
+           check("SHAPES: rectangle + half circle", lambda it: it.g["gT"] == [1, 13, 0] and it.g["gPs"] == 2),
+           *tap(*menu(1)), ("dialog", 8),
+           *tap(*menu(1)), ("dialog", 5), ("dialog", 4.75), shot("geom_combo_lroom.png"),
            check("L-shaped room at $4.75 per ft²: 492 x 4.75 = $2337.00",
                  lambda it: any(a.startswith("COST = $2337.00") for a in it.g["gAn"])),
            *tap(*menu(2)), ("dialog", 2), ("dialog", 2), ("dialog", 3), shot("geom_combo_notch.png"),
            check("PLACE: a notch out of the right side, at the end",
                  lambda it: it.g["gPm"] == 2 and it.g["gPs"] == 2 and it.g["gPa"] == 3),
            check("a 24 ft deep notch in a 21 ft wide room is flagged",
-                 lambda it: "notch is bigger" in it.g["gMsg"] and "notch is bigger" in " ".join(it.g["gOut"])),
-           *tap(*menu(1)), ("dialog", 8), shot("geom_combo_hole.png"),
-           *tap(*menu(1)), ("dialog", 9), shot("geom_combo_hexagon.png"),
+                 lambda it: "bigger than A" in it.g["gMsg"] and "bigger than A" in " ".join(it.g["gOut"])),
+           *tap(*menu(1)), ("dialog", 9), shot("geom_combo_hole.png"),
+           *tap(*menu(1)), ("dialog", 10), shot("geom_combo_hexagon.png"),
+           *tap(*menu(1)), ("dialog", 11), shot("geom_combo_three.png"),
+           check("SHAPES: a room with a closet and a bay window (3 shapes)",
+                 lambda it: it.g["gT"] == [1, 1, 13] and close(total(it.g["gAn"], "AREA"), 304 + 8 * math.pi)),
+           check("three shapes: labels do not cover each other", labels_apart),
+           *tap(*menu(2)), ("dialog", 2), ("dialog", 3),
+           check("PLACE asks which shape; C cut out as a hole", lambda it: it.g["gQm"] == 3 and it.g["gPm"] == 1),
+           check("a hole takes its area off: 304 - 8π",
+                 lambda it: close(total(it.g["gAn"], "AREA"), 304 - 8 * math.pi)),
+           shot("geom_combo_three_hole.png"),
+           *tap(*menu(1)), ("dialog", 3), ("dialog", 1),
+           check("SHAPES: shape C taken away again", lambda it: it.g["gT"][2] == 0 and total(it.g["gAn"], "AREA") == 304),
            *tap(*menu(1)), ("dialog", 1), ("dialog", 3),
            check("SHAPES: change A to a parallelogram", lambda it: it.g["gT"][0] == 3),
            *tap(*menu(1)), ("dialog", 2), ("dialog", 12),
            check("SHAPES: change B to a semicircle", lambda it: it.g["gT"][1] == 13),
-           *tap(*menu(1)), ("dialog", 5),
+           *tap(*menu(1)), ("dialog", 6),
            *tap(*menu(4)), shot("geom_combo_work.png"), KEY["esc"],
            KEY["esc"],
            check("Esc: back to the home screen", lambda it: it.g["gScr"] == 1),

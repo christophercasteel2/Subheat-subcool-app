@@ -36,6 +36,8 @@ cFB:=RGB(28,88,60);
 cLA:=RGB(110,170,250);
 cLB:=RGB(110,220,140);
 cCut:=RGB(250,100,100);
+cFC:=RGB(78,52,112);
+cLC:=RGB(205,160,250);
 gCatC:={RGB(124,74,192),RGB(32,104,206),RGB(30,142,74),RGB(214,110,22),RGB(20,128,140),RGB(196,52,52),RGB(150,120,30),RGB(90,98,120)};
 
 // ---- what is on the screen ----
@@ -43,18 +45,21 @@ gScr:=1;        // 1 home, 2 a group of shapes, 3 a shape
 gHome:=1;       // highlighted tile on the home screen
 gCat:=1;        // the group shown on screen 2
 gCSel:=1;       // highlighted tile on screen 2
-gT:={1,8};      // shape type of part A (and of part B when combining)
-gCmb:=0;        // 1 = combining two shapes
+gT:={1,8,0};    // shape type of part A (and of B and C when combining; C 0 = none)
+gCmb:=0;        // 1 = combining shapes
 // per part (A, B): the values typed (gV), whether each was given (gG), and
 // after solving every value (gC) and whether it is known (gK)
-gV:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
-gG:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
-gC:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
-gK:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
+gV:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
+gG:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
+gC:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
+gK:={{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}};
 gUnit:=1;       // length unit: 1 in, 2 ft, 3 yd, 4 mm, 5 cm, 6 m
 gPm:=1;         // combining: 1 add B on a side, 2 cut a notch, 3 cut a hole
 gPs:=1;         // side of A: 1 top, 2 right, 3 bottom, 4 left
 gPa:=1;         // where on the side: 1 centred, 2 at the start, 3 at the end
+gQm:=1;         // the same three for part C
+gQs:=2;
+gQa:=1;
 gPre:=0;
 gRnd:=1;        // round answers: 1 no, 2 whole, 3 tenths, 4 hundredths, 5 thousandths
 gPiF:=1;        // 1 = also show answers as a number of π (25π)
@@ -112,12 +117,12 @@ gBox:={0,1,0,1};
 gABox:={0,1,0,1};
 gASg:={0,0,0,0,0,0,0,0};
 // each part's drawing in world coordinates
-gWx:={{},{}};
-gWy:={{},{}};
-gWe:={{},{}};
-gWl:={{},{}};
-gWq:={{},{}};
-gWm:={{},{}};
+gWx:={{},{},{}};
+gWy:={{},{},{}};
+gWe:={{},{},{}};
+gWl:={{},{},{}};
+gWq:={{},{},{}};
+gWm:={{},{},{}};
 // where part B goes: mode (0 none), side, scale, offset along the side,
 // the side's position
 gTm:=0;
@@ -129,12 +134,12 @@ gTc:=0;
 gSx:=1;
 gOx:=0;
 gOy:=0;
-// values saved for each shape (22) and for the two combined parts (23, 24)
+// values saved for each shape (22) and for the combined parts (23, 24, 25)
 gStV:={};
 gStG:={};
 gStU:={};
-gCbT:={1,8};
-gCbM:={1,1,1};
+gCbT:={1,8,0};
+gCbM:={1,1,1,1,2,1};
 gAngP:={0,0,0,0,0,0,0,0};
 
 // ================= numbers =================
@@ -301,6 +306,35 @@ lenU(u)
 BEGIN
   LOCAL n:={"in","ft","yd","mm","cm","m"};
   RETURN n(MAX(1,MIN(6,u)));
+END;
+
+// part letters, how many parts are on the screen, and how part p is placed
+lt(p)
+BEGIN
+  IF p==1 THEN RETURN "A"; END;
+  IF p==2 THEN RETURN "B"; END;
+  RETURN "C";
+END;
+
+nParts()
+BEGIN
+  IF gCmb==0 THEN RETURN 1; END;
+  RETURN IFTE(gT(3)>0,3,2);
+END;
+
+pMd(p)
+BEGIN
+  RETURN IFTE(p==3,gQm,gPm);
+END;
+
+pSd(p)
+BEGIN
+  RETURN IFTE(p==3,gQs,gPs);
+END;
+
+pAl(p)
+BEGIN
+  RETURN IFTE(p==3,gQa,gPa);
 END;
 
 // the rounded answer (when rounding is on), as "  ≈ 22.89"
@@ -1461,27 +1495,34 @@ END;
 // the shared edge, total area and perimeter of two combined shapes
 comboWork()
 BEGIN
-  LOCAL ta:=gT(1);
-  LOCAL tb:=gT(2);
-  LOCAL ia:=aIdx(ta);
-  LOCAL ib:=aIdx(tb);
-  LOCAL pa:=pIdx(ta);
-  LOCAL pb:=pIdx(tb);
-  LOCAL sa:=sideIdx(ta,gPs);
-  LOCAL sb:=bIdx(tb);
-  LOCAL tot, sh;
+  LOCAL n:=nParts();
+  LOCAL ia:=aIdx(gT(1));
+  LOCAL pa:=pIdx(gT(1));
+  LOCAL p, md, tot, sh, ok, tx, tx2, ct;
+  LOCAL sa, sb, pb, ib;
   hd("COMBINED SHAPE");
   IF gMsg<>"" THEN nt(gMsg); END;
-  IF gK(1,ia)==1 AND gK(2,ib)==1 THEN
-    IF gPm==1 THEN
-      tot:=gC(1,ia)+gC(2,ib);
-      addSt("Area = area of A + area of B",cSelc);
-      addSt("  = "+fmtE(gC(1,ia))+" + "+fmtE(gC(2,ib)),cText);
-    ELSE
-      tot:=gC(1,ia)-gC(2,ib);
-      addSt("Area = area of A - area of B (cut out)",cSelc);
-      addSt("  = "+fmtE(gC(1,ia))+" - "+fmtE(gC(2,ib)),cText);
+  // area: add the parts put on, take away the parts cut out
+  ok:=gK(1,ia)==1;
+  ct:=0;
+  FOR p FROM 2 TO n DO
+    IF gK(p,aIdx(gT(p)))<>1 THEN ok:=0; END;
+    IF pMd(p)>=2 THEN ct:=1; END;
+  END;
+  IF ok THEN
+    tot:=gC(1,ia);
+    tx:="Area = area of A";
+    tx2:="  = "+fmtE(gC(1,ia));
+    FOR p FROM 2 TO n DO
+      ib:=aIdx(gT(p));
+      md:=pMd(p);
+      tot:=tot+IFTE(md==1,1,-1)*gC(p,ib);
+      tx:=tx+IFTE(md==1," + "," - ")+"area of "+lt(p);
+      tx2:=tx2+IFTE(md==1," + "," - ")+fmtE(gC(p,ib));
     END;
+    addSt(tx,cSelc);
+    IF ct THEN nt("(a part that is cut out is taken away)"); END;
+    addSt(tx2,cText);
     addSt("  = "+areaTx(tot)+rndTx(tot),cGood);
     addAns("TOTAL AREA = "+areaTx(tot)+rndTx(tot),cGood);
     IF gPrc>0 THEN
@@ -1492,45 +1533,57 @@ BEGIN
       addAns("COST = $"+fmtN(tot*gPrc,2)+" at $"+fmtN(gPrc,2)+" per "+lenU(gUnit)+"²",cGood);
     END;
   ELSE
-    nt("Area: find the area of A and of B first.");
+    nt("Area: find the area of every part first.");
     addAns("Total area: enter more sizes",cWarn);
   END;
-  IF gPm==3 THEN
-    IF gK(1,pa)==1 THEN
-      addSt("Outside edge = perimeter of A",cSelc);
-      addSt("  = "+lenTx(gC(1,pa)),cGood);
-      addAns("Outside perimeter = "+lenTx(gC(1,pa)),cGood);
-    END;
-    IF gK(2,pb)==1 THEN
-      addSt("Edge around the hole = perimeter of B",cSelc);
-      addSt("  = "+lenTx(gC(2,pb)),cGood);
-      addAns("Edge of the hole = "+lenTx(gC(2,pb)),cGood);
-    END;
-    RETURN 1;
-  END;
-  IF sa>0 AND sb>0 THEN
-    IF gK(1,pa)==1 AND gK(2,pb)==1 AND gK(1,sa)==1 AND gK(2,sb)==1 THEN
-      sh:=MIN(gC(1,sa),gC(2,sb));
-      addSt("Shared edge = the shorter of B's base and",cSelc);
-      addSt("  A's side: "+fmtE(gC(2,sb))+" and "+fmtE(gC(1,sa)),cText);
-      addSt("  = "+lenTx(sh),cGood);
-      tot:=gC(1,pa)+gC(2,pb)-2*sh;
-      addSt("P = perimeter A + perimeter B - 2 x shared",cSelc);
-      addSt("  = "+fmtE(gC(1,pa))+" + "+fmtE(gC(2,pb))+" - 2 x "+fmtE(sh),cText);
-      addSt("  = "+lenTx(tot)+rndTx(tot),cGood);
-      IF gPm==1 THEN
-        nt("The shared edge is inside the new shape, so it");
-        nt("comes off both perimeters.");
+  // perimeter: the outside edge only
+  ok:=gK(1,pa)==1;
+  tot:=IFTE(ok,gC(1,pa),0);
+  tx:="P = perimeter of A";
+  tx2:="  = "+fmtE(tot);
+  FOR p FROM 2 TO n DO
+    md:=pMd(p);
+    sa:=sideIdx(gT(1),pSd(p));
+    sb:=bIdx(gT(p));
+    pb:=pIdx(gT(p));
+    IF md<3 AND sa>0 AND sb>0 THEN
+      IF gK(p,pb)==1 AND gK(1,sa)==1 AND gK(p,sb)==1 THEN
+        sh:=MIN(gC(1,sa),gC(p,sb));
+        addSt("Edge A and "+lt(p)+" share = the shorter of "+lt(p)+"'s",cSelc);
+        addSt("  base and A's side: "+fmtE(gC(p,sb))+" and "+fmtE(gC(1,sa)),cText);
+        addSt("  = "+lenTx(sh),cGood);
+        IF md==1 THEN
+          nt("It is inside the shape now, so it comes off");
+          nt("both perimeters.");
+        ELSE
+          nt("The cut edge of A is gone and the other sides");
+          nt("of the notch become outside edge.");
+        END;
+        tot:=tot+gC(p,pb)-2*sh;
+        tx:=tx+" + perimeter of "+lt(p)+" - 2 x shared";
+        tx2:=tx2+" + "+fmtE(gC(p,pb))+" - 2 x "+fmtE(sh);
       ELSE
-        nt("The cut edge of A is gone and the other sides of");
-        nt("B become part of the outside edge.");
+        ok:=0;
       END;
-      addAns("TOTAL PERIMETER = "+lenTx(tot)+rndTx(tot),cGood);
     ELSE
-      nt("Perimeter: find both perimeters and the");
-      nt("shared side first.");
-      addAns("Total perimeter: enter more sizes",cWarn);
+      // a hole: the outside edge does not change
+      nt(lt(p)+" is a hole: the outside edge does not change.");
+      IF gK(p,pb)==1 THEN
+        addSt("Edge around the hole = perimeter of "+lt(p),cSelc);
+        addSt("  = "+lenTx(gC(p,pb)),cGood);
+        addAns("Edge of the hole "+lt(p)+" = "+lenTx(gC(p,pb)),cGood);
+      END;
     END;
+  END;
+  IF ok THEN
+    addSt(tx,cSelc);
+    addSt(tx2,cText);
+    addSt("  = "+lenTx(tot)+rndTx(tot),cGood);
+    addAns("TOTAL PERIMETER = "+lenTx(tot)+rndTx(tot),cGood);
+  ELSE
+    nt("Perimeter: find every perimeter and the");
+    nt("shared sides first.");
+    addAns("Total perimeter: enter more sizes",cWarn);
   END;
 END;
 
@@ -1549,6 +1602,11 @@ BEGIN
     hd("SHAPE B: "+tName(gT(2)));
     solvePart(2);
     ansPart(2,"B: ");
+    IF nParts()==3 THEN
+      hd("SHAPE C: "+tName(gT(3)));
+      solvePart(3);
+      ansPart(3,"C: ");
+    END;
     comboWork();
   ELSE
     solvePart(1);
@@ -1687,7 +1745,7 @@ BEGIN
   LOCAL t:=gT(p);
   LOCAL nm:=vNames(t);
   LOCAL kd:=vKinds(t);
-  LOCAL pre:=IFTE(gPre,IFTE(p==1,"A: ","B: "),"");
+  LOCAL pre:=IFTE(gPre,lt(p)+": ","");
   IF pk>0 THEN RETURN istr(pk)+IFTE(gC(p,1)>0,": "+fmtE(gAngP(pk))+"°",""); END;
   IF gEnt AND p==gSelP AND k==gSelI THEN
     RETURN pre+nm(k)+" = "+entText()+"_";
@@ -1728,7 +1786,7 @@ BEGIN
     END;
   END;
   sl:=(p==gSelP AND k==gSelI AND pk==gSelK);
-  bc:=IFTE(p==1,cLA,cLB);
+  bc:=IFTE(p==1,cLA,IFTE(p==2,cLB,cLC));
   IF pk>0 THEN bc:=IFTE(gV(p,2)==pk,cGood,cEdge); END;
   c:=cWarn;
   IF gG(p,k)==1 OR kd(k)==9 OR kd(k)==6 OR kd(k)==7 THEN c:=cText; END;
@@ -2114,59 +2172,68 @@ END;
 setB(p)
 BEGIN
   LOCAL bl:=gBb(2)-gBb(1);
-  LOCAL st:=gASg(2*gPs-1);
-  LOCAL sl:=gASg(2*gPs);
+  LOCAL md:=pMd(p);
+  LOCAL sd:=pSd(p);
+  LOCAL al:=pAl(p);
+  LOCAL st:=gASg(2*sd-1);
+  LOCAL sl:=gASg(2*sd);
   LOCAL ra:=0;
   LOCAL rb:=0;
-  LOCAL ia, ib, rat, bw, bh, ex;
-  gMsg:="";
-  IF gPm<>3 AND (sl<=0 OR bl<=0) THEN
-    gMsg:=IFTE(bl<=0,"Shape B has no straight base: it is cut as a hole.","Shape A has no straight side there: B is cut as a hole.");
+  LOCAL ia, ib, rat, bw, bh, ex, dx;
+  IF md<>3 AND (sl<=0 OR bl<=0) THEN
+    gMsg:=IFTE(bl<=0,"Shape "+lt(p)+" has no straight base: it is cut as a hole.","A has no straight side there: "+lt(p)+" is cut as a hole.");
+    md:=3;
   END;
-  IF gPm==3 OR gMsg<>"" THEN
+  IF md==3 THEN
     bw:=gBox(2)-gBox(1);
     bh:=gBox(4)-gBox(3);
-    IF gPm==3 AND (bw>gABox(2)-gABox(1) OR bh>gABox(4)-gABox(3)) THEN gMsg:="B is bigger than A: check the sizes."; END;
+    IF bw>gABox(2)-gABox(1) OR bh>gABox(4)-gABox(3) THEN gMsg:=lt(p)+" is bigger than A: check the sizes."; END;
+    // two holes side by side, one hole in the middle
+    dx:=0;
     gTk:=0.5*MIN((gABox(2)-gABox(1))/bw,(gABox(4)-gABox(3))/bh);
+    IF nParts()==3 AND pMd(2)==3 AND pMd(3)==3 THEN
+      dx:=IFTE(p==2,-0.25,0.25)*(gABox(2)-gABox(1));
+      gTk:=0.4*MIN((gABox(2)-gABox(1))/(2*bw),(gABox(4)-gABox(3))/bh);
+    END;
     gTm:=3;
-    gTo:=(gABox(1)+gABox(2))/2-(gBox(1)+gBox(2))/2*gTk;
+    gTo:=(gABox(1)+gABox(2))/2+dx-(gBox(1)+gBox(2))/2*gTk;
     gTc:=(gABox(3)+gABox(4))/2-(gBox(3)+gBox(4))/2*gTk;
     RETURN 1;
   END;
-  ia:=sideIdx(gT(1),gPs);
-  ib:=bIdx(gT(2));
+  ia:=sideIdx(gT(1),sd);
+  ib:=bIdx(gT(p));
   IF ia>0 THEN
     IF gK(1,ia)==1 THEN ra:=gC(1,ia); END;
   END;
   IF ib>0 THEN
-    IF gK(2,ib)==1 THEN rb:=gC(2,ib); END;
+    IF gK(p,ib)==1 THEN rb:=gC(p,ib); END;
   END;
   rat:=IFTE(ra>0 AND rb>0,rb/MAX(0.000001,ra),0.7);
   rat:=clampR(rat,0.3,1.4);
   gTk:=rat*sl/bl;
   bh:=(gBox(4)-gBox(3))*gTk;
-  ex:=IFTE(gPs==1 OR gPs==3,gABox(4)-gABox(3),gABox(2)-gABox(1));
-  IF gPm==2 THEN
-    ia:=hIdx(gT(2));
-    ib:=IFTE(gPs==1 OR gPs==3,hIdx(gT(1)),bIdx(gT(1)));
+  ex:=IFTE(sd==1 OR sd==3,gABox(4)-gABox(3),gABox(2)-gABox(1));
+  IF md==2 THEN
+    ia:=hIdx(gT(p));
+    ib:=IFTE(sd==1 OR sd==3,hIdx(gT(1)),bIdx(gT(1)));
     IF ia>0 AND ib>0 THEN
-      IF gK(2,ia)==1 AND gK(1,ib)==1 THEN
-        IF gC(2,ia)>gC(1,ib) THEN ra:=-1; END;
+      IF gK(p,ia)==1 AND gK(1,ib)==1 THEN
+        IF gC(p,ia)>gC(1,ib) THEN ra:=-1; END;
       END;
     END;
-    IF ra<0 OR (ra>0 AND rb>ra) THEN gMsg:="The notch is bigger than A: check the sizes."; END;
+    IF ra<0 OR (ra>0 AND rb>ra) THEN gMsg:="The notch "+lt(p)+" is bigger than A: check the sizes."; END;
   END;
-  IF bh>IFTE(gPm==2,0.7,1.6)*ex THEN gTk:=gTk*IFTE(gPm==2,0.7,1.6)*ex/bh; END;
+  IF bh>IFTE(md==2,0.7,1.6)*ex THEN gTk:=gTk*IFTE(md==2,0.7,1.6)*ex/bh; END;
   bw:=bl*gTk;
   gTo:=st+(sl-bw)/2;
-  IF gPa==2 THEN gTo:=st; END;
-  IF gPa==3 THEN gTo:=st+sl-bw; END;
+  IF al==2 THEN gTo:=st; END;
+  IF al==3 THEN gTo:=st+sl-bw; END;
   gTc:=gABox(4);
-  IF gPs==2 THEN gTc:=gABox(2); END;
-  IF gPs==3 THEN gTc:=gABox(3); END;
-  IF gPs==4 THEN gTc:=gABox(1); END;
-  gTm:=gPm;
-  gTs:=gPs;
+  IF sd==2 THEN gTc:=gABox(2); END;
+  IF sd==3 THEN gTc:=gABox(3); END;
+  IF sd==4 THEN gTc:=gABox(1); END;
+  gTm:=md;
+  gTs:=sd;
 END;
 
 // the shape just defined, as part p of the world
@@ -2239,7 +2306,8 @@ BEGIN
   LOCAL p, k, n, xs, ys, ev, c, l;
   LOCAL nx, ny, dd, hx, hy, fc, lc;
   LOCAL bb:={0,0,0,0};
-  LOCAL ep;
+  LOCAL b3:={0,0,0,0};
+  LOCAL ep, q, fl;
   FOR p FROM 1 TO np DO
     xs:=gWx(p);
     ys:=gWy(p);
@@ -2257,7 +2325,7 @@ BEGIN
     xs:=gWx(p);
     ys:=gWy(p);
     n:=SIZE(xs);
-    fc:=IFTE(p==1,cFA,IFTE(gPm>=2,cBg,cFB));
+    fc:=IFTE(p==1,cFA,IFTE(pMd(p)>=2,cBg,IFTE(p==2,cFB,cFC)));
     FOR k FROM 2 TO n-1 DO
       TRIANGLE_P(G1,scX(xs(1)),scY(ys(1)),scX(xs(k)),scY(ys(k)),scX(xs(k+1)),scY(ys(k+1)),fc);
     END;
@@ -2267,7 +2335,7 @@ BEGIN
     ys:=gWy(p);
     ev:=gWe(p);
     n:=SIZE(xs);
-    lc:=IFTE(p==1,cLA,IFTE(gPm>=2,cCut,cLB));
+    lc:=IFTE(p==1,cLA,IFTE(pMd(p)>=2,cCut,IFTE(p==2,cLB,cLC)));
     FOR k FROM 1 TO n DO
       c:=IFTE(k==n,1,k+1);
       IF lbl AND p==gSelP AND ev(k)==gSelI AND ev(k)>0 THEN
@@ -2288,8 +2356,8 @@ BEGIN
       LINE_P(G1,hx+ROUND(6*l(6*k+5),0),hy-ROUND(6*l(6*k+6),0),hx+ROUND(6*(l(6*k+3)+l(6*k+5)),0),hy-ROUND(6*(l(6*k+4)+l(6*k+6)),0),cDim);
     END;
   END;
-  IF lbl AND np==2 THEN
-    FOR p FROM 1 TO 2 DO
+  IF lbl AND np>=2 THEN
+    FOR p FROM 1 TO np DO
       xs:=gWx(p);
       ys:=gWy(p);
       hx:=0;
@@ -2298,19 +2366,23 @@ BEGIN
         hx:=hx+xs(k)/SIZE(xs);
         hy:=hy+ys(k)/SIZE(ys);
       END;
-      ctext(IFTE(p==1,"A","B"),scX(hx),scY(hy)-8,2,IFTE(p==1,cLA,IFTE(gPm>=2,cCut,cLB)));
+      ctext(lt(p),scX(hx),scY(hy)-8,2,IFTE(p==1,cLA,IFTE(pMd(p)>=2,cCut,IFTE(p==2,cLB,cLC))));
     END;
   END;
-  // B's box: a label of A that would sit on B goes inside A instead
-  IF np==2 AND gPm==1 THEN
-    xs:=gWx(2);
-    ys:=gWy(2);
-    bb:={xs(1),xs(1),ys(1),ys(1)};
-    FOR k FROM 2 TO SIZE(xs) DO
-      bb(1):=MIN(bb(1),xs(k));
-      bb(2):=MAX(bb(2),xs(k));
-      bb(3):=MIN(bb(3),ys(k));
-      bb(4):=MAX(bb(4),ys(k));
+  // the boxes of B and C when added on: a label of A that would sit on
+  // one of them goes inside A instead
+  FOR q FROM 2 TO np DO
+    IF pMd(q)==1 THEN
+      xs:=gWx(q);
+      ys:=gWy(q);
+      l:={xs(1),xs(1),ys(1),ys(1)};
+      FOR k FROM 2 TO SIZE(xs) DO
+        l(1):=MIN(l(1),xs(k));
+        l(2):=MAX(l(2),xs(k));
+        l(3):=MIN(l(3),ys(k));
+        l(4):=MAX(l(4),ys(k));
+      END;
+      IF q==2 THEN bb:=l; ELSE b3:=l; END;
     END;
   END;
   ep:=0.03*MAX(bx(2)-bx(1),bx(4)-bx(3));
@@ -2326,10 +2398,13 @@ BEGIN
             IF dd>0 THEN
               nx:=nx/dd;
               ny:=ny/dd;
-              IF p==1 AND np==2 AND gPm==1 THEN
+              IF p==1 AND np>=2 THEN
                 hx:=l(5*k-4)+nx*ep;
                 hy:=l(5*k-3)-ny*ep;
-                IF hx>bb(1) AND hx<bb(2) AND hy>bb(3) AND hy<bb(4) THEN
+                fl:=0;
+                IF hx>bb(1) AND hx<bb(2) AND hy>bb(3) AND hy<bb(4) THEN fl:=1; END;
+                IF hx>b3(1) AND hx<b3(2) AND hy>b3(3) AND hy<b3(4) THEN fl:=1; END;
+                IF fl THEN
                   nx:=-nx;
                   ny:=-ny;
                 END;
@@ -2360,7 +2435,7 @@ BEGIN
   shapeDef(t,dvals(p));
   gPre:=gCmb;
   FOR k FROM 1 TO nVars(t) DO
-    IF gAo(k)==0 OR (gCmb==1 AND (kd(k)==9 OR (gNu(k)==0 AND gNv(k)==0))) THEN
+    IF (nParts()<3 AND (gAo(k)==0 OR (gCmb==1 AND gNu(k)==0 AND gNv(k)==0))) OR (gCmb==1 AND kd(k)==9) THEN
       hot(p,k,317,y,1,0);
       y:=y+15;
     END;
@@ -2669,7 +2744,7 @@ END;
 clearVals()
 BEGIN
   LOCAL p, k, kd;
-  FOR p FROM 1 TO 1+gCmb DO
+  FOR p FROM 1 TO nParts() DO
     kd:=vKinds(gT(p));
     FOR k FROM 1 TO nVars(gT(p)) DO
       IF kd(k)<>9 THEN setVal(p,k,0); END;
@@ -2683,6 +2758,12 @@ BEGIN
   gPm:=1;
   gPs:=1;
   gPa:=1;
+  gQm:=1;
+  gQs:=2;
+  gQa:=1;
+  gT(3):=0;
+  gV(3):={0,0,0,0,0,0,0,0,0,0};
+  gG(3):={0,0,0,0,0,0,0,0,0,0};
   gUnit:=2;
   IF n==1 THEN
     setPart(1,1,{20,12});
@@ -2709,6 +2790,15 @@ BEGIN
     setPart(2,2,{20});
     gPm:=3;
   END;
+  // a room with a closet on the right and a bay window on top
+  IF n==6 THEN
+    setPart(1,1,{20,14});
+    setPart(2,1,{6,4});
+    gPs:=2;
+    gPa:=2;
+    setPart(3,13,{0,8,0,0,0,1});
+    gQs:=1;
+  END;
 END;
 
 saveCur()
@@ -2718,9 +2808,11 @@ BEGIN
     gStG(23):=gG(1);
     gStV(24):=gV(2);
     gStG(24):=gG(2);
+    gStV(25):=gV(3);
+    gStG(25):=gG(3);
     gStU(23):=gUnit;
     gCbT:=gT;
-    gCbM:={gPm,gPs,gPa};
+    gCbM:={gPm,gPs,gPa,gQm,gQs,gQa};
   ELSE
     gStV(gT(1)):=gV(1);
     gStG(gT(1)):=gG(1);
@@ -2756,10 +2848,15 @@ BEGIN
     gG(1):=gStG(23);
     gV(2):=gStV(24);
     gG(2):=gStG(24);
+    gV(3):=gStV(25);
+    gG(3):=gStG(25);
     gUnit:=gStU(23);
     gPm:=gCbM(1);
     gPs:=gCbM(2);
     gPa:=gCbM(3);
+    gQm:=gCbM(4);
+    gQs:=gCbM(5);
+    gQa:=gCbM(6);
   ELSE
     comboEx(1);
   END;
@@ -3250,25 +3347,32 @@ BEGIN
     gASg:=gSg;
     gTm:=0;
     placePart(1);
-    IF gCmb THEN
-      shapeDef(gT(2),dvals(2));
-      setB(2);
-      placePart(2);
+    gMsg:="";
+    FOR k FROM 2 TO nParts() DO
+      shapeDef(gT(k),dvals(k));
+      setB(k);
+      placePart(k);
     END;
-    drawScene(4,24,IFTE(gCmb,214,232),138,16,1,1+gCmb);
+    IF nParts()==3 AND gPm<3 AND gQm<3 AND gPs==gQs THEN gMsg:="B and C are on the same side: check they do not overlap."; END;
+    drawScene(4,24,IFTE(gCmb,IFTE(nParts()==3,250,214),232),138,16,1,nParts());
     y:=sideList(1,30);
-    IF gCmb THEN y:=sideList(2,y); END;
+    FOR k FROM 2 TO nParts() DO y:=sideList(k,y); END;
   END;
   // title
   RECT_P(G1,0,0,319,20,cPanel);
-  tx:=IFTE(gCmb,"A "+tTile(gT(1))+IFTE(gPm==1," + B "," - B ")+tTile(gT(2)),tName(t));
+  tx:=tName(t);
+  IF gCmb THEN
+    tx:="A "+tTile(gT(1))+IFTE(gPm==1," + B "," - B ")+tTile(gT(2));
+    IF nParts()==3 THEN tx:=tx+IFTE(gQm==1," + C "," - C ")+tTile(gT(3)); END;
+    IF textw(tx,2)>262 THEN tx:="A"+IFTE(gPm==1," + B"," - B")+IFTE(nParts()==3,IFTE(gQm==1," + C"," - C"),"")+": "+tTile(gT(1))+" ..."; END;
+  END;
   TEXTOUT_P(tx,G1,5,3,IFTE(textw(tx,3)<262,3,2),cText);
   chip("HELP",272);
   // what the selected label is
   RECT_P(G1,0,141,319,153,cPanel);
   IF gSelI>0 THEN
     ds:=vDesc(gT(gSelP));
-    tx:=IFTE(gCmb,IFTE(gSelP==1,"A: ","B: "),"")+IFTE(gSelK>0,"Tap the number of the angle you know",ds(gSelI));
+    tx:=IFTE(gCmb,lt(gSelP)+": ","")+IFTE(gSelK>0,"Tap the number of the angle you know",ds(gSelI));
     TEXTOUT_P(tx,G1,4,142,1,cHead);
   END;
   IF gCmb AND gMsg<>"" THEN
@@ -3291,6 +3395,11 @@ END;
 drawShape()
 BEGIN
   LOCAL m0:=gMsg;
+  IF gSelP>nParts() THEN
+    gSelP:=1;
+    gSelI:=0;
+    gSelK:=0;
+  END;
   solveAll();
   drawShape1();
   // the arrangement found a problem: put it in the work too
@@ -3363,14 +3472,28 @@ pickPart(p)
 BEGIN
   LOCAL ct:=cTypes();
   LOCAL nm:={};
-  LOCAL k;
+  LOCAL k, d;
   LOCAL c:=1;
+  d:=IFTE(p==3,1,0);
+  IF p==3 THEN nm(1):="No shape C"; END;
   FOR k FROM 1 TO SIZE(ct) DO
-    nm(k):=tName(ct(k));
-    IF ct(k)==gT(p) THEN c:=k; END;
+    nm(k+d):=tName(ct(k));
+    IF ct(k)==gT(p) THEN c:=k+d; END;
   END;
-  IF CHOOSE(c,"Shape "+IFTE(p==1,"A","B"),nm) THEN
-    IF c>=1 THEN setPart(p,ct(c),exV(ct(c))); END;
+  IF CHOOSE(c,"Shape "+lt(p),nm) THEN
+    IF p==3 AND c==1 THEN
+      gT(3):=0;
+      IF gSelP==3 THEN gSelP:=1; END;
+    ELSE
+      IF c>d THEN
+        IF p==3 AND gT(3)==0 THEN
+          gQm:=1;
+          gQs:=IFTE(gPs==2,4,2);
+          gQa:=1;
+        END;
+        setPart(p,ct(c-d),exV(ct(c-d)));
+      END;
+    END;
   END;
 END;
 
@@ -3379,6 +3502,35 @@ BEGIN
   LOCAL u:=gUnit;
   IF CHOOSE(u,"Units of length",{"in (inches)","ft (feet)","yd (yards)","mm","cm","m (meters)"}) THEN
     IF u>=1 THEN gUnit:=u; END;
+  END;
+END;
+
+// how part p (B or C) goes with A
+placeMenu(p)
+BEGIN
+  LOCAL m:=pMd(p);
+  LOCAL d:=pSd(p);
+  LOCAL a:=pAl(p);
+  LOCAL q:=lt(p);
+  IF CHOOSE(m,"How "+q+" goes with A",{"Add "+q+" onto a side of A","Cut "+q+" out of a side of A (notch)","Cut "+q+" out of the middle (hole)"}) THEN
+    IF m<1 THEN m:=pMd(p); END;
+    IF m<3 THEN
+      IF CHOOSE(d,"Which side of A",{"Top","Right","Bottom","Left"}) THEN
+        IF d<1 THEN d:=pSd(p); END;
+      END;
+      IF CHOOSE(a,"Where on that side",{"Centered","At the start (left or bottom)","At the end (right or top)"}) THEN
+        IF a<1 THEN a:=pAl(p); END;
+      END;
+    END;
+    IF p==3 THEN
+      gQm:=m;
+      gQs:=d;
+      gQa:=a;
+    ELSE
+      gPm:=m;
+      gPs:=d;
+      gPa:=a;
+    END;
   END;
 END;
 
@@ -3406,7 +3558,7 @@ END;
 menuKey(k)
 BEGIN
   LOCAL c:=1;
-  LOCAL v;
+  LOCAL v, tc;
   IF k==5 THEN RETURN -1; END;
   IF k==4 THEN workView(); END;
   IF k==3 THEN clearVals(); END;
@@ -3415,33 +3567,31 @@ BEGIN
     IF k==2 THEN loadEx(1,gT(1)); END;
   ELSE
     IF k==1 THEN
-      IF CHOOSE(c,"Shapes",{"Change shape A: "+tTile(gT(1)),"Change shape B: "+tTile(gT(2)),"Units, rounding, π: "+lenU(gUnit),"Price per "+lenU(gUnit)+"²: "+IFTE(gPrc>0,"$"+fmtN(gPrc,2),"none"),"Example: house (rectangle + roof)","Example: rectangle + half circle","Example: L-shaped room","Example: square with a round hole","Example: hexagon minus a square"}) THEN
-        IF c==1 OR c==2 THEN pickPart(c); END;
-        IF c==3 THEN setupMenu(); END;
-        IF c==4 THEN
+      tc:="none (tap to add one)";
+      IF gT(3)>0 THEN tc:=tTile(gT(3)); END;
+      IF CHOOSE(c,"Shapes",{"Change shape A: "+tTile(gT(1)),"Change shape B: "+tTile(gT(2)),"Shape C: "+tc,"Units, rounding, π: "+lenU(gUnit),"Price per "+lenU(gUnit)+"²: "+IFTE(gPrc>0,"$"+fmtN(gPrc,2),"none"),"Example: house (rectangle + roof)","Example: rectangle + half circle","Example: L-shaped room","Example: square with a round hole","Example: hexagon minus a square","Example: room + closet + bay window (3)"}) THEN
+        IF c>=1 AND c<=3 THEN pickPart(c); END;
+        IF c==4 THEN setupMenu(); END;
+        IF c==5 THEN
           v:=gPrc;
           IF INPUT(v,"Cost of the combined shape","$ per "+lenU(gUnit)+"²:","Price of one square "+lenU(gUnit)+". 0 = no cost") THEN
             IF TYPE(v)==0 THEN gPrc:=MAX(0,v); END;
           END;
         END;
-        IF c>=5 THEN comboEx(c-4); END;
+        IF c>=6 THEN comboEx(c-5); END;
       END;
     END;
     IF k==2 THEN
-      c:=gPm;
-      IF CHOOSE(c,"How B goes with A",{"Add B onto a side of A","Cut B out of a side of A (notch)","Cut B out of the middle (hole)"}) THEN
-        IF c>=1 THEN gPm:=c; END;
-        IF gPm<3 THEN
-          c:=gPs;
-          IF CHOOSE(c,"Which side of A",{"Top","Right","Bottom","Left"}) THEN
-            IF c>=1 THEN gPs:=c; END;
-          END;
-          c:=gPa;
-          IF CHOOSE(c,"Where on that side",{"Centered","At the start (left or bottom)","At the end (right or top)"}) THEN
-            IF c>=1 THEN gPa:=c; END;
-          END;
+      v:=2;
+      IF nParts()==3 THEN
+        c:=1;
+        IF CHOOSE(c,"Place which shape",{"Shape B: "+tTile(gT(2)),"Shape C: "+tTile(gT(3))}) THEN
+          v:=c+1;
+        ELSE
+          v:=0;
         END;
       END;
+      IF v>=2 THEN placeMenu(v); END;
     END;
   END;
   gDown:=0;
@@ -3626,7 +3776,7 @@ BEGIN
   gStV:={};
   gStG:={};
   gStU:={};
-  FOR k FROM 1 TO 24 DO
+  FOR k FROM 1 TO 25 DO
     gStV(k):={};
     gStG(k):={};
     gStU(k):=1;
