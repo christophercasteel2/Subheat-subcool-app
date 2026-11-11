@@ -296,7 +296,7 @@ Source and instructions: """ + REPO),
          test=os.path.join(ROOT, "tools", "test_geometry.py"),
          note="""GEOMETRY - practical plane geometry for a trades math class (Chapter 8)
 
-Open the app and tap a tile: Angles, Four-sided shapes, Triangles, Circles, Polygons, Combine 2 shapes, Money and units, Formulas. 22 shapes and tools: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, rectangle, square, parallelogram, trapezoid, triangle (base and height), right triangle (Pythagorean), any triangle (Hero's formula), isosceles, equilateral, circle, semicircle, quarter circle, ring, sector and arc, regular hexagon, polygon perimeter, cost and material, feet and inches.
+The home screen has a box for every tool (28, coloured by chapter section): 22 shapes and tools, plus Irregular figure, Cut-out shape, Combine shapes, Formulas, Practice and Answers so far. The shapes and tools: angle math in degrees, minutes and seconds, angle facts, parallel lines, triangle angles, rectangle, square, parallelogram, trapezoid, triangle (base and height), right triangle (Pythagorean), any triangle (Hero's formula), isosceles, equilateral, circle, semicircle, quarter circle, ring, sector and arc, regular hexagon, polygon perimeter, cost and material, feet and inches.
 
 Each shape is a big drawing with every size written on it as a label. Tap a label to type its value (or pick it with Left/Right and type on the keypad). White = you entered it, green = worked out, orange ? = not known yet. Under the drawing are the answers and then HOW IT WAS FOUND: each formula, the numbers put into it, and the answer. Tap the work (or WORK) to read it all on one page.
 

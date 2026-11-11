@@ -41,10 +41,8 @@ cLC:=RGB(205,160,250);
 gCatC:={RGB(124,74,192),RGB(32,104,206),RGB(30,142,74),RGB(214,110,22),RGB(20,128,140),RGB(196,52,52),RGB(150,120,30),RGB(90,98,120)};
 
 // ---- what is on the screen ----
-gScr:=1;        // 1 home, 2 a group of shapes, 3 a shape
-gHome:=1;       // highlighted tile on the home screen
-gCat:=1;        // the group shown on screen 2
-gCSel:=1;       // highlighted tile on screen 2
+gScr:=1;        // 1 home, 3 a shape, 4 practice problems
+gHome:=1;       // highlighted box on the home screen
 gT:={1,8,0};    // shape type of part A (and of B and C when combining; C 0 = none)
 gCmb:=0;        // 1 = combining shapes
 // per part (A, B): the values typed (gV), whether each was given (gG), and
@@ -364,6 +362,18 @@ BEGIN
   RETURN n(MAX(1,MIN(5,r)));
 END;
 
+// an area in another unit people ask for: sq in to sq ft, sq ft to sq
+// yd, sq yd to sq ft, sq cm to sq m, sq mm to sq cm ("" for sq m)
+areaAlt(x)
+BEGIN
+  IF gUnit==1 THEN RETURN "  = "+fmtE(x/144)+" ft²  (÷ 144)"; END;
+  IF gUnit==2 THEN RETURN "  = "+fmtE(x/9)+" yd²  (÷ 9)"; END;
+  IF gUnit==3 THEN RETURN "  = "+fmtE(x*9)+" ft²  (x 9)"; END;
+  IF gUnit==4 THEN RETURN "  = "+fmtE(x/100)+" cm²  (÷ 100)"; END;
+  IF gUnit==5 THEN RETURN "  = "+fmtE(x/10000)+" m²  (÷ 10,000)"; END;
+  RETURN "";
+END;
+
 // x as a number of π (π value pv), or "" when that is not a tidy number
 piTx(x,pv)
 BEGIN
@@ -394,7 +404,7 @@ END;
 
 tName(t)
 BEGIN
-  LOCAL n:={"Rectangle","Square","Parallelogram","Trapezoid","Triangle: base and height","Right triangle","Any triangle (Hero's)","Isosceles triangle","Equilateral triangle","Regular hexagon","Polygon perimeter","Circle","Semicircle","Quarter circle","Ring (between 2 circles)","Sector and arc","Angle math  ° ' ''","Angle facts","Parallel lines","Triangle angles","Cost and material","Feet and inches"};
+  LOCAL n:={"Rectangle","Square","Parallelogram","Trapezoid","Triangle: base and height","Pythagorean (right triangle)","Triangle 3 sides (Hero's)","Isosceles triangle","Equilateral triangle","Regular hexagon","Polygon perimeter","Circle","Semicircle","Quarter circle","Ring (between 2 circles)","Sector and arc","Angle math  ° ' ''","Angle facts","Parallel lines","Triangle angles","Cost and material","Feet and inches"};
   RETURN n(t);
 END;
 
@@ -1498,7 +1508,9 @@ BEGIN
   END;
   FOR k FROM 1 TO n DO
     IF kd(k)<>9 THEN
-      IF gK(p,k)==1 AND gG(p,k)==0 THEN addAns(pre+nm(k)+" = "+valT(t,k,gC(p,k))+rndK(t,k,gC(p,k))+IFTE(kd(k)==1 OR kd(k)==2,piTx(gC(p,k),pv),"")+IFTE(kd(k)==1 AND gUnit==2 AND ABS(gC(p,k)-ROUND(gC(p,k),0))>0.001," ("+ftIn(gC(p,k))+")",""),cGood); END;
+      IF gK(p,k)==1 AND gG(p,k)==0 THEN addAns(pre+nm(k)+" = "+valT(t,k,gC(p,k))+rndK(t,k,gC(p,k))+IFTE(kd(k)==1 OR kd(k)==2,piTx(gC(p,k),pv),"")+IFTE(kd(k)==1 AND gUnit==2 AND ABS(gC(p,k)-ROUND(gC(p,k),0))>0.001," ("+ftIn(gC(p,k))+")",""),cGood);
+        IF kd(k)==2 AND pre=="" AND gUnit<>6 THEN addAns(areaAlt(gC(p,k)),cDim); END;
+      END;
       IF gK(p,k)==0 AND (t<>11 OR k<=gV(p,10)+2 OR k==9) THEN miss:=miss+IFTE(miss=="","",", ")+nm(k); END;
     END;
   END;
@@ -1538,6 +1550,7 @@ BEGIN
     addSt(tx2,cText);
     addSt("  = "+areaTx(tot)+rndTx(tot),cGood);
     addAns("TOTAL AREA = "+areaTx(tot)+rndTx(tot),cGood);
+    IF gUnit<>6 THEN addAns(areaAlt(tot),cDim); END;
     IF gPrc>0 THEN
       hd("COST");
       addSt("Cost = total area x price per "+lenU(gUnit)+"²",cSelc);
@@ -3248,93 +3261,33 @@ END;
 
 // ================= screens =================
 
-catName(c)
+
+
+
+
+// the boxes on the home screen: a shape (1-22) or 0 combine shapes,
+// -1 irregular figure, -2 cut-out shape, -3 formulas, -4 practice,
+// -5 answers so far; their names and colour groups
+homeT()
 BEGIN
-  LOCAL n:={"Angles","Four-sided shapes","Triangles","Circles","Polygons","Combine 2 shapes","Money and units","Formulas"};
-  RETURN n(c);
+  RETURN {17,18,19,20,1,2,3,4,5,6,7,8,9,10,11,-1,12,13,14,15,16,0,-2,21,22,-3,-4,-5};
 END;
 
-catTypes(c)
+homeN()
 BEGIN
-  IF c==1 THEN RETURN {17,18,19,20}; END;
-  IF c==2 THEN RETURN {1,2,3,4}; END;
-  IF c==3 THEN RETURN {5,6,7,8,9}; END;
-  IF c==4 THEN RETURN {12,13,14,15,16}; END;
-  IF c==5 THEN RETURN {10,11}; END;
-  IF c==7 THEN RETURN {21,22}; END;
-  RETURN {};
+  RETURN {"Angle math","Angle facts","Parallel lines","Triangle angles","Rectangle","Square","Parallelogram","Trapezoid","Triangle b x h","Pythagorean","Triangle 3 sides","Isosceles","Equilateral","Hexagon","Perimeter","Irregular figure","Circle","Semicircle","Quarter circle","Ring","Sector & arc","Combine shapes","Cut-out shape","Cost","Feet & inches","Formulas","Practice","Answers so far"};
 END;
 
-// a small picture of shape t in the box x1-x2, y1-y2
-miniShape(t,x1,y1,x2,y2)
+homeG()
 BEGIN
-  LOCAL cx:=ROUND((x1+x2)/2,0);
-  LOCAL cy:=ROUND((y1+y2)/2,0);
-  LOCAL k;
-  IF NOT isCustom(t) THEN
-    shapeDef(t,pad10(exV(t)));
-    gTm:=0;
-    placePart(1);
-    drawScene(x1,y1,x2,y2,3,0,1);
-    RETURN 0;
-  END;
-  IF t==11 THEN
-    FOR k FROM 0 TO 4 DO LINE_P(G1,ROUND(cx+24*cosD(90+72*k),0),ROUND(cy-24*sinD(90+72*k),0),ROUND(cx+24*cosD(162+72*k),0),ROUND(cy-24*sinD(162+72*k),0),cLA); END;
-  END;
-  IF t==15 THEN
-    discS(cx,cy,24,cFA);
-    discS(cx,cy,11,RGB(26,29,40));
-    circS(cx,cy,24,cLA);
-    circS(cx,cy,11,cLA);
-  END;
-  IF t==16 THEN
-    FOR k FROM 0 TO 5 DO TRIANGLE_P(G1,cx-16,cy+16,ROUND(cx-16+34*cosD(10*k),0),ROUND(cy+16-34*sinD(10*k),0),ROUND(cx-16+34*cosD(10*k+10),0),ROUND(cy+16-34*sinD(10*k+10),0),cFA); END;
-    arcS(cx-16,cy+16,34,0,60,cLA);
-    LINE_P(G1,cx-16,cy+16,cx+18,cy+16,cLA);
-  END;
-  IF t==17 OR t==18 THEN
-    LINE_P(G1,cx-26,cy+16,cx+26,cy+16,cLA);
-    LINE_P(G1,cx-26,cy+16,ROUND(cx-26+50*cosD(40),0),ROUND(cy+16-50*sinD(40),0),cLA);
-    arcS(cx-26,cy+16,16,0,40,cSelc);
-    IF t==17 THEN ctext("° ' ''",cx+8,cy-22,1,cText); END;
-  END;
-  IF t==19 THEN
-    LINE_P(G1,cx-30,cy-10,cx+30,cy-10,cLA);
-    LINE_P(G1,cx-30,cy+12,cx+30,cy+12,cLA);
-    LINE_P(G1,cx+12,cy-24,cx-12,cy+26,cText);
-  END;
-  IF t==20 THEN
-    TRIANGLE_P(G1,cx,cy-22,cx-28,cy+20,cx+28,cy+20,cFA);
-    LINE_P(G1,cx,cy-22,cx-28,cy+20,cLA);
-    LINE_P(G1,cx-28,cy+20,cx+28,cy+20,cLA);
-    LINE_P(G1,cx+28,cy+20,cx,cy-22,cLA);
-    ctext("180°",cx,cy+2,1,cSelc);
-  END;
-  IF t==21 THEN ctext("$",cx,cy-14,7,cGood); END;
-  IF t==22 THEN
-    RECT_P(G1,cx-32,cy-6,cx+32,cy+8,RGB(150,120,30),RGB(240,200,60));
-    FOR k FROM 0 TO 8 DO LINE_P(G1,cx-30+8*k,cy-6,cx-30+8*k,cy+IFTE((k MOD 4)==0,4,0),RGB(30,30,30)); END;
-  END;
-END;
-
-// a tile: picture and name; sl = highlighted
-tile(x,y,nm,c,sl)
-BEGIN
-  LOCAL s:=INSTRING(nm," ");
-  RECT_P(G1,x,y,x+77,y+95,c,RGB(26,29,40));
-  RECT_P(G1,x,y,x+77,y+2,c);
-  IF textw(nm,1)>70 AND s>0 THEN
-    ctext(LEFT(nm,s-1),x+39,y+71,1,cText);
-    ctext(MID(nm,s+1),x+39,y+83,1,cText);
-  ELSE
-    ctext(nm,x+39,y+79,1,cText);
-  END;
-  IF sl THEN box2(x-1,y-1,x+78,y+96,cSelc); END;
+  RETURN {1,1,1,1,2,2,2,2,3,3,3,3,3,5,5,6,4,4,4,4,4,6,6,7,7,8,8,8};
 END;
 
 drawHome()
 BEGIN
-  LOCAL k, x, y;
+  LOCAL nm:=homeN();
+  LOCAL gp:=homeG();
+  LOCAL k, x, y, c;
   RECT_P(G1,0,0,319,239,cBg);
   RECT_P(G1,0,0,319,20,cPanel);
   TEXTOUT_P("GEOMETRY",G1,6,3,3,cText);
@@ -3342,45 +3295,56 @@ BEGIN
   chip("MORE",176);
   chip("HELP",224);
   chip("EXIT",272);
-  FOR k FROM 1 TO 8 DO
-    x:=((k-1) MOD 4)*80+1;
-    y:=24+IP((k-1)/4)*98;
-    tile(x,y,catName(k),gCatC(k),k==gHome);
+  FOR k FROM 1 TO 28 DO
+    x:=((k-1) MOD 4)*80;
+    y:=22+IP((k-1)/4)*28;
+    c:=gCatC(gp(k));
+    RECT_P(G1,x+1,y+1,x+78,y+26,c,cRow);
+    RECT_P(G1,x+1,y+1,x+5,y+26,c);
+    ctext(nm(k),x+42,y+8,1,cText);
+    IF k==gHome THEN box2(x,y,x+79,y+27,cSelc); END;
   END;
-  // pictures
-  miniShape(18,1,26,79,96);
-  miniShape(1,81,26,159,96);
-  miniShape(5,161,26,239,96);
-  miniShape(12,241,26,319,96);
-  miniShape(10,1,124,79,194);
-  RECT_P(G1,104,150,138,184,cLA,cFA);
-  TRIANGLE_P(G1,100,150,142,150,121,128,cFB);
-  LINE_P(G1,100,150,121,128,cLB);
-  LINE_P(G1,121,128,142,150,cLB);
-  miniShape(21,161,124,239,194);
-  ctext("A = L x W",280,138,1,cSelc);
-  ctext("A = π r²",280,152,1,cSelc);
-  ctext("c² = a² + b²",280,166,1,cSelc);
+  x:=4;
+  nm:={"Angles","Four-sided","Triangles","Circles","Polygons","Combine","Money"};
+  FOR k FROM 1 TO 7 DO
+    TEXTOUT_P(nm(k),G1,x,224,1,gCatC(k));
+    x:=x+textw(nm(k),1)+9;
+  END;
   BLIT_P(G0,G1);
 END;
 
-drawCat()
+// open home box k
+openHome(k)
 BEGIN
-  LOCAL ts:=catTypes(gCat);
-  LOCAL k, x, y;
-  RECT_P(G1,0,0,319,239,cBg);
-  RECT_P(G1,0,0,319,20,gCatC(gCat));
-  TEXTOUT_P(catName(gCat),G1,6,3,3,cWhite);
-  chip("BACK",272);
-  FOR k FROM 1 TO SIZE(ts) DO
-    x:=((k-1) MOD 4)*80+1;
-    y:=24+IP((k-1)/4)*98;
-    tile(x,y,tTile(ts(k)),gCatC(gCat),k==gCSel);
-    miniShape(ts(k),x+3,y+5,x+74,y+72);
+  LOCAL ty:=homeT();
+  LOCAL t:=ty(k);
+  LOCAL f;
+  gRet:=0;
+  IF t>0 THEN openShape(t); END;
+  IF t==0 THEN openCombo(); END;
+  IF t==-1 THEN
+    openCombo();
+    comboEx(3);
   END;
-  ctext("Tap a shape.  Esc: back",160,224,1,cDim);
-  BLIT_P(G0,G1);
+  IF t==-2 THEN
+    openCombo();
+    comboEx(5);
+  END;
+  IF t==-3 THEN
+    f:=formLines();
+    showScroll("Formulas",f,pageCol(f));
+  END;
+  IF t==-4 THEN gScr:=4; END;
+  IF t==-5 THEN
+    IF SIZE(gHis)==0 THEN
+      showScroll("Answers so far",{"No answers yet: they are added here","when you leave a shape."},{cDim,cDim});
+    ELSE
+      showScroll("Answers so far",gHis,pageCol(gHis));
+    END;
+  END;
+  gDown:=0;
 END;
+
 
 // is the selected label on the screen?
 selOK()
@@ -3989,27 +3953,10 @@ BEGIN
   END;
   histAdd();
   saveCur();
-  gScr:=IFTE(gCmb OR gRet==1,1,2);
+  gScr:=1;
   gRet:=0;
 END;
 
-// returns 0 to quit
-openCat(k)
-BEGIN
-  LOCAL f;
-  IF k==6 THEN
-    openCombo();
-    RETURN 0;
-  END;
-  IF k==8 THEN
-    f:=formLines();
-    showScroll("Formulas",f,pageCol(f));
-    RETURN 0;
-  END;
-  gCat:=k;
-  gCSel:=1;
-  gScr:=2;
-END;
 
 onHome(ev)
 BEGIN
@@ -4030,51 +3977,23 @@ BEGIN
       END;
       RETURN 1;
     END;
-    k:=IP((my-24)/98)*4+MIN(3,IP(mx/80))+1;
-    IF my>=24 AND k>=1 AND k<=8 THEN
+    k:=IP((my-22)/28)*4+MIN(3,IP(mx/80))+1;
+    IF my>=22 AND my<218 AND k>=1 AND k<=28 THEN
       gHome:=k;
-      openCat(k);
+      openHome(k);
     END;
     RETURN 1;
   END;
-  IF ev==7 THEN gHome:=IFTE(gHome==1,8,gHome-1); END;
-  IF ev==8 THEN gHome:=IFTE(gHome==8,1,gHome+1); END;
-  IF ev==2 OR ev==12 THEN gHome:=IFTE(gHome>4,gHome-4,gHome+4); END;
-  IF ev==30 THEN openCat(gHome); END;
+  IF ev==7 THEN gHome:=IFTE(gHome==1,28,gHome-1); END;
+  IF ev==8 THEN gHome:=IFTE(gHome==28,1,gHome+1); END;
+  IF ev==2 THEN gHome:=IFTE(gHome>4,gHome-4,gHome+24); END;
+  IF ev==12 THEN gHome:=IFTE(gHome<=24,gHome+4,gHome-24); END;
+  IF ev==30 THEN openHome(gHome); END;
   IF ev==3 THEN showScroll("How to use",helpLines(),pageCol(helpLines())); END;
   IF ev==4 THEN RETURN 0; END;
   RETURN 1;
 END;
 
-onCat(ev)
-BEGIN
-  LOCAL ts:=catTypes(gCat);
-  LOCAL n:=SIZE(ts);
-  LOCAL mx, my, k;
-  IF TYPE(ev)==6 THEN
-    IF ev(1)==0 THEN gDown:=1; END;
-    IF ev(1)<>3 OR gDown==0 OR SIZE(ev)<3 THEN RETURN 1; END;
-    gDown:=0;
-    mx:=ev(2);
-    my:=ev(3);
-    IF my<21 THEN
-      IF mx>=272 THEN gScr:=1; END;
-      RETURN 1;
-    END;
-    k:=IP((my-24)/98)*4+MIN(3,IP(mx/80))+1;
-    IF my>=24 AND my<220 AND k>=1 AND k<=n THEN
-      gCSel:=k;
-      openShape(ts(k));
-    END;
-    RETURN 1;
-  END;
-  IF ev==7 THEN gCSel:=IFTE(gCSel==1,n,gCSel-1); END;
-  IF ev==8 THEN gCSel:=IFTE(gCSel==n,1,gCSel+1); END;
-  IF ev==2 OR ev==12 THEN gCSel:=IFTE(gCSel>4,gCSel-4,MIN(n,gCSel+4)); END;
-  IF ev==30 THEN openShape(ts(gCSel)); END;
-  IF ev==4 THEN gScr:=1; END;
-  RETURN 1;
-END;
 
 onShape(ev)
 BEGIN
@@ -4176,21 +4095,16 @@ BEGIN
   END;
   WHILE run DO
     IF gScr==1 THEN drawHome(); END;
-    IF gScr==2 THEN drawCat(); END;
     IF gScr==3 THEN drawShape(); END;
     IF gScr==4 THEN drawQuiz(); END;
     ev:=WAIT(-1);   // key code, touch event list, or -1 after a 1 minute timeout
     IF gScr==1 THEN
       run:=onHome(ev);
     ELSE
-      IF gScr==2 THEN
-        run:=onCat(ev);
+      IF gScr==4 THEN
+        run:=onQuiz(ev);
       ELSE
-        IF gScr==4 THEN
-          run:=onQuiz(ev);
-        ELSE
-          run:=onShape(ev);
-        END;
+        run:=onShape(ev);
       END;
     END;
   END;

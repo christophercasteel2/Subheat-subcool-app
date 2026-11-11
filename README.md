@@ -421,6 +421,7 @@ An app for a trades math class, covering Chapter 8, Practical Plane Geometry: an
 Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip), unzip it, and drag `GEOMETRY.hpappdir` onto **Application Library** (or `GEOMETRY.hpprgm` onto **Programs**).
 
 **How it works.**
+- **Every tool has its own box on the home screen** (28 boxes, coloured by chapter section, as in the first version): the 22 shapes and tools, plus Irregular figure (opens the L-shaped room), Cut-out shape (the hexagon minus a square), Combine shapes, Formulas, Practice and Answers so far. Tap a box, or move with the arrows and press Enter.
 - **The drawing is the input.** Each shape fills the top of the screen, and every size is a label drawn on the part it measures: L under the bottom side, W beside the right side, h on the dashed height line, r along the radius, A inside the shape.
 - **Entering a size.** Tap a label to type its value, or pick it with Left/Right (it turns yellow, and so does that part of the drawing) and type on the keypad. The bar under the drawing says in words what the picked label is ("Top base b1 (parallel to b2)").
 - **Label colours.** White = you entered it, green = worked out, orange **?** = not known yet. Sizes that have no place on the drawing (the perimeter, π, the hexagon formula) are down the right side.
@@ -447,6 +448,7 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
 
 **SETUP** (on a shape; under SHAPES when combining):
 - **Units.** In feet or yards, a length is typed in two boxes: feet and inches (10 ft 6 in), or yards and feet.
+- **Square yards.** Every area is also given in the next unit people ask for: ft² in yd² (600.25 ft² = 66.69 yd²), in² in ft², yd² in ft², and cm² in m².
 - **Rounding.** Answers can be rounded to a whole number, tenths, hundredths or thousandths, shown next to the full answer: d = 11.6297 ft ≈ 11.63.
 - **π answers.** Circle answers also show in terms of π: A = 78.5398 = 25π.
 - **Save this problem** keeps it to open again later.
@@ -459,7 +461,7 @@ Download [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool
   - **Saved problems**, and setup.
 - History and saved problems stay until the app is installed again.
 
-| Tile | Shapes and tools |
+| Section | Shapes and tools |
 |---|---|
 | **Angles** | Angle math in degrees, minutes and seconds: A + B, A − B, A × n, A ÷ n, 180° − (A + B), 90°/180°/360° − A, with the carrying and borrowing shown (109°43′ + 25°32′ = 134°75′ = 135°15′; 14°32′48″ × 2 = 28°64′96″ = 29°5′36″). Angle facts (vertical, adjacent, complement, supplement, rest of 360°, n equal parts for bolt holes or deck pieces). Parallel lines cut by a transversal (tap the numbered angle you know; all eight are found). Triangle angles (the third angle; isosceles base angles; right triangles) |
 | **Four-sided shapes** | Rectangle, square, parallelogram and trapezoid: area, perimeter, diagonal and the word problems above |

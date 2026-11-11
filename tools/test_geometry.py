@@ -27,12 +27,11 @@ DIGIT = {"0": 47, "1": 42, "2": 43, "3": 44, "4": 37, "5": 38, "6": 39,
          "7": 32, "8": 33, "9": 34, ".": 48}
 SQ3 = math.sqrt(3)
 
-# shape number: (screen category, tile on that screen)
-WHERE = {17: (1, 1), 18: (1, 2), 19: (1, 3), 20: (1, 4),
-         1: (2, 1), 2: (2, 2), 3: (2, 3), 4: (2, 4),
-         5: (3, 1), 6: (3, 2), 7: (3, 3), 8: (3, 4), 9: (3, 5),
-         12: (4, 1), 13: (4, 2), 14: (4, 3), 15: (4, 4), 16: (4, 5),
-         10: (5, 1), 11: (5, 2), 21: (7, 1), 22: (7, 2)}
+# the boxes on the home screen, 4 across and 7 down: a shape number, or
+# 0 combine, -1 irregular figure, -2 cut-out, -3 formulas, -4 practice,
+# -5 answers so far
+HOME = [17, 18, 19, 20, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1, 12, 13, 14, 15,
+        16, 0, -2, 21, 22, -3, -4, -5]
 SLUG = {1: "rectangle", 2: "square", 3: "parallelogram", 4: "trapezoid",
         5: "triangle_bh", 6: "right_triangle", 7: "heros_formula",
         8: "isosceles", 9: "equilateral", 10: "hexagon", 11: "polygon",
@@ -42,9 +41,10 @@ SLUG = {1: "rectangle", 2: "square", 3: "parallelogram", 4: "trapezoid",
         22: "feet_inches"}
 
 
-def tile(k):
-    """centre of tile k (4 across, 2 down) on the home and shape screens"""
-    return ((k - 1) % 4) * 80 + 40, 24 + ((k - 1) // 4) * 98 + 49
+def box(t):
+    """centre of the home screen box for shape (or special box) t"""
+    k = HOME.index(t)
+    return (k % 4) * 80 + 40, 22 + (k // 4) * 28 + 14
 
 
 def menu(k):
@@ -230,8 +230,8 @@ def main():
         ok &= close(r["s"], math.sqrt(927))
         r = calc(it, 2, {1: 7 / 3})
         ok &= close(r["A"], 49 / 9)
-        r = calc(it, 2, {1: 24.5})                     # driveway
-        return ok and close(r["A"], 600.25)
+        r = calc(it, 2, {1: 24.5}, unit=2)             # driveway: 600.25 sq ft = 66.69 sq yd
+        return ok and close(r["A"], 600.25) and any("66.6944 yd²" in x for x in r.ans)
 
     def t_pgram(it):
         r = example(it, 3)                             # b 7 in, h 10 in
@@ -563,22 +563,39 @@ def main():
              ("combined shapes: add, notch, hole", t_combo)]
 
     ev = [shot("geom_home.png"),
-          check("home screen: 8 tiles", lambda it: it.g["gScr"] == 1)]
+          check("home screen: 28 boxes, one for every tool", lambda it: it.g["gScr"] == 1
+                and len(fn_call(it, "homeN")) == 28 == len(fn_call(it, "homeT")) == len(fn_call(it, "homeG"))),
+          KEY["right"], KEY["down"],
+          check("Right and Down move along the boxes", lambda it: it.g["gHome"] == 6),
+          KEY["up"], KEY["up"],
+          check("Up from the top row wraps to the bottom", lambda it: it.g["gHome"] == 26),
+          KEY["enter"], shot("geom_formulas.png"), KEY["esc"],
+          check("Enter opens the picked box (Formulas)", lambda it: it.g["gScr"] == 1)]
     ev += [check(d, f) for d, f in tests]
     # every shape: open it, no labels on top of each other, screenshot
-    for t, (c, k) in sorted(WHERE.items(), key=lambda x: x[1]):
-        if k == 1:
-            ev += [*tap(*tile(c)), shot(f"geom_cat{c}.png")]
-        ev += [*tap(*tile(k)),
+    for t in [x for x in HOME if x > 0]:
+        ev += [*tap(*box(t)),
                check(f"{SLUG[t]}: opens with the textbook example",
                      lambda it, t=t: it.g["gScr"] == 3 and it.g["gT"][0] == t and len(it.g["gOut"]) > 3),
                check(f"{SLUG[t]}: labels do not cover each other", labels_apart),
                shot(f"geom_{t}_{SLUG[t]}.png"),
-               *tap(*menu(5))]
-        if k == len([1 for cc, _ in WHERE.values() if cc == c]):
-            ev += [*tap(290, 10)]
+               *tap(*menu(5)),
+               check(f"{SLUG[t]}: BACK goes home", lambda it: it.g["gScr"] == 1)]
+    ev += [*tap(*box(-1)),
+           check("Irregular figure box: the L-shaped room, 492 ft²",
+                 lambda it: it.g["gCmb"] == 1 and total(it.g["gAn"], "AREA") == 492),
+           *tap(*menu(5)),
+           *tap(*box(-2)),
+           check("Cut-out shape box: the hexagon minus a square, 640 ft²",
+                 lambda it: it.g["gCmb"] == 1 and total(it.g["gAn"], "AREA") == 640),
+           *tap(*menu(5)),
+           *tap(*box(-4)),
+           check("Practice box", lambda it: it.g["gScr"] == 4),
+           KEY["esc"],
+           *tap(*box(-5)), KEY["esc"],
+           check("Answers-so-far box", lambda it: it.g["gScr"] == 1)]
     # rectangle: tap the W label, type 8 in the box, then keypad entry on A
-    ev += [*tap(*tile(2)), *tap(*tile(1)),
+    ev += [*tap(*box(1)),
            check("rectangle: L is picked first and drawn yellow", lambda it: it.g["gSelI"] == 1),
            *tap_hot("W"), ("dialog", 8),
            check("tap W, enter 8: W = 8, A = 72", lambda it: val(it, 1, 2) == 8 and it.g["gC"][0][2] == 72),
@@ -619,7 +636,7 @@ def main():
            check("Help closes back to the shape", lambda it: it.g["gScr"] == 3),
            KEY["esc"], KEY["esc"]]
     # combined shapes on the screen
-    ev += [*tap(*tile(6)),
+    ev += [*tap(*box(0)),
            check("Combine 2 shapes opens the house example", lambda it: it.g["gCmb"] == 1 and it.g["gT"] == [1, 8, 0]),
            check("combined: labels do not cover each other", labels_apart),
            shot("geom_combo_house.png"),
@@ -655,7 +672,7 @@ def main():
            *tap(*menu(4)), shot("geom_combo_work.png"), KEY["esc"],
            KEY["esc"],
            check("Esc: back to the home screen", lambda it: it.g["gScr"] == 1),
-           *tap(*tile(8)), shot("geom_formulas.png"), KEY["esc"],
+           *tap(*box(-3)), KEY["esc"],
            # FIND: which tile do I need?
            *tap(150, 10), ("dialog", 6),
            check("FIND: a ladder problem opens the right triangle, empty, with a tip",
