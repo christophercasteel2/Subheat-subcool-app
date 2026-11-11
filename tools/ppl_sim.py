@@ -542,6 +542,23 @@ class Interp:
 
     def call(self, name, args, frame, line):
         # by-reference builtins
+        if name == "INPUT" and args[0][0] == "list":
+            # INPUT({a, b, ...}, title, {labels}, {help}): one box per variable
+            refs = args[0][1]
+            if any(r[0] != "var" for r in refs):
+                raise PPLError(f"line {line}: INPUT needs variables")
+            vals = [self.eval(a, frame) for a in args[1:]]
+            cur = [self.lookup(r[1], frame, line) for r in refs]
+            ev = self.events.pop(0) if self.events else None
+            if not (isinstance(ev, tuple) and ev[0] == "dialog"):
+                raise PPLError(f"script expected a reply for INPUT {vals[:1]}")
+            self.trace.append(("INPUT", vals[0], ev[1]))
+            if ev[1] is None:
+                return 0.0
+            new = ev[1] if isinstance(ev[1], (list, tuple)) else [ev[1]]
+            for r, v in zip(refs, list(new) + cur[len(new):]):
+                self.assign(r[1], float(v), frame, line)
+            return 1.0
         if name in ("INPUT", "CHOOSE"):
             ref = args[0]
             if ref[0] != "var":

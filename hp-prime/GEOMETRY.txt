@@ -56,6 +56,9 @@ gPm:=1;         // combining: 1 add B on a side, 2 cut a notch, 3 cut a hole
 gPs:=1;         // side of A: 1 top, 2 right, 3 bottom, 4 left
 gPa:=1;         // where on the side: 1 centred, 2 at the start, 3 at the end
 gPre:=0;
+gRnd:=1;        // round answers: 1 no, 2 whole, 3 tenths, 4 hundredths, 5 thousandths
+gPiF:=1;        // 1 = also show answers as a number of π (25π)
+gPrc:=0;        // combining: price per square unit (0 = no cost)
 gMsg:="";       // a problem with the arrangement
 // the selected label: part, value number and (for angle picks) the pick
 gSelP:=1;
@@ -298,6 +301,31 @@ lenU(u)
 BEGIN
   LOCAL n:={"in","ft","yd","mm","cm","m"};
   RETURN n(MAX(1,MIN(6,u)));
+END;
+
+// the rounded answer (when rounding is on), as "  ≈ 22.89"
+rndTx(x)
+BEGIN
+  IF gRnd<=1 THEN RETURN ""; END;
+  IF fmtN(x,gRnd-2)==fmtE(x) THEN RETURN ""; END;
+  RETURN "  ≈ "+fmtN(x,gRnd-2);
+END;
+
+rndName(r)
+BEGIN
+  LOCAL n:={"off","whole number","tenths (0.1)","hundredths (0.01)","thousandths (0.001)"};
+  RETURN n(MAX(1,MIN(5,r)));
+END;
+
+// x as a number of π (π value pv), or "" when that is not a tidy number
+piTx(x,pv)
+BEGIN
+  LOCAL q;
+  IF gPiF==0 OR pv<=0 THEN RETURN ""; END;
+  q:=x/pv;
+  IF ABS(q)<0.0001 THEN RETURN ""; END;
+  IF ABS(q-ROUND(q,4))>0.0000001*MAX(1,ABS(q)) THEN RETURN ""; END;
+  RETURN " = "+fmtE(ROUND(q,4))+"π";
 END;
 
 // amounts for the cost tool: name and size in sq in (areas) or in
@@ -618,6 +646,15 @@ END;
 
 // value k becomes x, found with formula fm, numbers sb; the work gets
 // the formula, the numbers put in, and the answer
+// the rounded answer for value k of shape t (lengths, areas, numbers)
+rndK(t,k,x)
+BEGIN
+  LOCAL kd:=vKinds(t);
+  LOCAL q:=kd(k);
+  IF q==1 OR q==2 OR q==4 OR q==8 OR q==10 OR q==11 THEN RETURN rndTx(x); END;
+  RETURN "";
+END;
+
 sv(k,x,fm,sb)
 BEGIN
   IF gWk(k)==0 THEN
@@ -625,7 +662,7 @@ BEGIN
     gWk(k):=1;
     addSt(fm,cSelc);
     addSt("  = "+sb,cText);
-    addSt("  = "+valT(gWt,k,x),cGood);
+    addSt("  = "+valT(gWt,k,x)+rndK(gWt,k,x),cGood);
   END;
 END;
 
@@ -1403,11 +1440,18 @@ BEGIN
   LOCAL kd:=vKinds(t);
   LOCAL nm:=vNames(t);
   LOCAL miss:="";
+  LOCAL pv:=0;
   LOCAL k;
   IF t>=17 AND t<>20 THEN RETURN 0; END;
+  // the π this problem uses, for answers like 25π
+  IF t>=12 AND t<=16 THEN
+    FOR k FROM 1 TO n DO
+      IF kd(k)==9 THEN pv:=piOf(gV(p,k)); END;
+    END;
+  END;
   FOR k FROM 1 TO n DO
     IF kd(k)<>9 THEN
-      IF gK(p,k)==1 AND gG(p,k)==0 THEN addAns(pre+nm(k)+" = "+valT(t,k,gC(p,k))+IFTE(kd(k)==1 AND gUnit==2 AND ABS(gC(p,k)-ROUND(gC(p,k),0))>0.001," ("+ftIn(gC(p,k))+")",""),cGood); END;
+      IF gK(p,k)==1 AND gG(p,k)==0 THEN addAns(pre+nm(k)+" = "+valT(t,k,gC(p,k))+rndK(t,k,gC(p,k))+IFTE(kd(k)==1 OR kd(k)==2,piTx(gC(p,k),pv),"")+IFTE(kd(k)==1 AND gUnit==2 AND ABS(gC(p,k)-ROUND(gC(p,k),0))>0.001," ("+ftIn(gC(p,k))+")",""),cGood); END;
       IF gK(p,k)==0 AND (t<>11 OR k<=gV(p,10)+2 OR k==9) THEN miss:=miss+IFTE(miss=="","",", ")+nm(k); END;
     END;
   END;
@@ -1438,8 +1482,15 @@ BEGIN
       addSt("Area = area of A - area of B (cut out)",cSelc);
       addSt("  = "+fmtE(gC(1,ia))+" - "+fmtE(gC(2,ib)),cText);
     END;
-    addSt("  = "+areaTx(tot),cGood);
-    addAns("TOTAL AREA = "+areaTx(tot),cGood);
+    addSt("  = "+areaTx(tot)+rndTx(tot),cGood);
+    addAns("TOTAL AREA = "+areaTx(tot)+rndTx(tot),cGood);
+    IF gPrc>0 THEN
+      hd("COST");
+      addSt("Cost = total area x price per "+lenU(gUnit)+"²",cSelc);
+      addSt("  = "+fmtE(tot)+" x $"+fmtN(gPrc,2),cText);
+      addSt("  = $"+fmtN(tot*gPrc,2),cGood);
+      addAns("COST = $"+fmtN(tot*gPrc,2)+" at $"+fmtN(gPrc,2)+" per "+lenU(gUnit)+"²",cGood);
+    END;
   ELSE
     nt("Area: find the area of A and of B first.");
     addAns("Total area: enter more sizes",cWarn);
@@ -1466,7 +1517,7 @@ BEGIN
       tot:=gC(1,pa)+gC(2,pb)-2*sh;
       addSt("P = perimeter A + perimeter B - 2 x shared",cSelc);
       addSt("  = "+fmtE(gC(1,pa))+" + "+fmtE(gC(2,pb))+" - 2 x "+fmtE(sh),cText);
-      addSt("  = "+lenTx(tot),cGood);
+      addSt("  = "+lenTx(tot)+rndTx(tot),cGood);
       IF gPm==1 THEN
         nt("The shared edge is inside the new shape, so it");
         nt("comes off both perimeters.");
@@ -1474,7 +1525,7 @@ BEGIN
         nt("The cut edge of A is gone and the other sides of");
         nt("B become part of the outside edge.");
       END;
-      addAns("TOTAL PERIMETER = "+lenTx(tot),cGood);
+      addAns("TOTAL PERIMETER = "+lenTx(tot)+rndTx(tot),cGood);
     ELSE
       nt("Perimeter: find both perimeters and the");
       nt("shared side first.");
@@ -3234,7 +3285,7 @@ BEGIN
     RECT_P(G1,314-textw(tx,1),141,319,153,cPanel);
     rtext(tx,316,142,1,cDim);
   END;
-  drawMenu(IFTE(gCmb,{"SHAPES","PLACE","CLEAR","WORK","BACK"},{"UNITS","EXAMPLE","CLEAR","WORK","BACK"}));
+  drawMenu(IFTE(gCmb,{"SHAPES","PLACE","CLEAR","WORK","BACK"},{"SETUP","EXAMPLE","CLEAR","WORK","BACK"}));
 END;
 
 drawShape()
@@ -3273,7 +3324,7 @@ BEGIN
   LOCAL kd:=vKinds(t);
   LOCAL nm:=vNames(t);
   LOCAL ds:=vDesc(t);
-  LOCAL v, lst;
+  LOCAL v, lst, w1, w2, ttl, f;
   gSelP:=p;
   gSelI:=i2;
   gSelK:=pk;
@@ -3289,8 +3340,19 @@ BEGIN
     END;
   ELSE
     v:=IFTE(gG(p,i2)==1,gV(p,i2),0);
-    IF INPUT(v,tTile(t)+IFTE(gCmb,IFTE(p==1," (A)"," (B)"),""),nm(i2)+":",ds(i2)+". 0 = find it") THEN
-      IF TYPE(v)==0 THEN setVal(p,i2,v); END;
+    ttl:=tTile(t)+IFTE(gCmb,IFTE(p==1," (A)",IFTE(p==2," (B)"," (C)")),"");
+    IF kd(i2)==1 AND (gUnit==2 OR gUnit==3) THEN
+      // a length in feet and inches (or yards and feet): two boxes
+      f:=IFTE(gUnit==2,12,3);
+      w1:=IP(v);
+      w2:=ROUND((v-w1)*f,4);
+      IF INPUT({w1,w2},ttl,{nm(i2)+" ("+lenU(gUnit)+"):",IFTE(gUnit==2,"in:","ft:")},{ds(i2)+". 0 = find it",IFTE(gUnit==2,"and inches (0 if none)","and feet (0 if none)")}) THEN
+        IF TYPE(w1)==0 AND TYPE(w2)==0 THEN setVal(p,i2,w1+w2/f); END;
+      END;
+    ELSE
+      IF INPUT(v,ttl,nm(i2)+":",ds(i2)+". 0 = find it") THEN
+        IF TYPE(v)==0 THEN setVal(p,i2,v); END;
+      END;
     END;
   END;
   gDown:=0;
@@ -3320,21 +3382,49 @@ BEGIN
   END;
 END;
 
+// units, rounding and π answers
+setupMenu()
+BEGIN
+  LOCAL c:=1;
+  LOCAL r:=gRnd;
+  LOCAL q:=gPiF+1;
+  IF CHOOSE(c,"Setup",{"Units of length: "+lenU(gUnit),"Round answers: "+rndName(gRnd),"Answers with π (like 25π): "+IFTE(gPiF,"on","off")}) THEN
+    IF c==1 THEN pickUnit(); END;
+    IF c==2 THEN
+      IF CHOOSE(r,"Round answers to",{"No rounding (6 figures)","Whole number","Tenths (0.1)","Hundredths (0.01)","Thousandths (0.001)"}) THEN
+        IF r>=1 THEN gRnd:=r; END;
+      END;
+    END;
+    IF c==3 THEN
+      IF CHOOSE(q,"Answers with π",{"Off","On: also show 25π"}) THEN
+        IF q>=1 THEN gPiF:=q-1; END;
+      END;
+    END;
+  END;
+END;
+
 menuKey(k)
 BEGIN
   LOCAL c:=1;
+  LOCAL v;
   IF k==5 THEN RETURN -1; END;
   IF k==4 THEN workView(); END;
   IF k==3 THEN clearVals(); END;
   IF gCmb==0 THEN
-    IF k==1 THEN pickUnit(); END;
+    IF k==1 THEN setupMenu(); END;
     IF k==2 THEN loadEx(1,gT(1)); END;
   ELSE
     IF k==1 THEN
-      IF CHOOSE(c,"Shapes",{"Change shape A: "+tTile(gT(1)),"Change shape B: "+tTile(gT(2)),"Units: "+lenU(gUnit),"Example: house (rectangle + roof)","Example: rectangle + half circle","Example: L-shaped room","Example: square with a round hole","Example: hexagon minus a square"}) THEN
+      IF CHOOSE(c,"Shapes",{"Change shape A: "+tTile(gT(1)),"Change shape B: "+tTile(gT(2)),"Units, rounding, π: "+lenU(gUnit),"Price per "+lenU(gUnit)+"²: "+IFTE(gPrc>0,"$"+fmtN(gPrc,2),"none"),"Example: house (rectangle + roof)","Example: rectangle + half circle","Example: L-shaped room","Example: square with a round hole","Example: hexagon minus a square"}) THEN
         IF c==1 OR c==2 THEN pickPart(c); END;
-        IF c==3 THEN pickUnit(); END;
-        IF c>=4 THEN comboEx(c-3); END;
+        IF c==3 THEN setupMenu(); END;
+        IF c==4 THEN
+          v:=gPrc;
+          IF INPUT(v,"Cost of the combined shape","$ per "+lenU(gUnit)+"²:","Price of one square "+lenU(gUnit)+". 0 = no cost") THEN
+            IF TYPE(v)==0 THEN gPrc:=MAX(0,v); END;
+          END;
+        END;
+        IF c>=5 THEN comboEx(c-4); END;
       END;
     END;
     IF k==2 THEN

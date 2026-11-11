@@ -355,7 +355,8 @@ def main():
         r = example(it, 12)                            # r 2.70 in, π = 3.14
         ok = close(r["A"], 3.14 * 2.7 ** 2) and close(r["C"], 3.14 * 5.4) and r.said("3.14 x 2.7²")
         r = calc(it, 12, {2: 10, 5: 1})
-        ok &= close(r["A"], math.pi * 25)
+        ok &= close(r["A"], math.pi * 25) and "= 25π" in r.a("A =") and "= 10π" in r.a("C =")
+        ok &= "π" not in r.a("r =")                     # 5 is not a tidy number of π
         r = calc(it, 12, {3: 10 * math.pi, 5: 1})
         ok &= close(r["r"], 5)
         r = calc(it, 12, {4: 25 * math.pi, 5: 1})
@@ -381,6 +382,7 @@ def main():
     def t_ring(it):
         r = example(it, 15)                            # flowerbed 8.5 ft, lawn 12 ft wide
         ok = close(r["R"], 20.5) and close(r["A"], math.pi * (20.5 ** 2 - 8.5 ** 2))
+        ok &= "= 348π" in r.a("A =")
         r = calc(it, 15, {1: 8.5, 3: 12, 5: 2})
         ok &= close(r["A"], 3.14 * 348)
         r = calc(it, 15, {1: 8.5, 2: 20.5, 5: 1})
@@ -576,8 +578,17 @@ def main():
            check("CLEAR: every size back to ?", lambda it: all(g == 0 for g in it.g["gG"][0][:5])),
            *tap(*menu(2)),
            check("EXAMPLE puts 9 x 5 back", lambda it: val(it, 1, 1) == 9 and val(it, 1, 2) == 5),
-           *tap(*menu(1)), ("dialog", 2),
-           check("UNITS: ft", lambda it: it.g["gUnit"] == 2 and "ft²" in " ".join(it.g["gAn"])),
+           *tap(*menu(1)), ("dialog", 1), ("dialog", 2),
+           check("SETUP, units: ft", lambda it: it.g["gUnit"] == 2 and "ft²" in " ".join(it.g["gAn"])),
+           *tap_hot("L"), ("dialog", [10, 6]),
+           check("a length in feet and inches: L 10 ft 6 in = 10.5 ft",
+                 lambda it: val(it, 1, 1) == 10.5 and it.g["gC"][0][2] == 52.5),
+           *tap(*menu(1)), ("dialog", 2), ("dialog", 4),
+           check("SETUP, round to hundredths: d = 11.6297 ft  ≈ 11.63",
+                 lambda it: it.g["gRnd"] == 4 and any("≈ 11.63" in a for a in it.g["gAn"])),
+           check("rounding shows in the work too", lambda it: any("≈ 11.63" in a for a in it.g["gSt"])),
+           *tap(*menu(1)), ("dialog", 2), ("dialog", 1),
+           *tap(*menu(2)),
            KEY["down"],
            check("Down scrolls the work", lambda it: it.g["gTop"] == 2),
            *tap(160, 180), shot("geom_work.png"),
@@ -592,21 +603,24 @@ def main():
            check("Combine 2 shapes opens the house example", lambda it: it.g["gCmb"] == 1 and it.g["gT"] == [1, 8]),
            check("combined: labels do not cover each other", labels_apart),
            shot("geom_combo_house.png"),
-           *tap(*menu(1)), ("dialog", 5), shot("geom_combo_halfcircle.png"),
+           *tap(*menu(1)), ("dialog", 6), shot("geom_combo_halfcircle.png"),
            check("SHAPES: rectangle + half circle", lambda it: it.g["gT"] == [1, 13] and it.g["gPs"] == 2),
-           *tap(*menu(1)), ("dialog", 6), shot("geom_combo_lroom.png"),
+           *tap(*menu(1)), ("dialog", 7),
+           *tap(*menu(1)), ("dialog", 4), ("dialog", 4.75), shot("geom_combo_lroom.png"),
+           check("L-shaped room at $4.75 per ft²: 492 x 4.75 = $2337.00",
+                 lambda it: any(a.startswith("COST = $2337.00") for a in it.g["gAn"])),
            *tap(*menu(2)), ("dialog", 2), ("dialog", 2), ("dialog", 3), shot("geom_combo_notch.png"),
            check("PLACE: a notch out of the right side, at the end",
                  lambda it: it.g["gPm"] == 2 and it.g["gPs"] == 2 and it.g["gPa"] == 3),
            check("a 24 ft deep notch in a 21 ft wide room is flagged",
                  lambda it: "notch is bigger" in it.g["gMsg"] and "notch is bigger" in " ".join(it.g["gOut"])),
-           *tap(*menu(1)), ("dialog", 7), shot("geom_combo_hole.png"),
-           *tap(*menu(1)), ("dialog", 8), shot("geom_combo_hexagon.png"),
+           *tap(*menu(1)), ("dialog", 8), shot("geom_combo_hole.png"),
+           *tap(*menu(1)), ("dialog", 9), shot("geom_combo_hexagon.png"),
            *tap(*menu(1)), ("dialog", 1), ("dialog", 3),
            check("SHAPES: change A to a parallelogram", lambda it: it.g["gT"][0] == 3),
            *tap(*menu(1)), ("dialog", 2), ("dialog", 12),
            check("SHAPES: change B to a semicircle", lambda it: it.g["gT"][1] == 13),
-           *tap(*menu(1)), ("dialog", 4),
+           *tap(*menu(1)), ("dialog", 5),
            *tap(*menu(4)), shot("geom_combo_work.png"), KEY["esc"],
            KEY["esc"],
            check("Esc: back to the home screen", lambda it: it.g["gScr"] == 1),
