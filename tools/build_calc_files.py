@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the ready-to-install calculator files for every app in hp-prime/.
 
-For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY, ELECREV, and GEOMETRY2, the same program as GEOMETRY under its own name):
+For each app NAME (SUPERSUB, HVACAIR, NECCALC, HVACELEC, HVACGAS, REFCYCLE, CIRCUITS, GEOMETRY, ELECREV, TECHMATH, and GEOMETRY2, the same program as GEOMETRY under its own name):
   calculator/NAME.hpappdir/   app folder: drag onto the Connectivity
                               Kit's Application Library
   calculator/NAME.hpprgm      plain program: drag onto Programs
@@ -222,6 +222,25 @@ def icon_geometry2(path, size=38):
     im.resize((size, size), Image.LANCZOS).save(path)
 
 
+def icon_notebook(path, size=38):
+    """38 x 38 app icon: a ruled notebook page with coloured divider tabs."""
+    big = 4 * -(-size // 38)
+    im = Image.new("RGBA", (38 * big, 38 * big), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 38 * big - 1, 38 * big - 1], 7 * big, fill=(38, 52, 92, 255))
+    d.rectangle([5 * big, 4 * big, 29 * big, 34 * big], fill=(250, 246, 232, 255))
+    for k, y in enumerate(range(10, 34, 5)):
+        d.line([5 * big, y * big, 29 * big, y * big], fill=(170, 192, 224), width=max(1, big // 2))
+    d.line([9 * big, 4 * big, 9 * big, 34 * big], fill=(232, 128, 128), width=max(1, big // 2))
+    for k, col in enumerate([(226, 96, 74), (236, 160, 40), (88, 170, 84), (54, 140, 200), (138, 104, 196)]):
+        d.rectangle([29 * big, (5 + 6 * k) * big, 34 * big, (10 + 6 * k) * big - 2], fill=col)
+    d.rectangle([12 * big, 16 * big, 24 * big, 20 * big], fill=(255, 160, 210, 255))
+    d.line([12 * big, 13 * big, 26 * big, 13 * big], fill=(24, 34, 72), width=big)
+    d.line([12 * big, 18 * big, 24 * big, 18 * big], fill=(24, 34, 72), width=big)
+    d.line([12 * big, 25 * big, 22 * big, 25 * big], fill=(24, 34, 72), width=big)
+    im.resize((size, size), Image.LANCZOS).save(path)
+
+
 def icon_review(path, size=38):
     """38 x 38 app icon: a notebook page with a battery symbol."""
     big = 4 * -(-size // 38)
@@ -330,6 +349,18 @@ Notes and key terms (four long scrolling pages: Up/Down or drag to scroll, + / -
 
 Source and instructions: """ + REPO),
 ]
+
+APPS.append(dict(name="TECHMATH", icon=icon_notebook, android=False,
+                 test=os.path.join(ROOT, "tools", "test_techmath.py"),
+                 note="""TECHMATH - Applied Technical Math, the whole semester as a notebook
+
+Ruled paper with six divider tabs down the right edge: Numbers, Measurement, Percent, Algebra and formulas, Geometry, Reference sheets. Tap a tab, then a line of its contents page (or press its number). Left/Right or a swipe turns the pages.
+
+Every page is a worksheet: write what the problem gives on the blanks (the ÷ key makes a fraction like 7/8, the space key a mixed number) and leave the one to find empty. It is worked out and the work is written under the blanks the way it has to be shown: the formula, the numbers put in, each step, and the answer in highlighter. At the foot of a page: example (the class numbers), erase, and round (tap until it says what the question asks).
+
+Algebra has order of operations a pass at a time, a page for any formula you type, and the 34 formulas from the classwork and exams.
+
+Source and instructions: """ + REPO))
 
 # GEOMETRY2: the newest GEOMETRY under its own name and icon, so it can sit
 # on the calculator next to an older GEOMETRY

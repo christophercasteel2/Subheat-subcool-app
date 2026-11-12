@@ -1,0 +1,3944 @@
+#pragma mode( separator(.,;) integer(h32) )
+// TECHMATH engine globals
+// ---- the letters of the page: name, how it is shown, value, exact
+// fraction (numerator, denominator; 0 = none), shown as a fraction,
+// known, typed by you, the text you typed
+gVn:={};
+gVs:={};
+gVv:={};
+gVnn:={};
+gVd:={};
+gVf:={};
+gVk:={};
+gVg:={};
+gVt:={};
+// ---- expression trees
+tK:={};
+tO:={};
+tL:={};
+tR:={};
+tV:={};
+tN:={};
+tD:={};
+tF:={};
+tS:={};
+gTn:=0;
+// tokens and the parser's stacks
+kT:={};
+kV:={};
+kN:={};
+kD:={};
+kF:={};
+gNs:={};
+gOs:={};
+gNp:=0;
+gOp:=0;
+gPos:=1;
+gNv:=0;
+gNc:=0;
+gErr:="";
+// the answer of the last calculation
+gRv:=0;
+gRn:=0;
+gRd:=0;
+gRf:=0;
+gPi:=3.14;      // the π the class uses
+gRnd:=0;        // rounding of answers (see rndTx)
+// letters still unknown in an equation
+gUl:={};
+gUc:=0;
+// the page's equations and the written work
+gEl:={};
+gEr:={};
+gWk:={};
+gWc:={};
+
+// ---- the notebook: colours ----
+cPap:=RGB(250,246,232);
+cRule:=RGB(198,214,236);
+cMarg:=RGB(232,128,128);
+cInk:=RGB(24,34,72);
+cPen:=RGB(122,126,140);
+cBlue:=RGB(28,84,196);
+cRed:=RGB(200,40,40);
+cHi:=RGB(255,160,210);
+cHiY:=RGB(255,236,120);
+cHiG:=RGB(150,232,214);
+cHole:=RGB(206,196,176);
+cCov:=RGB(38,52,92);
+gTabC:={RGB(226,96,74),RGB(236,160,40),RGB(88,170,84),RGB(54,140,200),RGB(138,104,196),RGB(120,128,140)};
+// ---- where you are ----
+gTab:=0;        // 0 the cover, 1-6 the divider tabs
+gPg:=0;         // page in the tab (0: its contents page)
+gSel:=1;        // the blank being filled in
+gTy:=0;         // 1 while typing in it
+gTx:="";        // what has been typed
+gSy:=0;         // how far the page is scrolled
+gCh:=0;         // height of what is on the page
+gDirty:=1;      // the page has to be worked out again
+gSh:=0;         // Shift was pressed
+gAl:=0;         // Alpha: 1 a capital letter next, 2 a small letter
+gAbc:=0;        // the letters are shown to tap
+gDown:=0;
+gX0:=0;
+gY0:=0;
+gY1:=0;
+gMoved:=0;
+gCsel:=1;       // line picked on a contents page
+// ---- the page being shown ----
+gKind:=0;       // 1 a worksheet, 2 a conversion table, 3 its own layout
+gTit:="";
+gEq:={};        // its formulas (text)
+gBl:={};        // the letter of each blank
+gBd:={};        // what each letter is
+gUk:={};        // 1 a length, 2 an area (for the unit after the blank)
+gEx:={};        // the class example for the blanks
+gNt:={};        // notes written before the work
+gDrw:=0;        // its drawing
+gSingle:=0;     // 1: typing in one blank empties the others
+gNB:=0;         // number of blanks
+gBt:={};        // what is typed in each blank
+gBv:={};        // what was worked out for each blank
+gBe:={};        // 1: what is typed cannot be read
+gOpt:={0,0,0,0,0,0,0,0};   // the page's choices: rounding, unit, ...
+// what is typed and chosen on every page (kept while you flip around)
+gSt:={};
+gSo:={};
+// the blanks drawn on the screen
+bX:={};
+bY:={};
+bW:={};
+bK:={};
+// places to tap that are not blanks: x1, y1, x2, y2 (page), what they do
+zX1:={};
+zY1:={};
+zX2:={};
+zY2:={};
+zA:={};
+// conversion tables
+gCu:={};
+gCp:={};
+gCv:={};
+gCok:={};
+gCpar:={};
+gCfac:={};
+// digits of a number being rounded
+gIp:="";
+gFp:="";
+gRup:=0;
+gNx:=0;
+// ================= numbers as text =================
+
+istr(v)
+BEGIN
+  LOCAL n:=ROUND(ABS(v),0);
+  LOCAL s:="";
+  IF n<1 THEN RETURN "0"; END;
+  WHILE n>=1 DO
+    s:=CHAR(48+(n MOD 10))+s;
+    n:=IP(n/10);
+  END;
+  IF v<0 THEN s:="-"+s; END;
+  RETURN s;
+END;
+
+// v with d decimal places
+fmtN(v,d)
+BEGIN
+  LOCAL m:=10^d;
+  LOCAL n:=ROUND(ABS(v)*m,0);
+  LOCAL s:=istr(IP(n/m));
+  LOCAL f;
+  IF d>0 THEN
+    f:=istr(n MOD m);
+    WHILE DIM(f)<d DO f:="0"+f; END;
+    s:=s+"."+f;
+  END;
+  IF v<0 AND n>0 THEN s:="-"+s; END;
+  RETURN s;
+END;
+
+// the same with the zeros on the end taken off
+fmtTr(v,d)
+BEGIN
+  LOCAL s:=fmtN(v,d);
+  IF d>0 THEN
+    WHILE RIGHT(s,1)=="0" DO s:=LEFT(s,DIM(s)-1); END;
+    IF RIGHT(s,1)=="." THEN s:=LEFT(s,DIM(s)-1); END;
+  END;
+  RETURN s;
+END;
+
+// a number the way you would write it: up to 6 figures after the
+// leading zeros, whole numbers in full
+fmtG(v)
+BEGIN
+  LOCAL a:=ABS(v);
+  LOCAL d:=5;
+  IF a<0.0000000001 THEN RETURN "0"; END;
+  IF a>=1000000000000 THEN RETURN istr(v); END;
+  IF a>=10 THEN d:=4; END;
+  IF a>=100 THEN d:=3; END;
+  IF a>=1000 THEN d:=2; END;
+  IF a>=10000 THEN d:=1; END;
+  IF a>=100000 THEN d:=0; END;
+  IF a<1 THEN d:=6; END;
+  IF a<0.1 THEN d:=7; END;
+  IF a<0.01 THEN d:=8; END;
+  IF a<0.001 THEN d:=9; END;
+  IF a<0.0001 THEN d:=10; END;
+  RETURN fmtTr(v,d);
+END;
+
+sqroot(x)
+BEGIN
+  RETURN MAX(0,x)^0.5;
+END;
+
+gcdF(a,b)
+BEGIN
+  LOCAL t;
+  a:=ABS(a);
+  b:=ABS(b);
+  WHILE b>0.5 DO
+    t:=a MOD b;
+    a:=b;
+    b:=t;
+  END;
+  RETURN a;
+END;
+
+// n over d as a fraction or mixed number: 11/32, 36 1/8, 5
+fracTx(n,d)
+BEGIN
+  LOCAL w:=IP(ABS(n)/d);
+  LOCAL r:=ABS(n)-w*d;
+  LOCAL s:="";
+  IF n<0 THEN s:="-"; END;
+  IF r==0 THEN RETURN s+istr(w); END;
+  IF w>0 THEN RETURN s+istr(w)+" "+istr(r)+"/"+istr(d); END;
+  RETURN s+istr(r)+"/"+istr(d);
+END;
+
+// how answers are rounded: 0 not, 1 whole number, 2 tenth, 3 hundredth,
+// 4 thousandth, 5 ten, 6 hundred
+rndTx(v,m)
+BEGIN
+  IF m==1 THEN RETURN fmtN(v,0); END;
+  IF m==2 THEN RETURN fmtN(v,1); END;
+  IF m==3 THEN RETURN fmtN(v,2); END;
+  IF m==4 THEN RETURN fmtN(v,3); END;
+  IF m==5 THEN RETURN istr(ROUND(v/10,0)*10); END;
+  IF m==6 THEN RETURN istr(ROUND(v/100,0)*100); END;
+  RETURN fmtG(v);
+END;
+
+rndNm(m)
+BEGIN
+  LOCAL n:={"no rounding","whole number","tenth","hundredth","thousandth","ten","hundred"};
+  RETURN n(m+1);
+END;
+
+// ================= the letters on a page =================
+
+// index of the letter called nm (added if it is new)
+vIdx(nm)
+BEGIN
+  LOCAL k;
+  FOR k FROM 1 TO SIZE(gVn) DO
+    IF gVn(k)==nm THEN RETURN k; END;
+  END;
+  k:=SIZE(gVn)+1;
+  gVn(k):=nm;
+  gVs(k):=nm;
+  gVv(k):=0;
+  gVnn(k):=0;
+  gVd(k):=0;
+  gVf(k):=0;
+  gVk(k):=0;
+  gVg(k):=0;
+  gVt(k):="";
+  RETURN k;
+END;
+
+vClear()
+BEGIN
+  gVn:={};
+  gVs:={};
+  gVv:={};
+  gVnn:={};
+  gVd:={};
+  gVf:={};
+  gVk:={};
+  gVg:={};
+  gVt:={};
+END;
+
+// ================= expressions =================
+// A formula is kept as a tree of nodes.  Node kinds: 1 a number, 2 a
+// letter, 3 an operation with two sides, 4 an operation on one thing.
+// Operations: 1 +, 2 -, 3 x, 4 ÷, 5 power, 6 square root, 7 minus sign,
+// 8 x written without a sign (2L, 3(8)).
+
+nNew(k,o,l,r)
+BEGIN
+  gTn:=gTn+1;
+  tK(gTn):=k;
+  tO(gTn):=o;
+  tL(gTn):=l;
+  tR(gTn):=r;
+  tV(gTn):=0;
+  tN(gTn):=0;
+  tD(gTn):=0;
+  tF(gTn):=0;
+  tS(gTn):=0;
+  RETURN gTn;
+END;
+
+// a number node: value v, as the fraction n/d when d > 0, shown as a
+// fraction when f is 1
+nNum(v,n,d,f)
+BEGIN
+  LOCAL m:=nNew(1,0,0,0);
+  tV(m):=v;
+  tN(m):=n;
+  tD(m):=d;
+  tF(m):=f;
+  RETURN m;
+END;
+
+// keep n/d in lowest terms in gRn, gRd (dropped when it gets too big)
+ratSet(n,d,f)
+BEGIN
+  LOCAL g;
+  gRn:=0;
+  gRd:=0;
+  gRf:=0;
+  IF d<0 THEN
+    n:=-n;
+    d:=-d;
+  END;
+  IF d==0 OR ABS(n)>1000000000 OR d>1000000000 THEN RETURN 0; END;
+  IF n<>ROUND(n,0) OR d<>ROUND(d,0) THEN RETURN 0; END;
+  g:=gcdF(n,d);
+  IF g<1 THEN g:=1; END;
+  gRn:=n/g;
+  gRd:=d/g;
+  gRf:=f;
+  RETURN 1;
+END;
+
+// operation o on number nodes a and b (b 0 for one-sided operations);
+// the answer goes to gRv (and gRn/gRd when it is an exact fraction).
+// Returns 0 and sets gErr when it cannot be done.
+calcN(o,a,b)
+BEGIN
+  LOCAL x:=tV(a);
+  LOCAL y:=0;
+  LOCAL f:=tF(a);
+  LOCAL k, p, q, r;
+  gRn:=0;
+  gRd:=0;
+  gRf:=0;
+  gRv:=0;
+  IF b>0 THEN
+    y:=tV(b);
+    f:=MAX(f,tF(b));
+  END;
+  IF o==1 THEN gRv:=x+y; END;
+  IF o==2 THEN gRv:=x-y; END;
+  IF o==3 OR o==8 THEN gRv:=x*y; END;
+  IF o==4 THEN
+    IF y==0 THEN
+      gErr:="Cannot divide by 0.";
+      RETURN 0;
+    END;
+    gRv:=x/y;
+  END;
+  IF o==5 THEN
+    IF x==0 AND y<0 THEN
+      gErr:="Cannot divide by 0.";
+      RETURN 0;
+    END;
+    IF x<0 AND y<>ROUND(y,0) THEN
+      gErr:="No root of a negative number.";
+      RETURN 0;
+    END;
+    IF x==0 THEN
+      gRv:=IFTE(y==0,1,0);
+    ELSE
+      IF x<0 THEN
+        gRv:=ABS(x)^y;
+        IF (ABS(y) MOD 2)==1 THEN gRv:=-gRv; END;
+      ELSE
+        gRv:=x^y;
+      END;
+    END;
+  END;
+  IF o==6 THEN
+    IF x<0 THEN
+      gErr:="No square root of a negative number.";
+      RETURN 0;
+    END;
+    gRv:=x^0.5;
+  END;
+  IF o==7 THEN gRv:=-x; END;
+  // the exact fraction, when both are exact
+  IF tD(a)>0 THEN
+    IF b>0 THEN
+      IF tD(b)>0 THEN
+        IF o==1 THEN ratSet(tN(a)*tD(b)+tN(b)*tD(a),tD(a)*tD(b),f); END;
+        IF o==2 THEN ratSet(tN(a)*tD(b)-tN(b)*tD(a),tD(a)*tD(b),f); END;
+        IF o==3 OR o==8 THEN ratSet(tN(a)*tN(b),tD(a)*tD(b),f); END;
+        IF o==4 THEN ratSet(tN(a)*tD(b),tD(a)*tN(b),f); END;
+        IF o==5 AND tD(b)==1 AND ABS(tN(b))<=8 THEN
+          p:=1;
+          q:=1;
+          FOR k FROM 1 TO ABS(tN(b)) DO
+            p:=p*tN(a);
+            q:=q*tD(a);
+          END;
+          IF tN(b)<0 THEN
+            ratSet(q,p,f);
+          ELSE
+            ratSet(p,q,f);
+          END;
+        END;
+      END;
+    ELSE
+      IF o==7 THEN ratSet(-tN(a),tD(a),f); END;
+      IF o==6 THEN
+        p:=ROUND(sqroot(tN(a)),0);
+        q:=ROUND(sqroot(tD(a)),0);
+        IF p*p==tN(a) AND q*q==tD(a) THEN ratSet(p,q,f); END;
+      END;
+    END;
+  END;
+  RETURN 1;
+END;
+
+// put the answer of calcN into number node m
+nPut(m)
+BEGIN
+  tK(m):=1;
+  tV(m):=gRv;
+  tN(m):=gRn;
+  tD(m):=gRd;
+  tF(m):=gRf;
+  tS(m):=0;
+END;
+
+// ---- reading an expression typed as text ----
+
+// read the digits of s from gPos on: value in gNv, how many in gNc
+rdInt(s)
+BEGIN
+  LOCAL d;
+  LOCAL go:=1;
+  gNv:=0;
+  gNc:=0;
+  WHILE go DO
+    go:=0;
+    IF gPos<=DIM(s) THEN
+      d:=INSTRING("0123456789",MID(s,gPos,1));
+      IF d>0 THEN
+        gNv:=gNv*10+d-1;
+        gNc:=gNc+1;
+        gPos:=gPos+1;
+        go:=1;
+      END;
+    END;
+  END;
+  RETURN gNc;
+END;
+
+// add a token: type (1 number, 2 letter, 3 operation, 4 "(", 5 ")")
+tkAdd(t,v,n,d,f)
+BEGIN
+  LOCAL k:=SIZE(kT)+1;
+  kT(k):=t;
+  kV(k):=v;
+  kN(k):=n;
+  kD(k):=d;
+  kF(k):=f;
+END;
+
+// is the character at position p of s a digit
+isDig(s,p)
+BEGIN
+  IF p>DIM(s) THEN RETURN 0; END;
+  RETURN INSTRING("0123456789",MID(s,p,1))>0;
+END;
+
+// cut s into tokens (kT, kV ...).  3/16 and 78 3/4 are read as one
+// number; 2L, 3(8) and (a)(b) get a multiplication between them.
+tok(s)
+BEGIN
+  LOCAL n:=DIM(s);
+  LOCAL ch, pv, v, a, b, c, w;
+  LOCAL nm, o, sv, fr;
+  kT:={};
+  kV:={};
+  kN:={};
+  kD:={};
+  kF:={};
+  gPos:=1;
+  pv:=0;
+  WHILE gPos<=n DO
+    ch:=MID(s,gPos,1);
+    o:=0;
+    IF INSTRING("0123456789.",ch)>0 THEN
+      // whole part
+      rdInt(s);
+      a:=gNv;
+      b:=1;
+      fr:=0;
+      IF gPos<=n THEN
+        IF MID(s,gPos,1)=="." THEN
+          gPos:=gPos+1;
+          rdInt(s);
+          a:=a*10^gNc+gNv;
+          b:=10^gNc;
+          fr:=1;
+        END;
+      END;
+      w:=0;
+      IF fr==0 THEN
+        // a mixed number: 78 3/4
+        IF gPos<n THEN
+          IF MID(s,gPos,1)==" " AND isDig(s,gPos+1) THEN
+            sv:=gPos;
+            gPos:=gPos+1;
+            rdInt(s);
+            c:=gNv;
+            IF gPos<n THEN
+              IF MID(s,gPos,1)=="/" AND isDig(s,gPos+1) THEN
+                gPos:=gPos+1;
+                rdInt(s);
+                IF gNv>0 THEN
+                  a:=a*gNv+c;
+                  b:=gNv;
+                  w:=1;
+                END;
+              END;
+            END;
+            IF w==0 THEN gPos:=sv; END;
+          END;
+        END;
+        // a fraction: 3/16
+        IF w==0 AND gPos<n THEN
+          IF MID(s,gPos,1)=="/" AND isDig(s,gPos+1) THEN
+            sv:=gPos;
+            gPos:=gPos+1;
+            rdInt(s);
+            IF gNv>0 THEN
+              b:=gNv;
+              w:=1;
+            ELSE
+              gPos:=sv;
+            END;
+          END;
+        END;
+      END;
+      IF pv THEN tkAdd(3,8,0,0,0); END;
+      ratSet(a,b,w);
+      tkAdd(1,a/b,gRn,gRd,w);
+      pv:=1;
+      o:=-1;
+    END;
+    IF o==0 AND INSTRING("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",ch)>0 THEN
+      nm:=ch;
+      gPos:=gPos+1;
+      WHILE isDig(s,gPos) DO
+        nm:=nm+MID(s,gPos,1);
+        gPos:=gPos+1;
+      END;
+      IF pv THEN tkAdd(3,8,0,0,0); END;
+      tkAdd(2,vIdx(nm),0,0,0);
+      pv:=1;
+      o:=-1;
+    END;
+    IF o==0 THEN
+      gPos:=gPos+1;
+      IF ch=="π" THEN
+        IF pv THEN tkAdd(3,8,0,0,0); END;
+        ratSet(ROUND(gPi*10000,0),10000,0);
+        IF gPi<>3.14 AND gPi<>3.1416 THEN gRd:=0; END;
+        tkAdd(1,gPi,gRn,gRd,2);
+        pv:=1;
+      END;
+      IF ch=="(" THEN
+        IF pv THEN tkAdd(3,8,0,0,0); END;
+        tkAdd(4,0,0,0,0);
+        pv:=0;
+      END;
+      IF ch==")" THEN
+        tkAdd(5,0,0,0,0);
+        pv:=1;
+      END;
+      IF ch=="√" THEN
+        IF pv THEN tkAdd(3,8,0,0,0); END;
+        tkAdd(3,6,0,0,0);
+        pv:=0;
+      END;
+      IF ch=="²" OR ch=="³" THEN
+        tkAdd(3,5,0,0,0);
+        v:=IFTE(ch=="²",2,3);
+        tkAdd(1,v,v,1,0);
+        pv:=1;
+      END;
+      IF ch=="+" THEN o:=1; END;
+      IF ch=="-" OR ch=="−" THEN o:=2; END;
+      IF ch=="×" OR ch=="*" THEN o:=3; END;
+      IF ch=="÷" OR ch=="/" THEN o:=4; END;
+      IF ch=="^" THEN o:=5; END;
+      IF o>0 THEN
+        tkAdd(3,o,0,0,0);
+        pv:=0;
+      END;
+    END;
+  END;
+END;
+
+// how tightly an operation holds: + - loosest, then x ÷, the minus
+// sign, powers, and the square root
+opPrec(o)
+BEGIN
+  IF o==1 OR o==2 THEN RETURN 1; END;
+  IF o==3 OR o==4 OR o==8 THEN RETURN 2; END;
+  IF o==7 THEN RETURN 3; END;
+  IF o==5 THEN RETURN 4; END;
+  RETURN 5;
+END;
+
+// take operation o off the stack and build its node
+opApply(o)
+BEGIN
+  LOCAL l, r;
+  IF o==6 OR o==7 THEN
+    IF gNp<1 THEN
+      gErr:="Something is missing.";
+      RETURN 0;
+    END;
+    l:=gNs(gNp);
+    IF o==7 AND tK(l)==1 THEN
+      // a minus sign on a number: a negative number
+      tV(l):=-tV(l);
+      tN(l):=-tN(l);
+      RETURN 1;
+    END;
+    gNs(gNp):=nNew(4,o,l,0);
+    RETURN 1;
+  END;
+  IF gNp<2 THEN
+    gErr:="Something is missing.";
+    RETURN 0;
+  END;
+  r:=gNs(gNp);
+  l:=gNs(gNp-1);
+  gNp:=gNp-1;
+  gNs(gNp):=nNew(3,o,l,r);
+  RETURN 1;
+END;
+
+// build the tree of the tokens; returns its top node (0 if it cannot
+// be read: gErr says why)
+prs()
+BEGIN
+  LOCAL k, t, o, p, ex, top, go;
+  LOCAL m;
+  gNs:={};
+  gOs:={};
+  gNp:=0;
+  gOp:=0;
+  gErr:="";
+  ex:=1;
+  FOR k FROM 1 TO SIZE(kT) DO
+    t:=kT(k);
+    IF t==1 THEN
+      IF kF(k)==2 THEN
+        m:=nNum(kV(k),kN(k),kD(k),0);
+        tS(m):=2;
+      ELSE
+        m:=nNum(kV(k),kN(k),kD(k),kF(k));
+      END;
+      gNp:=gNp+1;
+      gNs(gNp):=m;
+      ex:=0;
+    END;
+    IF t==2 THEN
+      gNp:=gNp+1;
+      gNs(gNp):=nNew(2,kV(k),0,0);
+      ex:=0;
+    END;
+    IF t==4 THEN
+      gOp:=gOp+1;
+      gOs(gOp):=20;
+      ex:=1;
+    END;
+    IF t==5 THEN
+      go:=1;
+      WHILE go DO
+        go:=0;
+        IF gOp>0 THEN
+          top:=gOs(gOp);
+          gOp:=gOp-1;
+          IF top<>20 THEN
+            IF opApply(top)==0 THEN RETURN 0; END;
+            go:=1;
+          END;
+        END;
+      END;
+      ex:=0;
+    END;
+    IF t==3 THEN
+      o:=kV(k);
+      IF ex==1 THEN
+        // a sign in front of something
+        IF o==2 THEN
+          gOp:=gOp+1;
+          gOs(gOp):=7;
+        END;
+        IF o==6 THEN
+          gOp:=gOp+1;
+          gOs(gOp):=6;
+        END;
+        IF o>=3 AND o<>6 THEN
+          gErr:="Two operations in a row.";
+          RETURN 0;
+        END;
+      ELSE
+        p:=opPrec(o);
+        go:=1;
+        WHILE go DO
+          go:=0;
+          IF gOp>0 THEN
+            top:=gOs(gOp);
+            IF top<>20 THEN
+              IF opPrec(top)>p OR (opPrec(top)==p AND o<>5) THEN
+                gOp:=gOp-1;
+                IF opApply(top)==0 THEN RETURN 0; END;
+                go:=1;
+              END;
+            END;
+          END;
+        END;
+        gOp:=gOp+1;
+        gOs(gOp):=o;
+        ex:=1;
+      END;
+    END;
+  END;
+  WHILE gOp>0 DO
+    top:=gOs(gOp);
+    gOp:=gOp-1;
+    IF top<>20 THEN
+      IF opApply(top)==0 THEN RETURN 0; END;
+    END;
+  END;
+  IF gNp<>1 THEN
+    gErr:="Something is missing.";
+    RETURN 0;
+  END;
+  RETURN gNs(1);
+END;
+
+// the tree of expression text s
+parseX(s)
+BEGIN
+  tok(s);
+  IF SIZE(kT)==0 THEN
+    gErr:="";
+    RETURN 0;
+  END;
+  RETURN prs();
+END;
+
+// ---- writing an expression the way it is written in class ----
+
+// the number in node n
+numTx(n)
+BEGIN
+  IF tF(n)==1 AND tD(n)>1 AND tD(n)<=64 THEN RETURN fracTx(tN(n),tD(n)); END;
+  RETURN fmtG(tV(n));
+END;
+
+// node n as text.  cx says where it sits, which decides the
+// parentheses: 0 on its own or in a sum, 1 right side of a product,
+// 6 left side of a product, 2 under a power, 3 after a minus, 7 top of
+// a division, 4 bottom of a division.
+prt(n,cx)
+BEGIN
+  LOCAL k:=tK(n);
+  LOCAL o, a, b, s, pr, l, r;
+  pr:=0;
+  IF k==1 THEN
+    IF tS(n)==2 THEN RETURN "π"; END;
+    s:=numTx(n);
+    IF tS(n)==1 AND (cx==1 OR cx==2 OR cx==6) THEN pr:=1; END;
+    IF tV(n)<0 AND cx>=1 AND cx<=4 THEN pr:=1; END;
+    IF INSTRING(s,"/")>0 AND (cx==1 OR cx==2 OR cx==4 OR cx==6 OR cx==7) THEN pr:=1; END;
+    IF pr THEN s:="("+s+")"; END;
+    RETURN s;
+  END;
+  IF k==2 THEN RETURN gVs(tO(n)); END;
+  o:=tO(n);
+  l:=tL(n);
+  r:=tR(n);
+  IF k==4 THEN
+    IF o==7 THEN
+      s:="-"+prt(l,1);
+      IF cx>=1 AND cx<=4 THEN pr:=1; END;
+    ELSE
+      a:=prt(l,0);
+      IF tK(l)==1 AND (INSTRING(a," ")==0 OR LEFT(a,1)=="(") THEN
+        s:="√"+a;
+      ELSE
+        s:="√("+a+")";
+      END;
+      IF cx==2 THEN pr:=1; END;
+    END;
+  ELSE
+    IF o==1 THEN
+      s:=prt(l,0)+" + "+prt(r,0);
+      IF cx>=1 THEN pr:=1; END;
+    END;
+    IF o==2 THEN
+      s:=prt(l,0)+" - "+prt(r,3);
+      IF cx>=1 THEN pr:=1; END;
+    END;
+    IF o==3 OR o==8 THEN
+      a:=prt(l,6);
+      b:=prt(r,1);
+      IF LEFT(b,1)=="(" THEN
+        s:=a+b;
+      ELSE
+        IF tK(r)==1 THEN
+          IF RIGHT(a,1)==")" THEN
+            s:=a+"("+b+")";
+          ELSE
+            s:=a+" × "+b;
+          END;
+        ELSE
+          s:=a+b;
+        END;
+      END;
+      IF cx==1 OR cx==2 OR cx==4 THEN pr:=1; END;
+    END;
+    IF o==4 THEN
+      s:=prt(l,7)+" ÷ "+prt(r,4);
+      IF cx==1 OR cx==2 OR cx==4 OR cx==6 THEN pr:=1; END;
+    END;
+    IF o==5 THEN
+      a:=prt(l,2);
+      b:="";
+      IF tK(r)==1 THEN
+        IF tV(r)==2 THEN b:="²"; END;
+        IF tV(r)==3 THEN b:="³"; END;
+      END;
+      IF b=="" THEN b:="^"+prt(r,2); END;
+      s:=a+b;
+      IF cx==2 THEN pr:=1; END;
+    END;
+  END;
+  IF pr THEN s:="("+s+")"; END;
+  RETURN s;
+END;
+
+// ---- working an expression out ----
+
+// one pass: every operation whose sides are both numbers is worked
+// out.  Returns 1 if anything changed.
+redP(n)
+BEGIN
+  LOCAL k:=tK(n);
+  LOCAL l, r, c;
+  IF k<3 THEN RETURN 0; END;
+  l:=tL(n);
+  r:=tR(n);
+  c:=redP(l);
+  IF k==3 THEN c:=MAX(c,redP(r)); END;
+  IF c THEN RETURN 1; END;
+  IF tK(l)<>1 THEN RETURN 0; END;
+  IF k==3 THEN
+    IF tK(r)<>1 THEN RETURN 0; END;
+  ELSE
+    r:=0;
+  END;
+  IF calcN(tO(n),l,r)==0 THEN RETURN 0; END;
+  nPut(n);
+  RETURN 1;
+END;
+
+// a copy of the tree under n with the letters that are known replaced
+// by their values
+cln(n)
+BEGIN
+  LOCAL k:=tK(n);
+  LOCAL m, v, a, b;
+  IF k==1 THEN
+    m:=nNum(tV(n),tN(n),tD(n),tF(n));
+    IF tS(n)==2 THEN tS(m):=1; END;
+    RETURN m;
+  END;
+  IF k==2 THEN
+    v:=tO(n);
+    IF gVk(v)==1 THEN
+      m:=nNum(gVv(v),gVnn(v),gVd(v),gVf(v));
+      tS(m):=1;
+      RETURN m;
+    END;
+    RETURN nNew(2,v,0,0);
+  END;
+  a:=cln(tL(n));
+  b:=0;
+  IF k==3 THEN b:=cln(tR(n)); END;
+  RETURN nNew(k,tO(n),a,b);
+END;
+
+// after the substitution line is written the numbers put in for
+// letters are ordinary numbers
+clrS(n)
+BEGIN
+  LOCAL k:=tK(n);
+  IF k==1 THEN
+    tS(n):=0;
+    RETURN 0;
+  END;
+  IF k==2 THEN RETURN 0; END;
+  clrS(tL(n));
+  IF k==3 THEN clrS(tR(n)); END;
+  RETURN 0;
+END;
+
+// list the letters under n that are not known yet: gUl (each once),
+// gUc (how many times they appear)
+scanU(n)
+BEGIN
+  LOCAL k:=tK(n);
+  LOCAL j, f;
+  IF k==1 THEN RETURN 0; END;
+  IF k==2 THEN
+    IF gVk(tO(n))==0 THEN
+      gUc:=gUc+1;
+      f:=0;
+      FOR j FROM 1 TO SIZE(gUl) DO
+        IF gUl(j)==tO(n) THEN f:=1; END;
+      END;
+      IF f==0 THEN gUl(SIZE(gUl)+1):=tO(n); END;
+    END;
+    RETURN 0;
+  END;
+  scanU(tL(n));
+  IF k==3 THEN scanU(tR(n)); END;
+  RETURN 0;
+END;
+
+// is letter v somewhere under n
+hasV(n,v)
+BEGIN
+  LOCAL k:=tK(n);
+  IF k==1 THEN RETURN 0; END;
+  IF k==2 THEN RETURN tO(n)==v; END;
+  IF hasV(tL(n),v) THEN RETURN 1; END;
+  IF k==3 THEN RETURN hasV(tR(n),v); END;
+  RETURN 0;
+END;
+
+// the value of the tree under n, with every letter at its value
+evalT(n)
+BEGIN
+  LOCAL k:=tK(n);
+  LOCAL a, b, o;
+  IF k==1 THEN RETURN tV(n); END;
+  IF k==2 THEN RETURN gVv(tO(n)); END;
+  o:=tO(n);
+  a:=evalT(tL(n));
+  IF k==4 THEN
+    IF o==7 THEN RETURN -a; END;
+    IF a<0 THEN
+      gErr:="No square root of a negative number.";
+      RETURN 0;
+    END;
+    RETURN a^0.5;
+  END;
+  b:=evalT(tR(n));
+  IF o==1 THEN RETURN a+b; END;
+  IF o==2 THEN RETURN a-b; END;
+  IF o==3 OR o==8 THEN RETURN a*b; END;
+  IF o==4 THEN
+    IF b==0 THEN
+      gErr:="Cannot divide by 0.";
+      RETURN 0;
+    END;
+    RETURN a/b;
+  END;
+  IF a<=0 THEN
+    IF a==0 THEN RETURN 0; END;
+    IF b<>ROUND(b,0) THEN
+      gErr:="No root of a negative number.";
+      RETURN 0;
+    END;
+    RETURN IFTE((ABS(b) MOD 2)==1,-(ABS(a)^b),ABS(a)^b);
+  END;
+  RETURN a^b;
+END;
+// ================= the written work =================
+// gWk: the lines; gWc: what kind of line (1 a formula, 2 a step, 3 a
+// note in pencil, 4 an answer (highlighted), 5 a heading, 6 a problem)
+
+wkClear()
+BEGIN
+  gWk:={};
+  gWc:={};
+END;
+
+wk(s,c)
+BEGIN
+  LOCAL k:=SIZE(gWk)+1;
+  gWk(k):=s;
+  gWc(k):=c;
+END;
+
+// a line of work, unless it says the same as the line before it
+wkNew(s,c)
+BEGIN
+  LOCAL k:=SIZE(gWk);
+  IF k>0 THEN
+    IF gWk(k)==s THEN RETURN 0; END;
+  END;
+  wk(s,c);
+  RETURN 1;
+END;
+
+// v rounded the way gRnd says
+rndV(v)
+BEGIN
+  IF gRnd==1 THEN RETURN ROUND(v,0); END;
+  IF gRnd==2 THEN RETURN ROUND(v,1); END;
+  IF gRnd==3 THEN RETURN ROUND(v,2); END;
+  IF gRnd==4 THEN RETURN ROUND(v,3); END;
+  IF gRnd==5 THEN RETURN ROUND(v/10,0)*10; END;
+  IF gRnd==6 THEN RETURN ROUND(v/100,0)*100; END;
+  RETURN v;
+END;
+
+// is d one of 2, 4, 8, 16, 32, 64 (the fractions on a ruler)
+isPow2(d)
+BEGIN
+  RETURN d==2 OR d==4 OR d==8 OR d==16 OR d==32 OR d==64;
+END;
+
+// the answer line for the value v (exact fraction n/d, shown as a
+// fraction when f is 1) called nm: as a fraction and a decimal when
+// both are useful, and rounded when rounding is on.  The answer line is
+// highlighted.
+ansLine(nm,v,n,d,f)
+BEGIN
+  LOCAL s, t, k;
+  s:=nm+" = "+fmtG(v);
+  IF f==1 AND d>1 AND d<=64 THEN
+    s:=nm+" = "+fracTx(n,d);
+  END;
+  IF gRnd>0 AND ABS(rndV(v)-v)>0.000000001*MAX(1,ABS(v)) THEN
+    wkNew(s,2);
+    wk(nm+" ≈ "+rndTx(v,gRnd)+"  (nearest "+rndNm(gRnd)+")",4);
+    RETURN 1;
+  END;
+  k:=SIZE(gWk);
+  IF k>0 THEN
+    IF gWk(k)==s THEN
+      gWc(k):=4;
+      k:=-1;
+    END;
+  END;
+  IF k>=0 THEN wk(s,4); END;
+  // the other way of writing it
+  IF f==1 AND d>1 AND d<=64 THEN
+    wk("   = "+fmtG(v)+" as a decimal",3);
+  ELSE
+    IF d>=8 AND isPow2(d) THEN wk("   = "+fracTx(n,d)+" as a fraction",3); END;
+  END;
+  RETURN 1;
+END;
+
+wkAns(x)
+BEGIN
+  RETURN ansLine(gVs(x),gVv(x),gVnn(x),gVd(x),gVf(x));
+END;
+
+// find the letter x that is in the equation more than once by trying
+// values (l, r: the two sides).  Returns 1 when it settles.
+tryX(l,r,x)
+BEGIN
+  LOCAL a:=1;
+  LOCAL b:=2;
+  LOCAL fa, fb, c, k, fc;
+  gErr:="";
+  gVv(x):=a;
+  fa:=evalT(l)-evalT(r);
+  gVv(x):=b;
+  fb:=evalT(l)-evalT(r);
+  FOR k FROM 1 TO 60 DO
+    IF gErr<>"" THEN RETURN 0; END;
+    IF ABS(fb)<0.000000001 THEN
+      gVv(x):=b;
+      RETURN 1;
+    END;
+    IF fb==fa THEN RETURN 0; END;
+    c:=b-fb*(b-a)/(fb-fa);
+    a:=b;
+    fa:=fb;
+    b:=c;
+    gVv(x):=b;
+    fb:=evalT(l)-evalT(r);
+  END;
+  RETURN 0;
+END;
+
+// both sides of an equation as one line
+eqTx(a,b)
+BEGIN
+  RETURN prt(a,0)+" = "+prt(b,0);
+END;
+
+// Work on the equation whose sides are the trees lr and rr.  When
+// exactly one letter in it is not known, find it and write the work:
+// the formula, the numbers put in, each pass of the arithmetic, then
+// the same thing done to both sides until the letter is alone.
+// Returns 1 if a letter was found.
+solveEq(lr,rr)
+BEGIN
+  LOCAL x, a, b, s, v, go, c;
+  LOCAL o, l, r, t, sd, m, ok, tx;
+  gUl:={};
+  gUc:=0;
+  scanU(lr);
+  scanU(rr);
+  IF SIZE(gUl)<>1 THEN RETURN 0; END;
+  x:=gUl(1);
+  gErr:="";
+  wk(eqTx(lr,rr),1);
+  a:=cln(lr);
+  b:=cln(rr);
+  wkNew(eqTx(a,b),2);
+  clrS(a);
+  clrS(b);
+  IF gUc>1 THEN
+    wk(gVs(x)+" is in the formula more than once,",3);
+    wk("so it is found by trying values:",3);
+    IF tryX(lr,rr,x) THEN
+      gVnn(x):=0;
+      gVd(x):=0;
+      gVf(x):=0;
+      gVk(x):=1;
+      wkAns(x);
+      RETURN 1;
+    END;
+    gVv(x):=0;
+    wk("No value fits. Check the numbers.",6);
+    RETURN 0;
+  END;
+  // work out everything that is only numbers, a pass at a time
+  go:=1;
+  WHILE go DO
+    c:=redP(a);
+    c:=MAX(c,redP(b));
+    IF gErr<>"" THEN
+      wk(gErr,6);
+      RETURN 0;
+    END;
+    IF c THEN
+      wkNew(eqTx(a,b),2);
+    ELSE
+      go:=0;
+    END;
+  END;
+  // s: the side with the letter; v: the number on the other side
+  IF hasV(a,x) THEN
+    s:=a;
+    v:=b;
+    sd:=1;
+  ELSE
+    s:=b;
+    v:=a;
+    sd:=2;
+  END;
+  // undo what is done to the letter, the same on both sides
+  WHILE tK(s)<>2 DO
+    o:=tO(s);
+    l:=tL(s);
+    r:=tR(s);
+    ok:=1;
+    IF tK(s)==4 THEN
+      IF o==7 THEN
+        ok:=calcN(7,v,0);
+        t:="change the sign of both sides";
+      ELSE
+        m:=nNum(2,2,1,0);
+        ok:=calcN(5,v,m);
+        t:="square both sides";
+      END;
+      s:=l;
+    ELSE
+      IF hasV(l,x) THEN
+        IF o==1 THEN
+          ok:=calcN(2,v,r);
+          t:="subtract "+numTx(r)+" from both sides";
+        END;
+        IF o==2 THEN
+          ok:=calcN(1,v,r);
+          t:="add "+numTx(r)+" to both sides";
+        END;
+        IF o==3 OR o==8 THEN
+          ok:=calcN(4,v,r);
+          t:="divide both sides by "+numTx(r);
+        END;
+        IF o==4 THEN
+          ok:=calcN(3,v,r);
+          t:="multiply both sides by "+numTx(r);
+        END;
+        IF o==5 THEN
+          IF tV(r)==2 THEN
+            ok:=calcN(6,v,0);
+            t:="take the square root of both sides";
+          ELSE
+            IF tV(r)==0 THEN
+              gErr:="A power of 0 cannot be undone.";
+              ok:=0;
+            ELSE
+              m:=nNum(1/tV(r),0,0,0);
+              ok:=calcN(5,v,m);
+              t:="take the root ("+numTx(r)+") of both sides";
+            END;
+          END;
+        END;
+        s:=l;
+      ELSE
+        IF o==1 THEN
+          ok:=calcN(2,v,l);
+          t:="subtract "+numTx(l)+" from both sides";
+        END;
+        IF o==2 THEN
+          ok:=calcN(2,l,v);
+          t:="subtract "+numTx(l)+", then change the signs";
+        END;
+        IF o==3 OR o==8 THEN
+          ok:=calcN(4,v,l);
+          t:="divide both sides by "+numTx(l);
+        END;
+        IF o==4 THEN
+          ok:=calcN(4,l,v);
+          t:="it is on the bottom: "+numTx(l)+" ÷ "+numTx(v);
+        END;
+        IF o==5 THEN
+          gErr:="The letter is a power: that needs logarithms.";
+          ok:=0;
+        END;
+        s:=r;
+      END;
+    END;
+    IF ok==0 THEN
+      wk(gErr,6);
+      RETURN 0;
+    END;
+    nPut(v);
+    wk(t,3);
+    IF sd==1 OR tK(s)==2 THEN
+      wk(prt(s,0)+" = "+numTx(v),2);
+    ELSE
+      wk(numTx(v)+" = "+prt(s,0),2);
+    END;
+  END;
+  gVv(x):=tV(v);
+  gVnn(x):=tN(v);
+  gVd(x):=tD(v);
+  gVf(x):=tF(v);
+  gVk(x):=1;
+  wkAns(x);
+  RETURN 1;
+END;
+
+// work through the page's equations (gEl, gEr: their two sides) until
+// no more letters can be found
+solveSet()
+BEGIN
+  LOCAL go:=1;
+  LOCAL k, n0, dn, cnt;
+  dn:={};
+  FOR k FROM 1 TO SIZE(gEl) DO dn(k):=0; END;
+  n0:=gTn;
+  cnt:=0;
+  WHILE go DO
+    go:=0;
+    FOR k FROM 1 TO SIZE(gEl) DO
+      IF dn(k)==0 THEN
+        gTn:=n0;
+        IF solveEq(gEl(k),gEr(k)) THEN
+          dn(k):=1;
+          go:=1;
+          cnt:=cnt+1;
+        END;
+      END;
+    END;
+  END;
+  gTn:=n0;
+  RETURN cnt;
+END;
+
+// add the equation written as "left = right" to the page
+eqAdd(s)
+BEGIN
+  LOCAL p:=INSTRING(s,"=");
+  LOCAL k:=SIZE(gEl)+1;
+  LOCAL a, b;
+  a:=parseX(LEFT(s,p-1));
+  b:=parseX(MID(s,p+1));
+  gEl(k):=a;
+  gEr(k):=b;
+END;
+
+// work out an expression with no letters to find, a pass at a time
+// (order of operations).  Returns its top node (a number when done).
+evalWork(root)
+BEGIN
+  LOCAL a:=cln(root);
+  LOCAL go:=1;
+  LOCAL c, tx;
+  wk(prt(root,0),1);
+  clrS(a);
+  WHILE go DO
+    c:=redP(a);
+    IF gErr<>"" THEN
+      wk(gErr,6);
+      RETURN 0;
+    END;
+    IF c THEN
+      wk("= "+prt(a,0),2);
+    ELSE
+      go:=0;
+    END;
+  END;
+  RETURN a;
+END;
+// ================= drawing on the page =================
+
+textw(s,fnt)
+BEGIN
+  LOCAL w:=TEXTOUT_P(s,G9,0,0,fnt);
+  IF w<=0 THEN w:=DIM(s)*(4+fnt); END;
+  RETURN w;
+END;
+
+// s cut into lines no wider than w pixels (font f)
+wrapPx(s,w,f)
+BEGIN
+  LOCAL res:={};
+  LOCAL tl:="";
+  LOCAL wd:="";
+  LOCAL k, ch;
+  FOR k FROM 1 TO DIM(s)+1 DO
+    ch:=" ";
+    IF k<=DIM(s) THEN ch:=MID(s,k,1); END;
+    IF ch==" " THEN
+      IF wd<>"" THEN
+        IF tl<>"" AND textw(tl+" "+wd,f)>w THEN
+          res(SIZE(res)+1):=tl;
+          tl:="   "+wd;
+        ELSE
+          IF tl=="" THEN
+            tl:=wd;
+          ELSE
+            tl:=tl+" "+wd;
+          END;
+        END;
+        wd:="";
+      ELSE
+        IF tl=="" AND k<=DIM(s) THEN tl:=" "; END;
+      END;
+    ELSE
+      wd:=wd+ch;
+    END;
+  END;
+  IF tl<>"" THEN res(SIZE(res)+1):=tl; END;
+  RETURN res;
+END;
+
+// is page height y on the screen (the page is scrolled by gSy)
+vis(y)
+BEGIN
+  RETURN y-gSy>4 AND y-gSy<228;
+END;
+
+// text at page position x, y
+ink(s,x,y,f,c)
+BEGIN
+  IF vis(y) THEN TEXTOUT_P(s,G1,x,y-gSy,f,c); END;
+END;
+
+// text ending at x
+inkR(s,x,y,f,c)
+BEGIN
+  IF vis(y) THEN TEXTOUT_P(s,G1,x-textw(s,f),y-gSy,f,c); END;
+END;
+
+// a line on the page
+pln(x1,y1,x2,y2,c)
+BEGIN
+  IF vis(y1) OR vis(y2) THEN LINE_P(G1,x1,y1-gSy,x2,y2-gSy,c); END;
+END;
+
+// a highlighter stroke
+hil(x1,y1,x2,y2,c)
+BEGIN
+  IF vis(y1) THEN RECT_P(G1,x1,y1-gSy,x2,y2-gSy,c,c); END;
+END;
+
+// a filled three-cornered patch
+ptri(x1,y1,x2,y2,x3,y3,c)
+BEGIN
+  IF vis(y1) OR vis(y2) OR vis(y3) THEN TRIANGLE_P(G1,x1,y1-gSy,x2,y2-gSy,x3,y3-gSy,c); END;
+END;
+
+// a circle outline (24 sides) and a dashed line
+pcirc(x,y,r,c)
+BEGIN
+  LOCAL k, a1, a2;
+  FOR k FROM 0 TO 23 DO
+    a1:=k*15;
+    a2:=(k+1)*15;
+    pln(ROUND(x+r*COS(a1),0),ROUND(y-r*SIN(a1),0),ROUND(x+r*COS(a2),0),ROUND(y-r*SIN(a2),0),c);
+  END;
+END;
+
+pdash(x1,y1,x2,y2,c)
+BEGIN
+  LOCAL n:=MAX(2,IP(MAX(ABS(x2-x1),ABS(y2-y1))/3));
+  LOCAL k;
+  FOR k FROM 0 TO n-1 STEP 2 DO
+    pln(ROUND(x1+(x2-x1)*k/n,0),ROUND(y1+(y2-y1)*k/n,0),ROUND(x1+(x2-x1)*(k+1)/n,0),ROUND(y1+(y2-y1)*(k+1)/n,0),c);
+  END;
+END;
+
+// the sheet of ruled paper
+paper()
+BEGIN
+  LOCAL y;
+  RECT_P(G1,0,0,319,239,cPap,cPap);
+  y:=38-(gSy MOD 16);
+  WHILE y<224 DO
+    IF y>22 THEN LINE_P(G1,0,y,295,y,cRule); END;
+    y:=y+16;
+  END;
+  LINE_P(G1,22,0,22,239,cMarg);
+END;
+
+// ================= which pages there are =================
+
+fmN()
+BEGIN
+  RETURN 34;
+END;
+
+// number of pages behind each tab
+tabN(t)
+BEGIN
+  IF t==1 THEN RETURN 5; END;
+  IF t==2 THEN RETURN 8; END;
+  IF t==3 THEN RETURN 2; END;
+  IF t==4 THEN RETURN 2+fmN(); END;
+  IF t==5 THEN RETURN 11; END;
+  RETURN 8;
+END;
+
+tabNm(t)
+BEGIN
+  LOCAL n:={"Numbers","Measurement","Percent","Algebra and formulas","Geometry","Reference sheets"};
+  RETURN n(t);
+END;
+
+tabSh(t)
+BEGIN
+  LOCAL n:={"NUM","MEA","%","ALG","GEO","REF"};
+  RETURN n(t);
+END;
+
+// the place of a page in the lists that remember what was typed
+pid(t,p)
+BEGIN
+  LOCAL k;
+  LOCAL n:=1;
+  FOR k FROM 1 TO t-1 DO n:=n+tabN(k)+1; END;
+  RETURN n+p;
+END;
+// ================= the class formulas =================
+// name, formula, its letters, what each letter is, the rounding the
+// class problem asks for, the class problem's numbers ("" = find it)
+
+fmDef(k)
+BEGIN
+  IF k==1 THEN RETURN {"Pipes for the same flow","N = √((D ÷ d)^5)",{"N","D","d"},{"number of small pipes","diameter of the large pipe","diameter of a small pipe"},1,{"","15","3"}}; END;
+  IF k==2 THEN RETURN {"Feeder belt capacity","C = W²DS ÷ 1.085",{"C","W","D","S"},{"metric tons per hour","belt width, m","density, kg per cu m","belt speed, m per second"},1,{"","2","500","3"}}; END;
+  IF k==3 THEN RETURN {"Force on a piston","F = πPD² ÷ 4",{"F","P","D"},{"total force, lb","pressure, psi","piston diameter, in"},1,{"","25","3"}}; END;
+  IF k==4 THEN RETURN {"Capacitors, series-parallel","T = C1(C2 + C3) ÷ (C1 + C2 + C3)",{"T","C1","C2","C3"},{"total capacitance CT","","",""},3,{"","16","6","8"}}; END;
+  IF k==5 THEN RETURN {"Volume of a trailer or box","V = LWH",{"V","L","W","H"},{"volume","length","width","height"},2,{"3882","52.6","9",""}}; END;
+  IF k==6 THEN RETURN {"Perimeter of a fence","P = 2L + 2W",{"P","L","W"},{"total perimeter","length","width"},2,{"3500","","500"}}; END;
+  IF k==7 THEN RETURN {"Pittsburgh lock allowance","A = 2W + 3/16",{"A","W"},{"allowance, in","width of the pocket, in"},0,{"7/8",""}}; END;
+  IF k==8 THEN RETURN {"Grinding wheel speed","L = πdr ÷ 12",{"L","d","r"},{"linear speed, ft per min","wheel diameter, in","speed, rpm"},6,{"","6","2500"}}; END;
+  IF k==9 THEN RETURN {"Surface speed (metalworking)","S = πdn ÷ 12",{"S","d","n"},{"surface speed, ft per min","diameter, in","speed, rpm"},6,{"6000","8",""}}; END;
+  IF k==10 THEN RETURN {"Crushing load of a pillar","L = 25T^4 ÷ H²",{"L","T","H"},{"crushing load, tons","thickness, in","height, ft"},0,{"","6","12"}}; END;
+  IF k==11 THEN RETURN {"Tensile strength (welding)","T = L ÷ A",{"T","L","A"},{"tensile strength, psi","maximum load, lb","cross-section area, sq in"},6,{"","12500","0.175"}}; END;
+  IF k==12 THEN RETURN {"Inductance of a coil","L = R²N² ÷ (9R + 10D)",{"L","R","N","D"},{"inductance, microhenrys","radius of the coil","number of turns","length of the coil"},1,{"","3","200","6"}}; END;
+  IF k==13 THEN RETURN {"Inductors in parallel","T = L1L2 ÷ (L1 + L2)",{"T","L1","L2"},{"total inductance LT","",""},0,{"","200","50"}}; END;
+  IF k==14 THEN RETURN {"Indicated horsepower","H = MDS ÷ 792000",{"H","M","D","S"},{"ihp","MEP: mean effective pressure, psi","displacement, cu in","engine speed, rpm"},1,{"","170","224","3800"}}; END;
+  IF k==15 THEN RETURN {"Ohm's law","I = E ÷ R",{"I","E","R"},{"current, amperes","voltage, volts","resistance, ohms"},0,{"0.8","","450"}}; END;
+  IF k==16 THEN RETURN {"Distance, rate and time","D = RT",{"D","R","T"},{"distance","average speed","time"},0,{"1240","220",""}}; END;
+  IF k==17 THEN RETURN {"Water pressure in a tank","P = 62.4D",{"P","D"},{"pressure, lb per sq ft","depth of water, ft"},3,{"800",""}}; END;
+  IF k==18 THEN RETURN {"Sound: frequency, wavelength","fw = 343",{"f","w"},{"frequency, waves per second","wavelength, m"},0,{"200",""}}; END;
+  IF k==19 THEN RETURN {"Gas at constant temperature","PV = 1080",{"P","V"},{"pressure, psi","volume, cu ft"},0,{"","60"}}; END;
+  IF k==20 THEN RETURN {"Transformer windings","E = 40W",{"E","W"},{"voltage","number of windings"},0,{"840",""}}; END;
+  IF k==21 THEN RETURN {"Repair service bill","T = 45 + 60H",{"T","H"},{"total bill, $","hours of work"},0,{"375",""}}; END;
+  IF k==22 THEN RETURN {"Air temperature at altitude","T = -0.002H + G",{"T","H","G"},{"air temperature, °F","altitude, ft","ground temperature, °F"},0,{"32","","76"}}; END;
+  IF k==23 THEN RETURN {"Target heart rate","R = -0.8A + 176",{"R","A"},{"heart rate, beats per min","age"},0,{"150",""}}; END;
+  IF k==24 THEN RETURN {"Crankshaft gear","P + 2T = C",{"P","T","C"},{"pitch diameter","height of the teeth","overall diameter"},0,{"2.875","","3.125"}}; END;
+  IF k==25 THEN RETURN {"Plumber's bill","A = RT + M",{"A","R","T","M"},{"total bill, $","hourly rate, $","labor time, hours","materials, $"},0,{"3400","84","","985"}}; END;
+  IF k==26 THEN RETURN {"Belt length for two pulleys","L = 2d + 3.26(r + R)",{"L","d","r","R"},{"belt length","distance between centers","radius of one pulley","radius of the other"},1,{"82","","8","6"}}; END;
+  IF k==27 THEN RETURN {"Pressure under wastewater","P = 0.52D + 14.7",{"P","D"},{"pressure, psi","depth, ft"},2,{"25",""}}; END;
+  IF k==28 THEN RETURN {"Resistance and temperature","R = 0.02T + 5",{"R","T"},{"resistance","temperature"},0,{"5.24",""}}; END;
+  IF k==29 THEN RETURN {"N = (a + b)(a - b)","N = (a + b)(a - b)",{"N","a","b"},{"","",""},0,{"","7","12"}}; END;
+  IF k==30 THEN RETURN {"L = s(P + p) ÷ 2","L = s(P + p) ÷ 2",{"L","s","P","p"},{"","","",""},0,{"","3.6","38","26"}}; END;
+  IF k==31 THEN RETURN {"f = 1 ÷ (8N)","f = 1 ÷ (8N)",{"f","N"},{"",""},0,{"","6"}}; END;
+  IF k==32 THEN RETURN {"t = (D - d) ÷ L","t = (D - d) ÷ L",{"t","D","d","L"},{"","","",""},0,{"","12","4","2"}}; END;
+  IF k==33 THEN RETURN {"V = gt² ÷ 2","V = gt² ÷ 2",{"V","g","t"},{"","",""},0,{"","32.2","4.1"}}; END;
+  RETURN {"Exam: 2C + 1.6(D + d) + ...","X = 2C + 1.6(D + d) + (D + d) ÷ (4C)",{"X","C","D","d"},{"the answer","","",""},0,{"","30","10","5"}};
+END;
+
+// ================= names of the pages =================
+
+pgName(t,p)
+BEGIN
+  LOCAL n, f;
+  IF p==0 THEN RETURN tabNm(t); END;
+  IF t==1 THEN
+    n:={"Place value","Rounding","Fraction, decimal, percent","Tolerance","Missing length"};
+    RETURN n(p);
+  END;
+  IF t==2 THEN
+    n:={"Length","Area","Volume","Weight","Liquid","Metric stairs","Reading a ruler","Reading a gauge"};
+    RETURN n(p);
+  END;
+  IF t==3 THEN
+    n:={"Percent: is and of","Percent change"};
+    RETURN n(p);
+  END;
+  IF t==4 THEN
+    IF p==1 THEN RETURN "Order of operations"; END;
+    IF p==2 THEN RETURN "Any formula"; END;
+    f:=fmDef(p-2);
+    RETURN f(1);
+  END;
+  IF t==5 THEN
+    n:={"Rectangle","Square","Parallelogram","Trapezoid","Triangle","Hero's formula","Equilateral triangle","Right triangle","Regular hexagon","Circle","Composite figure"};
+    RETURN n(p);
+  END;
+  n:={"How to use this notebook","Order of operations","Percent","Place value and rounding","Standard units","Metric and conversions","Geometry formulas","Exam checklist"};
+  RETURN n(p);
+END;
+
+// 1 a worksheet, 2 a conversion table, 3 a page with its own layout
+pgKind(t,p)
+BEGIN
+  IF p==0 THEN RETURN 0; END;
+  IF t==1 THEN RETURN IFTE(p>=4,1,3); END;
+  IF t==2 THEN
+    IF p<=5 THEN RETURN 2; END;
+    RETURN IFTE(p==8,1,3);
+  END;
+  IF t==3 THEN RETURN IFTE(p==2,1,3); END;
+  IF t==4 THEN RETURN IFTE(p>=3,1,3); END;
+  IF t==5 THEN RETURN IFTE(p<=10,1,3); END;
+  RETURN 3;
+END;
+
+// ================= the worksheets =================
+
+// set up the worksheet of page p behind tab t
+shDef(t,p)
+BEGIN
+  LOCAL f, k;
+  gEq:={};
+  gBl:={};
+  gBd:={};
+  gUk:={};
+  gEx:={};
+  gNt:={};
+  gDrw:=0;
+  IF t==4 THEN
+    f:=fmDef(p-2);
+    gEq:={f(2)};
+    gBl:=f(3);
+    gBd:=f(4);
+    gEx:=f(6);
+  END;
+  IF t==1 AND p==4 THEN
+    gEq:={"L = S - T","H = S + T"};
+    gBl:={"S","T","L","H","X"};
+    gBd:={"the size called for","tolerance (the ± number)","smallest allowed","largest allowed","a size to check (13/16 ...)"};
+    gEx:={"0.81","0.003","","","13/16"};
+  END;
+  IF t==1 AND p==5 THEN
+    // only the parts that are filled in go into the equation
+    f:="T = A";
+    IF gBt(3)<>"" THEN f:=f+" + B"; END;
+    IF gBt(4)<>"" THEN f:=f+" + C"; END;
+    gEq:={f+" + M"};
+    gBl:={"T","A","B","C","M"};
+    gBd:={"total length","a part","a part","a part","the missing part"};
+    gEx:={"78 3/4","11.25","31 3/8","",""};
+  END;
+  IF t==2 AND p==8 THEN
+    gEq:={"s = (B - A) ÷ N","R = A + Ks"};
+    gBl:={"A","B","N","K","s","R"};
+    gBd:={"numbered mark below the needle","next numbered mark above it","spaces between those two","spaces from A to the needle","each space is worth","THE READING"};
+    gEx:={"800","1000","4","1.5","",""};
+    gDrw:=20;
+  END;
+  IF t==3 AND p==2 THEN
+    gEq:={"C = OR ÷ 100","N = O + C","N = O(1 + R ÷ 100)"};
+    gBl:={"O","R","C","N"};
+    gBd:={"original amount","percent change (- if it goes down)","amount of the change","new amount"};
+    gEx:={"80","25","",""};
+  END;
+  IF t==5 THEN
+    gDrw:=p;
+    IF p==1 THEN
+      gEq:={"A = LW","P = 2L + 2W"};
+      gBl:={"L","W","A","P"};
+      gUk:={1,1,2,1};
+      gEx:={"40","20","",""};
+    END;
+    IF p==2 THEN
+      gEq:={"A = s²","P = 4s"};
+      gBl:={"s","A","P"};
+      gUk:={1,2,1};
+      gEx:={"20","",""};
+    END;
+    IF p==3 THEN
+      gEq:={"A = bh","P = 2a + 2b"};
+      gBl:={"b","h","a","A","P"};
+      gUk:={1,1,1,2,1};
+      gEx:={"50","18","20","",""};
+    END;
+    IF p==4 THEN
+      gEq:={"A = (b1 + b2)h ÷ 2","P = b1 + b2 + c + d"};
+      gBl:={"b1","b2","h","c","d","A","P"};
+      gUk:={1,1,1,1,1,2,1};
+      gEx:={"10","30","18","22","22","",""};
+    END;
+    IF p==5 THEN
+      gEq:={"A = bh ÷ 2","P = a + b + c"};
+      gBl:={"b","h","a","c","A","P"};
+      gUk:={1,1,1,1,2,1};
+      gEx:={"50","18","25","40","",""};
+    END;
+    IF p==6 THEN
+      gEq:={"P = a + b + c","s = (a + b + c) ÷ 2","A = √(s(s - a)(s - b)(s - c))"};
+      gBl:={"a","b","c","s","A","P"};
+      gUk:={1,1,1,1,2,1};
+      gEx:={"15","20","25","","",""};
+    END;
+    IF p==7 THEN
+      gEq:={"A = 0.433s²","P = 3s","h = 0.866s"};
+      gBl:={"s","h","A","P"};
+      gUk:={1,1,2,1};
+      gEx:={"30","","",""};
+    END;
+    IF p==8 THEN
+      gEq:={"c = √(a² + b²)","A = ab ÷ 2","P = a + b + c"};
+      gBl:={"a","b","c","A","P"};
+      gUk:={1,1,1,2,1};
+      gEx:={"15","20","","",""};
+    END;
+    IF p==9 THEN
+      gEq:={"P = 6s","A = 2.6s²","d = 2s","f = 1.732s"};
+      gBl:={"s","d","f","A","P"};
+      gUk:={1,1,1,2,1};
+      gEx:={"15","","","",""};
+    END;
+    IF p==10 THEN
+      gEq:={"d = 2r","C = πd","A = πr²"};
+      gBl:={"r","d","C","A"};
+      gUk:={1,1,1,2};
+      gEx:={"","30","",""};
+    END;
+  END;
+  // what each letter is, when nothing was said
+  FOR k FROM 1 TO SIZE(gBl) DO
+    IF SIZE(gBd)<k THEN gBd(k):=""; END;
+    IF SIZE(gUk)<k THEN gUk(k):=0; END;
+  END;
+END;
+
+// the rounding a page starts with
+pgRnd(t,p)
+BEGIN
+  LOCAL f;
+  IF t==4 AND p>=3 THEN
+    f:=fmDef(p-2);
+    RETURN f(5);
+  END;
+  IF t==2 AND p<=5 THEN RETURN 2; END;
+  RETURN 0;
+END;
+// ================= blanks and written work =================
+
+// the number written as text s (a number, fraction or mixed number, or
+// arithmetic with them): into gRv, gRn, gRd, gRf.  Returns 0 if it
+// cannot be read.
+numOf(s)
+BEGIN
+  LOCAL n0:=gTn;
+  LOCAL r, go, ok;
+  r:=parseX(s);
+  ok:=0;
+  IF r>0 THEN
+    go:=1;
+    WHILE go DO
+      go:=redP(r);
+      IF gErr<>"" THEN go:=0; END;
+    END;
+    IF tK(r)==1 AND gErr=="" THEN
+      gRv:=tV(r);
+      gRn:=tN(r);
+      gRd:=tD(r);
+      gRf:=tF(r);
+      ok:=1;
+    END;
+  END;
+  gTn:=n0;
+  gErr:="";
+  RETURN ok;
+END;
+
+// forget the blanks and tap places of the last drawing
+regClear()
+BEGIN
+  bX:={};
+  bY:={};
+  bW:={};
+  bK:={};
+  zX1:={};
+  zY1:={};
+  zX2:={};
+  zY2:={};
+  zA:={};
+END;
+
+// a place to tap (page coordinates) that does action a
+zone(x1,y1,x2,y2,a)
+BEGIN
+  LOCAL k:=SIZE(zA)+1;
+  zX1(k):=x1;
+  zY1(k):=y1;
+  zX2(k):=x2;
+  zY2(k):=y2;
+  zA(k):=a;
+END;
+
+// blank k: a line to write on at x, y, w wide.  kd: 1 a number, 2 an
+// expression, 3 digits kept as typed.  What is typed is in ink, what
+// was worked out is highlighted, the blank being filled is yellow.
+blank(k,x,y,w,kd)
+BEGIN
+  LOCAL s:="";
+  LOCAL c:=cInk;
+  LOCAL hc:=-1;
+  LOCAL tw;
+  bX(k):=x;
+  bY(k):=y;
+  bW(k):=w;
+  bK(k):=kd;
+  IF gSel==k AND gTy==1 THEN
+    s:=gTx+"|";
+    c:=cBlue;
+  ELSE
+    IF gBt(k)<>"" THEN
+      s:=gBt(k);
+      IF gBe(k)==1 THEN c:=cRed; END;
+    ELSE
+      s:=gBv(k);
+      IF s<>"" THEN hc:=cHi; END;
+    END;
+  END;
+  IF NOT vis(y) THEN RETURN 0; END;
+  tw:=textw(s,2);
+  IF gSel==k THEN hil(x-2,y,x+MAX(w,tw+4),y+14,cHiY); END;
+  IF hc>=0 AND gSel<>k THEN hil(x-2,y+1,x+tw+3,y+14,hc); END;
+  pln(x-2,y+15,x+w,y+15,IFTE(gSel==k,cBlue,cInk));
+  IF gSel==k THEN pln(x-2,y+16,x+w,y+16,cBlue); END;
+  TEXTOUT_P(s,G1,x+1,y-gSy,2,c);
+  RETURN 1;
+END;
+
+// the written work from page height y down; returns where it ends
+drawWork(y)
+BEGIN
+  LOCAL k, j, c, s, ls, x;
+  FOR k FROM 1 TO SIZE(gWk) DO
+    c:=gWc(k);
+    s:=gWk(k);
+    IF c==3 THEN
+      ls:=wrapPx(s,262,1);
+      FOR j FROM 1 TO SIZE(ls) DO
+        ink(ls(j),40,y+2,1,cPen);
+        y:=y+13;
+      END;
+      y:=y+1;
+    ELSE
+      IF c==5 THEN y:=y+4; END;
+      ls:=wrapPx(s,264,2);
+      FOR j FROM 1 TO SIZE(ls) DO
+        x:=28;
+        IF c==2 OR c==4 THEN x:=34; END;
+        IF c==4 THEN hil(x-2,y+1,x+textw(ls(j),2)+3,y+15,cHi); END;
+        ink(ls(j),x,y,2,IFTE(c==1 OR c==5,cBlue,IFTE(c==6,cRed,cInk)));
+        IF c==5 THEN pln(x,y+15,x+textw(ls(j),2),y+15,cBlue); END;
+        y:=y+16;
+      END;
+    END;
+  END;
+  RETURN y;
+END;
+
+// the unit written after a length (k 1) or an area (k 2)
+unitTx(k)
+BEGIN
+  LOCAL n:={"","in","ft","yd","mm","cm","m"};
+  LOCAL u:=n(gOpt(2)+1);
+  IF k==0 OR u=="" THEN RETURN ""; END;
+  IF k==2 THEN RETURN "sq "+u; END;
+  RETURN u;
+END;
+
+// a value rounded the way the page says (left alone when rounding
+// does not change it)
+showV(v)
+BEGIN
+  IF gRnd>0 THEN
+    IF ABS(rndV(v)-v)>0.000000001*MAX(1,ABS(v)) THEN RETURN rndTx(v,gRnd); END;
+  END;
+  RETURN fmtG(v);
+END;
+
+// how a worked-out value is written in its blank
+valTx(v,n,d,f)
+BEGIN
+  IF f==1 AND d>1 AND d<=64 THEN RETURN fracTx(n,d); END;
+  RETURN showV(v);
+END;
+
+// ================= worksheets =================
+
+// work the worksheet out from what is typed in its blanks
+shBuild()
+BEGIN
+  LOCAL k, v, n0, any, un;
+  shDef(gTab,gPg);
+  gNB:=SIZE(gBl);
+  vClear();
+  gTn:=0;
+  gEl:={};
+  gEr:={};
+  FOR k FROM 1 TO SIZE(gEq) DO eqAdd(gEq(k)); END;
+  n0:=gTn;
+  any:=0;
+  un:=0;
+  FOR k FROM 1 TO gNB DO
+    gBv(k):="";
+    gBe(k):=0;
+    v:=vIdx(gBl(k));
+    IF gBt(k)<>"" THEN
+      IF numOf(gBt(k)) THEN
+        gVv(v):=gRv;
+        gVnn(v):=gRn;
+        gVd(v):=gRd;
+        gVf(v):=gRf;
+        gVk(v):=1;
+        gVg(v):=1;
+        any:=1;
+      ELSE
+        gBe(k):=1;
+      END;
+    ELSE
+      un:=un+1;
+    END;
+  END;
+  wkClear();
+  gErr:="";
+  IF any THEN solveSet(); END;
+  FOR k FROM 1 TO gNB DO
+    v:=vIdx(gBl(k));
+    IF gBt(k)=="" AND gVk(v)==1 THEN
+      gBv(k):=valTx(gVv(v),gVnn(v),gVd(v),gVf(v));
+      un:=un-1;
+    END;
+  END;
+  IF any==0 THEN
+    wk("Write what the problem gives on the blanks.",3);
+    wk("Leave the one to find empty: it is worked out",3);
+    wk("and the work is written here.",3);
+  ELSE
+    IF un>0 AND SIZE(gWk)==0 THEN wk("Not enough yet: fill in another blank.",3); END;
+  END;
+END;
+
+// the tolerance page: does the size to check fit
+tolWork()
+BEGIN
+  LOCAL lo:=vIdx("L");
+  LOCAL hi:=vIdx("H");
+  LOCAL x;
+  IF gBt(5)=="" OR gVk(lo)==0 OR gVk(hi)==0 THEN RETURN 0; END;
+  IF numOf(gBt(5))==0 THEN RETURN 0; END;
+  x:=gRv;
+  wk("The size to check",5);
+  wk(gBt(5)+" = "+fmtG(x),2);
+  IF x>=gVv(lo)-0.0000000001 AND x<=gVv(hi)+0.0000000001 THEN
+    wk("YES: "+fmtG(x)+" is from "+fmtG(gVv(lo))+" to "+fmtG(gVv(hi)),4);
+  ELSE
+    wk("NO: "+fmtG(x)+" is outside "+fmtG(gVv(lo))+" to "+fmtG(gVv(hi)),4);
+  END;
+  RETURN 1;
+END;
+// ================= drawings =================
+
+// a letter on a drawing, centred at x, y; the letter of the blank being
+// filled in is highlighted
+lab(s,x,y)
+BEGIN
+  LOCAL w:=textw(s,2);
+  LOCAL on:=0;
+  IF gSel>=1 AND gSel<=SIZE(gBl) THEN
+    IF gBl(gSel)==s THEN on:=1; END;
+  END;
+  IF on THEN hil(x-w/2-2,y-7,x+w/2+2,y+7,cHiY); END;
+  ink(s,ROUND(x-w/2,0),y-7,2,IFTE(on,cBlue,cInk));
+END;
+
+// a small square corner mark at x, y (dx, dy: which way it opens)
+sqMark(x,y,dx,dy)
+BEGIN
+  pln(x+6*dx,y,x+6*dx,y+6*dy,cPen);
+  pln(x,y+6*dy,x+6*dx,y+6*dy,cPen);
+END;
+
+// the drawing of worksheet d in the corner of the page
+shapeDraw(d)
+BEGIN
+  LOCAL x:=178;
+  LOCAL y:=34;
+  LOCAL k, a;
+  IF d==1 THEN
+    pln(x,y+10,x+100,y+10,cInk);
+    pln(x+100,y+10,x+100,y+66,cInk);
+    pln(x+100,y+66,x,y+66,cInk);
+    pln(x,y+66,x,y+10,cInk);
+    sqMark(x,y+66,1,-1);
+    lab("L",x+50,y+76);
+    lab("W",x+110,y+38);
+  END;
+  IF d==2 THEN
+    pln(x+16,y+4,x+84,y+4,cInk);
+    pln(x+84,y+4,x+84,y+72,cInk);
+    pln(x+84,y+72,x+16,y+72,cInk);
+    pln(x+16,y+72,x+16,y+4,cInk);
+    sqMark(x+16,y+72,1,-1);
+    lab("s",x+50,y+82);
+    lab("s",x+94,y+38);
+  END;
+  IF d==3 THEN
+    pln(x,y+66,x+78,y+66,cInk);
+    pln(x+78,y+66,x+104,y+10,cInk);
+    pln(x+104,y+10,x+26,y+10,cInk);
+    pln(x+26,y+10,x,y+66,cInk);
+    pdash(x+26,y+10,x+26,y+66,cPen);
+    sqMark(x+26,y+66,1,-1);
+    lab("b",x+46,y+76);
+    lab("h",x+35,y+40);
+    lab("a",x+100,y+42);
+  END;
+  IF d==4 THEN
+    pln(x,y+66,x+108,y+66,cInk);
+    pln(x+108,y+66,x+78,y+12,cInk);
+    pln(x+78,y+12,x+28,y+12,cInk);
+    pln(x+28,y+12,x,y+66,cInk);
+    pdash(x+40,y+12,x+40,y+66,cPen);
+    sqMark(x+40,y+66,1,-1);
+    lab("b1",x+54,y+4);
+    lab("b2",x+54,y+76);
+    lab("h",x+50,y+40);
+    lab("c",x+6,y+34);
+    lab("d",x+102,y+34);
+  END;
+  IF d==5 OR d==6 THEN
+    pln(x,y+66,x+106,y+66,cInk);
+    pln(x+106,y+66,x+40,y+8,cInk);
+    pln(x+40,y+8,x,y+66,cInk);
+    IF d==5 THEN
+      pdash(x+40,y+8,x+40,y+66,cPen);
+      sqMark(x+40,y+66,1,-1);
+      lab("h",x+49,y+42);
+      lab("b",x+60,y+76);
+    ELSE
+      lab(IFTE(d==6,"c","b"),x+54,y+76);
+    END;
+    lab("a",x+12,y+32);
+    lab(IFTE(d==6,"b","c"),x+82,y+30);
+  END;
+  IF d==7 THEN
+    pln(x+10,y+70,x+94,y+70,cInk);
+    pln(x+94,y+70,x+52,y+0,cInk);
+    pln(x+52,y+0,x+10,y+70,cInk);
+    pdash(x+52,y+0,x+52,y+70,cPen);
+    lab("s",x+52,y+80);
+    lab("s",x+22,y+32);
+    lab("s",x+84,y+32);
+    lab("h",x+60,y+46);
+  END;
+  IF d==8 THEN
+    pln(x+6,y+66,x+100,y+66,cInk);
+    pln(x+100,y+66,x+6,y+8,cInk);
+    pln(x+6,y+8,x+6,y+66,cInk);
+    sqMark(x+6,y+66,1,-1);
+    lab("a",x-2,y+38);
+    lab("b",x+52,y+76);
+    lab("c",x+60,y+28);
+  END;
+  IF d==9 THEN
+    FOR k FROM 0 TO 5 DO
+      pln(ROUND(x+52+40*COS(60*k),0),ROUND(y+38-40*SIN(60*k),0),ROUND(x+52+40*COS(60*k+60),0),ROUND(y+38-40*SIN(60*k+60),0),cInk);
+    END;
+    pdash(x+12,y+38,x+92,y+38,cPen);
+    pdash(x+68,y+3,x+68,y+73,cPen);
+    lab("s",x+52,y+82);
+    lab("d",x+36,y+31);
+    lab("f",x+76,y+52);
+  END;
+  IF d==10 THEN
+    pcirc(x+52,y+38,38,cInk);
+    pln(x+14,y+38,x+90,y+38,cInk);
+    pdash(x+52,y+38,x+79,y+11,cPen);
+    lab("d",x+34,y+46);
+    lab("r",x+60,y+18);
+    lab("C",x+96,y+10);
+  END;
+  IF d==20 THEN
+    // a piece of a gauge: A and B with the spaces between, the needle
+    a:=4;
+    IF gBt(3)<>"" THEN
+      IF numOf(gBt(3)) THEN a:=MAX(1,MIN(20,ROUND(gRv,0))); END;
+    END;
+    FOR k FROM 0 TO 11 DO
+      pln(ROUND(x+54+56*COS(150-10*k),0),ROUND(y+84-56*SIN(150-10*k),0),ROUND(x+54+56*COS(140-10*k),0),ROUND(y+84-56*SIN(140-10*k),0),cInk);
+    END;
+    FOR k FROM 0 TO a DO
+      pln(ROUND(x+54+56*COS(130-80*k/a),0),ROUND(y+84-56*SIN(130-80*k/a),0),ROUND(x+54+IFTE(k==0 OR k==a,44,49)*COS(130-80*k/a),0),ROUND(y+84-IFTE(k==0 OR k==a,44,49)*SIN(130-80*k/a),0),cInk);
+    END;
+    lab("A",x+12,y+26);
+    lab("B",x+98,y+26);
+    k:=a/2;
+    IF gBt(4)<>"" THEN
+      IF numOf(gBt(4)) THEN k:=MAX(-0.5,MIN(a+0.5,gRv)); END;
+    END;
+    pln(x+54,y+84,ROUND(x+54+52*COS(130-80*k/a),0),ROUND(y+84-52*SIN(130-80*k/a),0),cRed);
+    pln(x+55,y+84,ROUND(x+55+52*COS(130-80*k/a),0),ROUND(y+84-52*SIN(130-80*k/a),0),cRed);
+  END;
+END;
+// ================= conversion tables =================
+// gCu: the units of the page.  gCp: the facts from the class tables,
+// three numbers each: unit a, unit b, k, meaning 1 a = k b.
+
+cvDef(p)
+BEGIN
+  IF p==1 THEN
+    gCu:={"in","ft","yd","mi","mm","cm","m","km"};
+    gCp:={2,1,12,3,2,3,3,1,36,4,2,5280,4,3,1760,6,5,10,7,6,100,7,5,1000,8,7,1000,1,6,2.54,7,2,3.28,4,8,1.61};
+  END;
+  IF p==2 THEN
+    gCu:={"sq in","sq ft","sq yd"};
+    gCp:={2,1,144,3,2,9,3,1,1296};
+  END;
+  IF p==3 THEN
+    gCu:={"cu in","cu ft","cu yd","gal","L"};
+    gCp:={2,1,1728,3,2,27,3,1,46656,2,4,7.48,4,1,231,4,5,3.785};
+  END;
+  IF p==4 THEN
+    gCu:={"oz","lb","ton","g","kg"};
+    gCp:={2,1,16,3,2,2000,1,4,28.35,5,2,2.205,5,4,1000};
+  END;
+  IF p==5 THEN
+    gCu:={"cup","pt","qt","gal","L","mL"};
+    gCp:={2,1,2,3,2,2,4,3,4,5,3,1.06,4,5,3.785,5,6,1000};
+  END;
+END;
+
+// the blank that has something typed in it (0: none)
+srcBlank(n)
+BEGIN
+  LOCAL k;
+  FOR k FROM 1 TO n DO
+    IF gBt(k)<>"" THEN RETURN k; END;
+  END;
+  RETURN 0;
+END;
+
+cvBuild()
+BEGIN
+  LOCAL n, s, k, j, q, qn, qh, a;
+  LOCAL b, f, v, path, pn, u, m, t;
+  cvDef(gPg);
+  n:=SIZE(gCu);
+  gNB:=n;
+  gSingle:=1;
+  wkClear();
+  FOR k FROM 1 TO n DO
+    gBv(k):="";
+    gBe(k):=0;
+    gCok(k):=0;
+    gCv(k):=0;
+    gCpar(k):=0;
+    gCfac(k):=0;
+  END;
+  s:=srcBlank(n);
+  IF s==0 THEN
+    wk("Write the amount on the line of the unit you",3);
+    wk("have. Every other unit is worked out, with",3);
+    wk("the number to multiply or divide by.",3);
+    RETURN 0;
+  END;
+  IF numOf(gBt(s))==0 THEN
+    gBe(s):=1;
+    RETURN 0;
+  END;
+  gCv(s):=gRv;
+  gCok(s):=1;
+  // spread out from the unit you have, one fact at a time
+  q:={s};
+  qn:=1;
+  qh:=1;
+  WHILE qh<=qn DO
+    a:=q(qh);
+    qh:=qh+1;
+    FOR j FROM 0 TO SIZE(gCp)/3-1 DO
+      b:=0;
+      IF gCp(3*j+1)==a THEN
+        b:=gCp(3*j+2);
+        f:=gCp(3*j+3);
+      END;
+      IF gCp(3*j+2)==a THEN
+        b:=gCp(3*j+1);
+        f:=-gCp(3*j+3);
+      END;
+      IF b>0 THEN
+        IF gCok(b)==0 THEN
+          gCok(b):=1;
+          gCpar(b):=a;
+          gCfac(b):=f;
+          IF f>0 THEN
+            gCv(b):=gCv(a)*f;
+          ELSE
+            gCv(b):=gCv(a)/(-f);
+          END;
+          qn:=qn+1;
+          q(qn):=b;
+        END;
+      END;
+    END;
+  END;
+  // the answers and how each was found
+  FOR k FROM 1 TO n DO
+    IF k<>s AND gCok(k)==1 THEN
+      gBv(k):=showV(gCv(k));
+      path:={};
+      pn:=0;
+      u:=k;
+      WHILE u<>s DO
+        pn:=pn+1;
+        path(pn):=u;
+        u:=gCpar(u);
+      END;
+      wk(gBt(s)+" "+gCu(s)+" to "+gCu(k),5);
+      FOR j FROM 1 TO pn DO
+        m:=path(pn+1-j);
+        u:=gCpar(m);
+        f:=gCfac(m);
+        IF f>0 THEN
+          t:=fmtG(gCv(u))+" "+gCu(u)+" × "+fmtG(f);
+        ELSE
+          t:=fmtG(gCv(u))+" "+gCu(u)+" ÷ "+fmtG(-f);
+        END;
+        wk(t+" = "+fmtG(gCv(m))+" "+gCu(m),2);
+      END;
+      v:=gCv(k);
+      t:=gCu(k);
+      IF gRnd>0 AND ABS(rndV(v)-v)>0.000000001*MAX(1,ABS(v)) THEN
+        wk("≈ "+rndTx(v,gRnd)+" "+t+"  (nearest "+rndNm(gRnd)+")",4);
+      ELSE
+        wk("= "+fmtG(v)+" "+t,4);
+      END;
+    END;
+  END;
+  RETURN 1;
+END;
+
+cvDraw()
+BEGIN
+  LOCAL k, y;
+  y:=28;
+  FOR k FROM 1 TO gNB DO
+    blank(k,62,y,104,1);
+    ink(gCu(k),172,y,2,cInk);
+    y:=y+19;
+  END;
+  gCh:=drawWork(y+6);
+END;
+
+// ================= the metric stairs =================
+
+stUnit(k)
+BEGIN
+  LOCAL pf:={"k","h","da","","d","c","m"};
+  LOCAL bs:={"m","g","L"};
+  RETURN pf(k)+bs(gOpt(3)+1);
+END;
+
+stBuild()
+BEGIN
+  LOCAL s, k, d, v, t;
+  gNB:=7;
+  gSingle:=1;
+  wkClear();
+  FOR k FROM 1 TO 7 DO
+    gBv(k):="";
+    gBe(k):=0;
+  END;
+  s:=srcBlank(7);
+  IF s==0 THEN
+    wk("Write the amount on its step. Going down the",3);
+    wk("stairs the decimal point moves right (x 10 a",3);
+    wk("step); going up it moves left (÷ 10 a step).",3);
+    wk("Tap the word at the top for grams or liters.",3);
+    RETURN 0;
+  END;
+  IF numOf(gBt(s))==0 THEN
+    gBe(s):=1;
+    RETURN 0;
+  END;
+  v:=gRv;
+  FOR k FROM 1 TO 7 DO
+    IF k<>s THEN
+      d:=k-s;
+      gBv(k):=fmtG(v*10^d);
+      t:=gBt(s)+" "+stUnit(s)+" to "+stUnit(k)+": "+istr(ABS(d))+IFTE(ABS(d)==1," step "," steps ")+IFTE(d>0,"down","up");
+      wk(t,5);
+      IF d>0 THEN
+        wk("decimal "+istr(d)+" to the right (× "+fmtG(10^d)+")",3);
+      ELSE
+        wk("decimal "+istr(-d)+" to the left (÷ "+fmtG(10^(-d))+")",3);
+      END;
+      wk("= "+fmtG(v*10^d)+" "+stUnit(k),4);
+    END;
+  END;
+  RETURN 1;
+END;
+
+stDraw()
+BEGIN
+  LOCAL nm:={"kilo  1000","hecto  100","deka  10","unit  1","deci  0.1","centi  0.01","milli  0.001"};
+  LOCAL bs:={"meters (length)","grams (weight)","liters (capacity)"};
+  LOCAL k, x, y;
+  ink("Stairs for: "+bs(gOpt(3)+1),28,26,1,cBlue);
+  zone(24,24,295,38,10);
+  FOR k FROM 1 TO 7 DO
+    x:=28+(k-1)*27;
+    y:=44+(k-1)*22;
+    // the step
+    pln(x-4,y+18,x+84,y+18,cPen);
+    IF k<7 THEN pln(x+84,y+18,x+84,y+40,cPen); END;
+    blank(k,x,y,56,1);
+    ink(stUnit(k),x+60,y,2,cInk);
+    IF k<=3 THEN
+      ink(nm(k),x+92,y+3,1,cPen);
+    ELSE
+      inkR(nm(k),x-8,y+3,1,cPen);
+    END;
+  END;
+  gCh:=drawWork(204);
+END;
+
+// ================= reading a ruler =================
+
+rulBuild()
+BEGIN
+  LOCAL w, s, g, c, m, any;
+  gNB:=4;
+  wkClear();
+  FOR g FROM 1 TO 4 DO
+    gBv(g):="";
+    gBe(g):=0;
+  END;
+  any:=0;
+  IF gBt(1)<>"" OR gBt(2)<>"" THEN
+    w:=0;
+    s:=0;
+    IF gBt(1)<>"" THEN
+      IF numOf(gBt(1)) THEN w:=gRv; ELSE gBe(1):=1; END;
+    END;
+    IF gBt(2)<>"" THEN
+      IF numOf(gBt(2)) THEN s:=gRv; ELSE gBe(2):=1; END;
+    END;
+    any:=1;
+    wk("Inch scale (each small mark is 1/16 in)",5);
+    wk(fmtG(w)+" whole inches and "+fmtG(s)+" marks = "+fmtG(w)+" "+fmtG(s)+"/16",2);
+    g:=gcdF(s,16);
+    IF s==ROUND(s,0) AND g>1 AND s>0 THEN
+      wk("reduce: divide "+fmtG(s)+" and 16 by "+fmtG(g),3);
+    END;
+    IF s==ROUND(s,0) AND w==ROUND(w,0) THEN
+      wk("= "+fracTx(w*16+s,16/MAX(1,gcdF(w*16+s,16)))+" in",2);
+      ratSet(w*16+s,16,1);
+      wk("= "+fracTx(gRn,gRd)+" in",4);
+    END;
+    wk("   = "+fmtG(w+s/16)+" in as a decimal",3);
+  END;
+  IF gBt(3)<>"" OR gBt(4)<>"" THEN
+    c:=0;
+    m:=0;
+    IF gBt(3)<>"" THEN
+      IF numOf(gBt(3)) THEN c:=gRv; ELSE gBe(3):=1; END;
+    END;
+    IF gBt(4)<>"" THEN
+      IF numOf(gBt(4)) THEN m:=gRv; ELSE gBe(4):=1; END;
+    END;
+    any:=1;
+    wk("Metric scale (each small mark is 1 mm)",5);
+    wk(fmtG(c)+" cm × 10 + "+fmtG(m)+" marks",2);
+    wk("= "+fmtG(c*10+m)+" mm",4);
+    wk("   = "+fmtG(c+m/10)+" cm",3);
+  END;
+  IF any==0 THEN
+    wk("Inches: count the whole inches, then the",3);
+    wk("small marks past the last whole inch.",3);
+    wk("Metric: read the cm number, then count the",3);
+    wk("small marks past it. The arrows on the ruler",3);
+    wk("show where your reading is.",3);
+  END;
+END;
+
+rulDraw()
+BEGIN
+  LOCAL k, x, y, w, s, c, m, h;
+  y:=28;
+  inkR("whole inches",112,y+2,1,cPen);
+  blank(1,116,y,40,1);
+  inkR("marks (16ths) past",250,y+2,1,cPen);
+  blank(2,254,y,34,1);
+  y:=48;
+  inkR("cm number",112,y+2,1,cPen);
+  blank(3,116,y,40,1);
+  inkR("mm marks past it",250,y+2,1,cPen);
+  blank(4,254,y,34,1);
+  // the ruler: 4 inches (about 10 cm) across
+  y:=74;
+  hil(26,y,292,y+52,cHiY);
+  pln(26,y,292,y,cInk);
+  pln(26,y+52,292,y+52,cInk);
+  FOR k FROM 0 TO 100 DO
+    x:=ROUND(28+k*2.598,0);
+    h:=4;
+    IF (k MOD 5)==0 THEN h:=7; END;
+    IF (k MOD 10)==0 THEN h:=11; END;
+    pln(x,y,x,y+h,cInk);
+    IF (k MOD 10)==0 AND k>0 THEN ink(istr(k/10),x-3,y+11,1,cInk); END;
+  END;
+  ink("cm",30,y+12,1,cPen);
+  FOR k FROM 0 TO 64 DO
+    x:=28+k*4.125;
+    h:=4;
+    IF (k MOD 2)==0 THEN h:=6; END;
+    IF (k MOD 4)==0 THEN h:=9; END;
+    IF (k MOD 8)==0 THEN h:=12; END;
+    IF (k MOD 16)==0 THEN h:=16; END;
+    pln(ROUND(x,0),y+52-h,ROUND(x,0),y+52,cInk);
+    IF (k MOD 16)==0 AND k>0 THEN ink(istr(k/16),ROUND(x,0)-3,y+25,1,cInk); END;
+  END;
+  ink("in",30,y+27,1,cPen);
+  // where the readings are
+  w:=0;
+  s:=0;
+  IF gBt(1)<>"" THEN
+    IF numOf(gBt(1)) THEN w:=gRv; END;
+  END;
+  IF gBt(2)<>"" THEN
+    IF numOf(gBt(2)) THEN s:=gRv; END;
+  END;
+  IF gBt(1)<>"" OR gBt(2)<>"" THEN
+    x:=ROUND(28+MAX(0,MIN(64,w*16+s))*4.125,0);
+    ptri(x,y+53,x-4,y+62,x+4,y+62,cRed);
+  END;
+  c:=0;
+  m:=0;
+  IF gBt(3)<>"" THEN
+    IF numOf(gBt(3)) THEN c:=gRv; END;
+  END;
+  IF gBt(4)<>"" THEN
+    IF numOf(gBt(4)) THEN m:=gRv; END;
+  END;
+  IF gBt(3)<>"" OR gBt(4)<>"" THEN
+    x:=ROUND(28+MAX(0,MIN(100,c*10+m))*2.598,0);
+    ptri(x,y-1,x-4,y-9,x+4,y-9,cRed);
+  END;
+  gCh:=drawWork(142);
+END;
+// ================= place value and rounding =================
+
+// split the number typed as text s: gIp its whole digits, gFp its
+// decimal digits (other characters are left out)
+digSplit(s)
+BEGIN
+  LOCAL k, ch, dot;
+  gIp:="";
+  gFp:="";
+  dot:=0;
+  FOR k FROM 1 TO DIM(s) DO
+    ch:=MID(s,k,1);
+    IF ch=="." THEN
+      dot:=1;
+    ELSE
+      IF INSTRING("0123456789",ch)>0 THEN
+        IF dot THEN
+          gFp:=gFp+ch;
+        ELSE
+          gIp:=gIp+ch;
+        END;
+      END;
+    END;
+  END;
+  WHILE DIM(gIp)>1 AND LEFT(gIp,1)=="0" DO gIp:=MID(gIp,2); END;
+  IF gIp=="" THEN gIp:="0"; END;
+END;
+
+plcName(k)
+BEGIN
+  LOCAL n:={"ten-thousandths","thousandths","hundredths","tenths","ones","tens","hundreds","thousands","ten-thousands","hundred-thousands","millions","ten-millions","hundred-millions"};
+  RETURN n(MAX(1,MIN(13,k+5)));
+END;
+
+pvBuild()
+BEGIN
+  LOCAL k, n;
+  gNB:=1;
+  wkClear();
+  gBv(1):="";
+  gBe(1):=0;
+  IF gBt(1)=="" THEN
+    wk("Type the number. Each digit is listed with",3);
+    wk("the name of its place.",3);
+    RETURN 0;
+  END;
+  digSplit(gBt(1));
+  n:=DIM(gIp);
+  FOR k FROM 1 TO n DO
+    wk(MID(gIp,k,1)+"   "+plcName(n-k),2);
+  END;
+  IF DIM(gFp)>0 THEN wk(".   the decimal point",3); END;
+  FOR k FROM 1 TO MIN(4,DIM(gFp)) DO
+    wk(MID(gFp,k,1)+"   "+plcName(-k),2);
+  END;
+  RETURN 1;
+END;
+
+pvDraw()
+BEGIN
+  inkR("number",76,30,1,cPen);
+  blank(1,80,28,150,3);
+  IF gBt(1)<>"" THEN ink(gBt(1),80,50,5,cBlue); END;
+  gCh:=drawWork(76);
+END;
+
+// the number in gIp, gFp rounded to p decimal places (p -1: tens, -2:
+// hundreds, -3: thousands), done on the digits so it is exact.  gRup
+// tells whether it went up, gNx is the digit that decided.
+rndStr(p)
+BEGIN
+  LOCAL dg:=gIp+gFp;
+  LOCAL pt:=DIM(gIp);
+  LOCAL kp:=pt+p;
+  LOCAL d:={};
+  LOCAL k, c, s, n;
+  n:=DIM(dg);
+  gRup:=0;
+  gNx:=0;
+  IF kp>=n THEN RETURN ""; END;
+  IF kp<0 THEN RETURN "0"; END;
+  FOR k FROM 1 TO n DO d(k):=INSTRING("0123456789",MID(dg,k,1))-1; END;
+  gNx:=d(kp+1);
+  c:=0;
+  IF gNx>=5 THEN
+    c:=1;
+    gRup:=1;
+  END;
+  k:=kp;
+  WHILE c==1 AND k>=1 DO
+    d(k):=d(k)+1;
+    IF d(k)==10 THEN
+      d(k):=0;
+      k:=k-1;
+    ELSE
+      c:=0;
+    END;
+  END;
+  s:="";
+  IF c==1 THEN s:="1"; END;
+  FOR k FROM 1 TO pt DO
+    IF k<=kp THEN
+      s:=s+istr(d(k));
+    ELSE
+      s:=s+"0";
+    END;
+  END;
+  IF s=="" THEN s:="0"; END;
+  IF p>0 THEN
+    s:=s+".";
+    FOR k FROM pt+1 TO kp DO s:=s+istr(d(k)); END;
+  END;
+  RETURN s;
+END;
+
+rdBuild()
+BEGIN
+  LOCAL nm:={"thousand","hundred","ten","whole number","tenth","hundredth","thousandth"};
+  LOCAL k, r;
+  gNB:=1;
+  wkClear();
+  gBv(1):="";
+  gBe(1):=0;
+  IF gBt(1)=="" THEN
+    wk("Type the number. It is rounded to every place.",3);
+    wk("Rule: look at the next digit to the right.",3);
+    wk("5, 6, 7, 8 or 9: round up. 0 to 4: stay.",3);
+    RETURN 0;
+  END;
+  digSplit(gBt(1));
+  FOR k FROM 1 TO 7 DO
+    r:=rndStr(k-4);
+    IF r<>"" THEN
+      wk("nearest "+nm(k)+":  "+r,4);
+      wk("the next digit is "+istr(gNx)+": "+IFTE(gRup,"round up","stay the same"),3);
+    END;
+  END;
+  RETURN 1;
+END;
+
+rdDraw()
+BEGIN
+  inkR("number",76,30,1,cPen);
+  blank(1,80,28,150,3);
+  gCh:=drawWork(52);
+END;
+
+// ================= fraction, decimal, percent =================
+
+fdBuild()
+BEGIN
+  LOCAL s, v, n, d, k, g, t, dc;
+  gNB:=3;
+  gSingle:=1;
+  wkClear();
+  FOR k FROM 1 TO 3 DO
+    gBv(k):="";
+    gBe(k):=0;
+  END;
+  s:=srcBlank(3);
+  IF s==0 THEN
+    wk("Write the one you have: a fraction (5/8, with",3);
+    wk("the ÷ key), a decimal or a percent. The other",3);
+    wk("two are worked out.",3);
+    RETURN 0;
+  END;
+  IF numOf(gBt(s))==0 THEN
+    gBe(s):=1;
+    RETURN 0;
+  END;
+  v:=gRv;
+  n:=gRn;
+  d:=gRd;
+  IF s==1 THEN
+    wk("Fraction to decimal: top ÷ bottom",5);
+    wk(gBt(1)+" = "+fmtG(v),2);
+    wk("Decimal to percent: decimal point 2 places right",5);
+    wk(fmtG(v)+" = "+fmtG(v*100)+"%",4);
+    gBv(2):=fmtG(v);
+    gBv(3):=fmtG(v*100);
+    RETURN 1;
+  END;
+  IF s==3 THEN
+    wk("Percent to decimal: decimal point 2 places left",5);
+    wk(gBt(3)+"% = "+fmtG(v/100),4);
+    gBv(2):=fmtG(v/100);
+    v:=v/100;
+    numOf(fmtG(v));
+    n:=gRn;
+    d:=gRd;
+  ELSE
+    wk("Decimal to percent: decimal point 2 places right",5);
+    wk(gBt(2)+" = "+fmtG(v*100)+"%",4);
+    gBv(3):=fmtG(v*100);
+  END;
+  // the decimal as a fraction
+  IF d>0 THEN
+    t:=fmtG(v);
+    dc:=0;
+    k:=INSTRING(t,".");
+    IF k>0 THEN dc:=DIM(t)-k; END;
+    g:=10^dc;
+    wk("Decimal to fraction: over 1"+MID("000000000",1,dc)+", then reduce",5);
+    wk(t+" = "+fmtG(ROUND(v*g,0))+"/"+fmtG(g),2);
+    IF d<g THEN wk("divide top and bottom by "+fmtG(g/d),3); END;
+    wk("= "+fracTx(n,d),4);
+    gBv(1):=fracTx(n,d);
+  END;
+  RETURN 1;
+END;
+
+fdDraw()
+BEGIN
+  inkR("fraction",92,30,1,cPen);
+  blank(1,96,28,110,1);
+  inkR("decimal",92,49,1,cPen);
+  blank(2,96,47,110,1);
+  inkR("percent",92,68,1,cPen);
+  blank(3,96,66,110,1);
+  ink("%",212,66,2,cInk);
+  gCh:=drawWork(92);
+END;
+
+// ================= percent: the part IS a percent OF the whole =====
+
+pcBuild()
+BEGIN
+  LOCAL p, r, w, k, n, x;
+  gNB:=3;
+  wkClear();
+  n:=0;
+  FOR k FROM 1 TO 3 DO
+    gBv(k):="";
+    gBe(k):=0;
+    IF gBt(k)<>"" THEN
+      IF numOf(gBt(k)) THEN
+        n:=n+1;
+        IF k==1 THEN p:=gRv; END;
+        IF k==2 THEN r:=gRv; END;
+        IF k==3 THEN w:=gRv; END;
+      ELSE
+        gBe(k):=1;
+      END;
+    END;
+  END;
+  wk("PART (is) over WHOLE (of) = PERCENT over 100",3);
+  IF n<>2 THEN
+    wk("Fill in the two the problem gives. What is",3);
+    wk("30% of 400?  30 is what % of 400?  400 is 30%",3);
+    wk("of what number?",3);
+    RETURN 0;
+  END;
+  IF gBt(1)=="" THEN
+    wk("x/"+gBt(3)+" = "+gBt(2)+"/100",1);
+    wk("cross-multiply and divide",3);
+    x:=r*w/100;
+    wk("x = "+gBt(2)+" × "+gBt(3)+" ÷ 100",2);
+    ansLine("the part",x,0,0,0);
+    wk("or: "+gBt(3)+" × "+fmtG(r/100)+" = "+fmtG(x),3);
+    gBv(1):=valTx(x,0,0,0);
+  END;
+  IF gBt(3)=="" THEN
+    wk(gBt(1)+"/x = "+gBt(2)+"/100",1);
+    wk("cross-multiply and divide",3);
+    IF r==0 THEN
+      wk("0% of a number is 0: no answer.",6);
+      RETURN 0;
+    END;
+    x:=p*100/r;
+    wk("x = "+gBt(1)+" × 100 ÷ "+gBt(2),2);
+    ansLine("the whole",x,0,0,0);
+    wk("or: "+gBt(1)+" ÷ "+fmtG(r/100)+" = "+fmtG(x),3);
+    gBv(3):=valTx(x,0,0,0);
+  END;
+  IF gBt(2)=="" THEN
+    wk(gBt(1)+"/"+gBt(3)+" = x/100",1);
+    wk("cross-multiply and divide",3);
+    IF w==0 THEN
+      wk("The whole cannot be 0.",6);
+      RETURN 0;
+    END;
+    x:=p*100/w;
+    wk("x = "+gBt(1)+" × 100 ÷ "+gBt(3),2);
+    ansLine("the percent",x,0,0,0);
+    wk("or: "+gBt(1)+" ÷ "+gBt(3)+" = "+fmtG(p/w)+", decimal 2 right",3);
+    gBv(2):=valTx(x,0,0,0);
+  END;
+  RETURN 1;
+END;
+
+pcDraw()
+BEGIN
+  blank(1,30,32,70,1);
+  ink("is",106,32,2,cInk);
+  blank(2,124,32,52,1);
+  ink("% of",180,32,2,cInk);
+  blank(3,216,32,72,1);
+  ink("the part",30,50,1,cPen);
+  ink("percent",124,50,1,cPen);
+  ink("the whole",216,50,1,cPen);
+  gCh:=drawWork(68);
+END;
+
+// ================= order of operations =================
+
+ooBuild()
+BEGIN
+  LOCAL r, a;
+  gNB:=1;
+  wkClear();
+  gBv(1):="";
+  gBe(1):=0;
+  vClear();
+  gTn:=0;
+  IF gBt(1)=="" THEN
+    wk("P  parentheses ( ) [ ] and a fraction bar",2);
+    wk("E  exponents and roots",2);
+    wk("MD multiply, divide: left to right",2);
+    wk("AS add, subtract: left to right",2);
+    wk("Type the problem on the line. One key makes ( and ).",3);
+    wk("x² key: squared. Shift x²: square root. a b/c: a",3);
+    wk("fraction like 3/16. For a fraction bar type",3);
+    wk("( top ) ÷ ( bottom ).",3);
+    RETURN 0;
+  END;
+  r:=parseX(gBt(1));
+  IF r==0 THEN
+    gBe(1):=1;
+    wk(IFTE(gErr=="","Check what is typed.",gErr),6);
+    RETURN 0;
+  END;
+  IF SIZE(gVn)>0 THEN
+    wk("There are letters in it: use the next page,",6);
+    wk("Any formula.",6);
+    RETURN 0;
+  END;
+  a:=evalWork(r);
+  IF a>0 THEN
+    IF tK(a)==1 THEN ansLine("Answer",tV(a),tN(a),tD(a),tF(a)); END;
+  END;
+  RETURN 1;
+END;
+
+ooDraw()
+BEGIN
+  blank(1,28,30,262,2);
+  gCh:=drawWork(54);
+END;
+
+// ================= any formula =================
+
+afBuild()
+BEGIN
+  LOCAL a, b, k, v, any, n0;
+  gNB:=2;
+  gSingle:=2;
+  wkClear();
+  FOR k FROM 1 TO 12 DO
+    gBv(k):="";
+    gBe(k):=0;
+  END;
+  vClear();
+  gTn:=0;
+  gBl:={"",""};
+  IF gBt(1)=="" OR gBt(2)=="" THEN
+    wk("Type the formula from the problem: its left",3);
+    wk("side on the first line, its right side on the",3);
+    wk("second. Letters: press ALPHA then the key (twice",3);
+    wk("for a small letter), or tap  abc  here.",3);
+    wk("Then a blank appears for each letter. Fill in",3);
+    wk("what is given and leave the one to find empty.",3);
+    RETURN 0;
+  END;
+  a:=parseX(gBt(1));
+  IF a==0 THEN
+    gBe(1):=1;
+    wk(IFTE(gErr=="","Check the left side.",gErr),6);
+    RETURN 0;
+  END;
+  b:=parseX(gBt(2));
+  IF b==0 THEN
+    gBe(2):=1;
+    wk(IFTE(gErr=="","Check the right side.",gErr),6);
+    RETURN 0;
+  END;
+  gEl:={a};
+  gEr:={b};
+  gNB:=MIN(12,2+SIZE(gVn));
+  any:=0;
+  FOR k FROM 3 TO gNB DO
+    v:=k-2;
+    gBl(k):=gVn(v);
+    IF gBt(k)<>"" THEN
+      IF numOf(gBt(k)) THEN
+        gVv(v):=gRv;
+        gVnn(v):=gRn;
+        gVd(v):=gRd;
+        gVf(v):=gRf;
+        gVk(v):=1;
+        any:=1;
+      ELSE
+        gBe(k):=1;
+      END;
+    END;
+  END;
+  gErr:="";
+  IF SIZE(gVn)==0 THEN
+    wk("No letters: use the Order of operations page.",6);
+    RETURN 0;
+  END;
+  solveSet();
+  FOR k FROM 3 TO gNB DO
+    v:=k-2;
+    IF gBt(k)=="" AND gVk(v)==1 THEN gBv(k):=valTx(gVv(v),gVnn(v),gVd(v),gVf(v)); END;
+  END;
+  IF SIZE(gWk)==0 THEN
+    wk("Fill in every letter but the one to find.",3);
+  END;
+  RETURN 1;
+END;
+
+afDraw()
+BEGIN
+  LOCAL k, y;
+  blank(1,28,28,90,2);
+  ink("=",124,28,2,cInk);
+  blank(2,138,28,130,2);
+  ink("abc",274,30,1,cBlue);
+  zone(268,24,295,44,11);
+  y:=50;
+  FOR k FROM 3 TO gNB DO
+    inkR(gBl(k)+" =",58,y,2,cInk);
+    blank(k,62,y,104,1);
+    y:=y+19;
+  END;
+  gCh:=drawWork(y+6);
+END;
+
+// ================= composite figures =================
+
+cmpName(s)
+BEGIN
+  LOCAL n:={"(none)","rectangle","square","triangle","circle","half circle","trapezoid","hexagon"};
+  RETURN n(s+1);
+END;
+
+// the letters of the sizes of shape s
+cmpDims(s)
+BEGIN
+  IF s==1 THEN RETURN {"L","W"}; END;
+  IF s==2 OR s==7 THEN RETURN {"s"}; END;
+  IF s==3 THEN RETURN {"b","h"}; END;
+  IF s==4 OR s==5 THEN RETURN {"r"}; END;
+  IF s==6 THEN RETURN {"a","b","h"}; END;
+  RETURN {};
+END;
+
+// the area formula of shape s for part k (letters end in k)
+cmpEq(s,k)
+BEGIN
+  LOCAL d:=istr(k);
+  LOCAL a:="A"+d+" = ";
+  IF s==1 THEN RETURN a+"L"+d+"W"+d; END;
+  IF s==2 THEN RETURN a+"s"+d+"²"; END;
+  IF s==3 THEN RETURN a+"b"+d+"h"+d+" ÷ 2"; END;
+  IF s==4 THEN RETURN a+"πr"+d+"²"; END;
+  IF s==5 THEN RETURN a+"πr"+d+"² ÷ 2"; END;
+  IF s==6 THEN RETURN a+"(a"+d+" + b"+d+")h"+d+" ÷ 2"; END;
+  RETURN a+"2.6s"+d+"²";
+END;
+
+// work a worksheet out whose formulas (gEq) and letters (gBl, "" for
+// blanks not used) are already set
+shRun()
+BEGIN
+  LOCAL k, v, any;
+  vClear();
+  gTn:=0;
+  gEl:={};
+  gEr:={};
+  FOR k FROM 1 TO SIZE(gEq) DO eqAdd(gEq(k)); END;
+  any:=0;
+  FOR k FROM 1 TO SIZE(gBl) DO
+    gBv(k):="";
+    gBe(k):=0;
+    IF gBl(k)<>"" THEN
+      v:=vIdx(gBl(k));
+      IF gBt(k)<>"" THEN
+        IF numOf(gBt(k)) THEN
+          gVv(v):=gRv;
+          gVnn(v):=gRn;
+          gVd(v):=gRd;
+          gVf(v):=gRf;
+          gVk(v):=1;
+          any:=1;
+        ELSE
+          gBe(k):=1;
+        END;
+      END;
+    END;
+  END;
+  wkClear();
+  gErr:="";
+  IF any THEN solveSet(); END;
+  RETURN any;
+END;
+
+cmBuild()
+BEGIN
+  LOCAL k, s, j, dm, t, n;
+  gNB:=9;
+  gEq:={};
+  gBl:={"","","","","","","","","","","",""};
+  t:="T = ";
+  n:=0;
+  FOR k FROM 1 TO 3 DO
+    s:=gOpt(2+k);
+    IF s>0 THEN
+      gEq(SIZE(gEq)+1):=cmpEq(s,k);
+      dm:=cmpDims(s);
+      FOR j FROM 1 TO SIZE(dm) DO gBl(3*(k-1)+j):=dm(j)+istr(k); END;
+      IF n==0 THEN
+        t:=t+IFTE(gOpt(5+k)==1,"-","")+"A"+istr(k);
+      ELSE
+        t:=t+IFTE(gOpt(5+k)==1," - "," + ")+"A"+istr(k);
+      END;
+      n:=n+1;
+    END;
+  END;
+  IF n>0 THEN gEq(SIZE(gEq)+1):=t; END;
+  IF shRun()==0 THEN
+    wk("A composite figure is made of simple shapes.",3);
+    wk("Tap a shape's name to change it and its + or -",3);
+    wk("to add it or cut it out. Fill in the sizes.",3);
+    wk("T is the total area.",3);
+  END;
+END;
+
+cmDraw()
+BEGIN
+  LOCAL k, s, j, dm, y, x;
+  y:=28;
+  FOR k FROM 1 TO 3 DO
+    s:=gOpt(2+k);
+    ink(IFTE(gOpt(5+k)==1,"-","+"),28,y,3,cRed);
+    zone(24,y,40,y+16,20+k);
+    ink(cmpName(s),42,y+2,1,cBlue);
+    pln(42,y+15,42+textw(cmpName(s),1),y+15,cBlue);
+    zone(41,y,108,y+16,30+k);
+    dm:=cmpDims(s);
+    FOR j FROM 1 TO 3 DO
+      x:=112+(j-1)*62;
+      IF j<=SIZE(dm) THEN
+        inkR(dm(j)+"=",x+14,y,2,cInk);
+        blank(3*(k-1)+j,x+16,y,40,1);
+      ELSE
+        bX(3*(k-1)+j):=-200;
+        bY(3*(k-1)+j):=y;
+        bW(3*(k-1)+j):=0;
+        bK(3*(k-1)+j):=1;
+      END;
+    END;
+    y:=y+22;
+  END;
+  gCh:=drawWork(y+4);
+END;
+
+// ================= the reference sheets =================
+
+refBuild()
+BEGIN
+  LOCAL p:=gPg;
+  gNB:=0;
+  wkClear();
+  IF p==1 THEN
+    wk("The tabs",5);
+    wk("Tap a coloured tab on the right edge, then a",2);
+    wk("line of its contents page (or press its number).",2);
+    wk("Left/Right or a swipe turns the pages. Esc goes",2);
+    wk("back to the contents, then to the cover.",2);
+    wk("Shift then Left/Right: the next tab.",2);
+    wk("Filling in a page",5);
+    wk("Tap a blank (or Up/Down) and type. Enter keeps",2);
+    wk("it. Del erases. The ÷ key makes a fraction",2);
+    wk("(7/8); the space key a mixed number (78 3/4).",2);
+    wk("Leave the blank you want to find empty.",2);
+    wk("Pink highlighter = worked out for you.",2);
+    wk("The work is written under the blanks: the",2);
+    wk("formula, the numbers put in, each step, the",2);
+    wk("answer. Drag or Down to read on.",2);
+    wk("At the foot of a page",5);
+    wk("example: the numbers from class.  erase: start",2);
+    wk("over.  round: tap until it says what the",2);
+    wk("question asks (Menu key).  unit: for geometry.",2);
+    wk("Typing a formula",5);
+    wk("( and ) are one key. x² squares. Shift x² is the",2);
+    wk("square root. Shift 3 is π. ALPHA then a key",2);
+    wk("types its letter (ALPHA twice: a small letter).",2);
+  END;
+  IF p==2 THEN
+    wk("PEMDAS",5);
+    wk("1  P  Parentheses ( ) [ ] { }, absolute value,",2);
+    wk("      and a fraction bar (top and bottom first)",2);
+    wk("2  E  Exponents and roots  x²  √x",2);
+    wk("3  MD Multiply and Divide, whichever comes",2);
+    wk("      first from LEFT to RIGHT",2);
+    wk("4  AS Add and Subtract, whichever comes first",2);
+    wk("      from LEFT to RIGHT",2);
+    wk("Example from the notes",5);
+    wk("5 - 3(4² ÷ 2) + 30",2);
+    wk("= 5 - 3(16 ÷ 2) + 30",2);
+    wk("= 5 - 3(8) + 30 = 5 - 24 + 30",2);
+    wk("= -19 + 30 = 11",2);
+    wk("6 + 4 ÷ 2 = 6 + 2 = 8   (not 10 ÷ 2 = 5)",2);
+    wk("Formulas",5);
+    wk("Evaluate: put the numbers in for the letters",2);
+    wk("(show the substitution), then PEMDAS.",2);
+    wk("Solve: put the numbers in, then do the same",2);
+    wk("thing to both sides until the letter is alone.",2);
+  END;
+  IF p==3 THEN
+    wk("The percent proportion",5);
+    wk("The part IS a percent OF the whole.",2);
+    wk("PART (is) / WHOLE (of) = PERCENT / 100",2);
+    wk("Cross-multiply and divide:",2);
+    wk("What is 25% of 180?   x/180 = 25/100",2);
+    wk("   25 × 180 ÷ 100 = 45",2);
+    wk("150 is 25% of what?   150/x = 25/100",2);
+    wk("   150 × 100 ÷ 25 = 600",2);
+    wk("50 is what % of 800?  50/800 = x/100",2);
+    wk("   50 × 100 ÷ 800 = 6.25%",2);
+    wk("Other way",5);
+    wk("part = whole × percent as a decimal",2);
+    wk("whole = part ÷ percent as a decimal",2);
+    wk("percent = part ÷ whole, decimal 2 places right",2);
+    wk("Fractions, decimals, percents",5);
+    wk("fraction to decimal: top ÷ bottom   5/8 = .625",2);
+    wk("decimal to percent: 2 places RIGHT  .625 = 62.5%",2);
+    wk("percent to decimal: 2 places LEFT  37.5% = .375",2);
+    wk("decimal to fraction: .375 = 375/1000 = 3/8",2);
+  END;
+  IF p==4 THEN
+    wk("Base 10 place values",5);
+    wk("millions . hundred-thousands . ten-thousands",2);
+    wk("thousands . hundreds . tens . ONES",2);
+    wk("(decimal point)",2);
+    wk("tenths 1/10 . hundredths 1/100",2);
+    wk("thousandths 1/1000 . ten-thousandths 1/10,000",2);
+    wk("Rounding: the basic rules",5);
+    wk("1 Find the digit in the place to round to.",2);
+    wk("2 Look at the next digit to its right.",2);
+    wk("3 If it is 5, 6, 7, 8 or 9: add one.",2);
+    wk("4 If it is 0, 1, 2, 3 or 4: leave it.",2);
+    wk("5 Digits after it: zeros for a whole number,",2);
+    wk("   dropped for a decimal.",2);
+    wk("9372.6485: ten 9370, hundredth 9372.65,",2);
+    wk("thousand 9000, tenth 9372.6, whole 9373,",2);
+    wk("thousandth 9372.649",2);
+    wk("Tolerance",5);
+    wk("0.81 ± .003: from 0.807 to 0.813.",2);
+    wk("13/16 = .8125 fits.",2);
+  END;
+  IF p==5 THEN
+    wk("Length",5);
+    wk("1 ft = 12 in     1 yd = 3 ft = 36 in",2);
+    wk("1 mi = 5280 ft = 1760 yd",2);
+    wk("Weight",5);
+    wk("1 lb = 16 oz     1 Ton = 2000 lb",2);
+    wk("Liquid",5);
+    wk("1 pt = 2 cups    1 qt = 2 pt    1 gal = 4 qt",2);
+    wk("Area",5);
+    wk("1 sq ft = 144 sq in",2);
+    wk("1 sq yd = 9 sq ft = 1296 sq in",2);
+    wk("Volume",5);
+    wk("1 cu ft = 1728 cu in",2);
+    wk("1 cu yd = 27 cu ft = 46,656 cu in",2);
+    wk("1 cu ft = 7.48 gallons",2);
+    wk("1 gallon = 231 cu in",2);
+    wk("Which way?",5);
+    wk("To a SMALLER unit: multiply (more of them).",2);
+    wk("To a LARGER unit: divide (fewer of them).",2);
+  END;
+  IF p==6 THEN
+    wk("The metric stairs",5);
+    wk("k 1000 . h 100 . da 10 . UNIT . d 0.1 . c 0.01",2);
+    wk(". m 0.001      (meter, gram, liter)",2);
+    wk("Down the stairs: decimal RIGHT a place a step.",2);
+    wk("Up the stairs: decimal LEFT a place a step.",2);
+    wk("250 mm = 25 cm     .25 L = 250 mL",2);
+    wk("250 dg = 2.5 dag",2);
+    wk("Standard and metric",5);
+    wk("1 in = 2.54 cm     1 meter = 3.28 ft",2);
+    wk("1 mile = 1.61 km   1 oz = 28.35 g",2);
+    wk("1 kg = 2.205 lb    1 liter = 1.06 qt",2);
+    wk("1 gal = 3.785 L",2);
+    wk("Which is larger",5);
+    wk("inch > cm.  liter > quart.  cubic foot > gallon.",2);
+    wk("ounce > gram.  mile > km.  meter > yard.",2);
+    wk("Prefixes",5);
+    wk("tera T, giga G, mega M, kilo k, hecto h, deka da",2);
+    wk("deci d, centi c, milli m, micro µ, nano n, pico p",2);
+  END;
+  IF p==7 THEN
+    wk("Chapter 8 handout",5);
+    wk("Rectangle  P = 2L + 2W     A = LW",2);
+    wk("Square  P = 4s     A = s²",2);
+    wk("Parallelogram  P = 2a + 2b     A = bh",2);
+    wk("Trapezoid  P = sum of sides  A = (b1 + b2)h ÷ 2",2);
+    wk("Triangle  A = bh ÷ 2     P = a + b + c",2);
+    wk("Hero's (no height)  s = (a + b + c) ÷ 2",2);
+    wk("   A = √(s(s - a)(s - b)(s - c))",2);
+    wk("Equilateral  A = .433s²",2);
+    wk("Right triangle  a² + b² = c²  (c: the longest)",2);
+    wk("Hexagon  P = 6s   A = 2.6s²   d = 2s  f = 1.732s",2);
+    wk("Circle  d = 2r   C = πd = 2πr   A = πr²",2);
+    wk("   π = 3.14",2);
+    wk("Composite figures",5);
+    wk("Separate into simple shapes, find each area,",2);
+    wk("then add or subtract.",2);
+  END;
+  IF p==8 THEN
+    wk("On the final",5);
+    wk("Show the substitution: every letter replaced",2);
+    wk("by its number, the way the work is written here.",2);
+    wk("Round the way THAT question says (10th, 100th,",2);
+    wk("whole number, hundred). Set round: to match.",2);
+    wk("A fraction answer: lowest terms. Type fractions",2);
+    wk("with the ÷ key and the page works in fractions.",2);
+    wk("Two to watch",5);
+    wk("Fractions in a formula: 7/8 = 2w + 3/16",2);
+    wk("   7/8 - 3/16 = 11/16, then ÷ 2: w = 11/32",2);
+    wk("A gauge with two scales: read each scale with",2);
+    wk("its OWN numbers (Reading a gauge page).",2);
+    wk("Units",5);
+    wk("1728 cu in in a cu ft (not 1296: that is sq in",2);
+    wk("in a sq yd). π = 3.14 unless it says otherwise.",2);
+  END;
+END;
+
+// ================= pages with their own layout =================
+
+custBuild()
+BEGIN
+  gNB:=0;
+  IF gTab==1 THEN
+    IF gPg==1 THEN pvBuild(); END;
+    IF gPg==2 THEN rdBuild(); END;
+    IF gPg==3 THEN fdBuild(); END;
+  END;
+  IF gTab==2 THEN
+    IF gPg==6 THEN stBuild(); END;
+    IF gPg==7 THEN rulBuild(); END;
+  END;
+  IF gTab==3 THEN pcBuild(); END;
+  IF gTab==4 THEN
+    IF gPg==1 THEN ooBuild(); END;
+    IF gPg==2 THEN afBuild(); END;
+  END;
+  IF gTab==5 THEN cmBuild(); END;
+  IF gTab==6 THEN refBuild(); END;
+END;
+
+custDraw()
+BEGIN
+  IF gTab==1 THEN
+    IF gPg==1 THEN pvDraw(); END;
+    IF gPg==2 THEN rdDraw(); END;
+    IF gPg==3 THEN fdDraw(); END;
+  END;
+  IF gTab==2 THEN
+    IF gPg==6 THEN stDraw(); END;
+    IF gPg==7 THEN rulDraw(); END;
+  END;
+  IF gTab==3 THEN pcDraw(); END;
+  IF gTab==4 THEN
+    IF gPg==1 THEN ooDraw(); END;
+    IF gPg==2 THEN afDraw(); END;
+  END;
+  IF gTab==5 THEN cmDraw(); END;
+  IF gTab==6 THEN gCh:=drawWork(28); END;
+END;
+
+custAct(a)
+BEGIN
+  LOCAL k;
+  IF a==10 THEN
+    gOpt(3):=(gOpt(3)+1) MOD 3;
+    gDirty:=1;
+  END;
+  IF a==11 THEN gAbc:=1; END;
+  IF a>=21 AND a<=23 THEN
+    gOpt(a-15):=1-gOpt(a-15);
+    gDirty:=1;
+  END;
+  IF a>=31 AND a<=33 THEN
+    k:=a-30;
+    gOpt(2+k):=(gOpt(2+k)+1) MOD 8;
+    gBt(3*k-2):="";
+    gBt(3*k-1):="";
+    gBt(3*k):="";
+    gDirty:=1;
+  END;
+END;
+// ================= the parts of every page =================
+
+// the divider tabs down the right edge
+drawTabs()
+BEGIN
+  LOCAL k, y, s;
+  RECT_P(G1,296,0,319,239,cPap,cPap);
+  LINE_P(G1,296,0,296,239,cHole);
+  FOR k FROM 1 TO 6 DO
+    y:=2+(k-1)*37;
+    IF k==gTab THEN
+      RECT_P(G1,292,y,319,y+34,gTabC(k),gTabC(k));
+    ELSE
+      RECT_P(G1,299,y,319,y+34,gTabC(k),gTabC(k));
+    END;
+    s:=tabSh(k);
+    TEXTOUT_P(s,G1,IFTE(k==gTab,306,309)-textw(s,1)/2,y+11,1,RGB(255,255,255));
+  END;
+END;
+
+// the heading and the foot of a page
+drawChrome()
+BEGIN
+  LOCAL s, n, x;
+  // heading
+  RECT_P(G1,0,0,295,21,cPap,cPap);
+  LINE_P(G1,22,0,22,21,cMarg);
+  s:=gTit;
+  TEXTOUT_P(s,G1,28,3,IFTE(textw(s,3)<206,3,IFTE(textw(s,2)<206,2,1)),cInk);
+  LINE_P(G1,24,20,295,20,cInk);
+  LINE_P(G1,24,22,295,22,cInk);
+  n:=tabN(gTab);
+  IF gPg>0 THEN
+    s:=istr(gPg)+"/"+istr(n);
+    TEXTOUT_P(s,G1,292-textw(s,1),6,1,cPen);
+  END;
+  s:="";
+  IF gSh THEN s:="shift"; END;
+  IF gAl==1 THEN s:="ABC"; END;
+  IF gAl==2 THEN s:="abc"; END;
+  IF s<>"" THEN
+    RECT_P(G1,236,3,266,17,cHiG,cHiG);
+    TEXTOUT_P(s,G1,251-textw(s,1)/2,5,1,cInk);
+  END;
+  // holes of the binder
+  RECT_P(G1,6,58,14,66,cHole,cHole);
+  RECT_P(G1,6,118,14,126,cHole,cHole);
+  RECT_P(G1,6,178,14,186,cHole,cHole);
+  // foot
+  RECT_P(G1,0,225,295,239,cPap,cPap);
+  LINE_P(G1,0,225,295,225,cRule);
+  LINE_P(G1,22,225,22,239,cMarg);
+  IF gPg>0 THEN
+    TEXTOUT_P("<",G1,28,227,1,cPen);
+    TEXTOUT_P(">",G1,286,227,1,cPen);
+    x:=46;
+    IF gKind==1 AND SIZE(gEx)>0 THEN
+      TEXTOUT_P("example",G1,x,227,1,cBlue);
+    END;
+    x:=100;
+    IF gKind<>3 OR gNB>0 THEN TEXTOUT_P("erase",G1,x,227,1,cBlue); END;
+    IF gKind==1 OR gKind==2 OR (gTab==4 AND gPg<=2) OR (gTab==3 AND gPg==1) OR (gTab==5 AND gPg==11) THEN
+      s:="round: "+rndNm(gOpt(1));
+      TEXTOUT_P(s,G1,140,227,1,cBlue);
+    END;
+    IF gTab==5 THEN
+      s:="unit: "+IFTE(gOpt(2)==0,"none",unitTx(1));
+      TEXTOUT_P(s,G1,236,227,1,cBlue);
+    END;
+  ELSE
+    TEXTOUT_P("Tap a line, or press its number.  Esc: cover",G1,28,227,1,cPen);
+  END;
+END;
+
+// ================= a worksheet =================
+
+drawSheet()
+BEGIN
+  LOCAL k, y, nm, s, ye, yb, rp;
+  y:=28;
+  IF gDrw==0 THEN
+    // the formulas, then a blank for each letter
+    FOR k FROM 1 TO SIZE(gEq) DO
+      ink(gEq(k),28,y,2,cBlue);
+      y:=y+16;
+    END;
+    y:=y+4;
+    FOR k FROM 1 TO gNB DO
+      inkR(gBl(k)+" =",58,y,2,cInk);
+      blank(k,62,y,104,1);
+      ink(gBd(k),174,y+3,1,cPen);
+      y:=y+19;
+    END;
+    ye:=y;
+  ELSE
+    rp:=19;
+    IF gDrw==20 THEN rp:=29; END;
+    FOR k FROM 1 TO gNB DO
+      inkR(gBl(k)+" =",58,y,2,cInk);
+      blank(k,62,y,86,1);
+      s:=unitTx(gUk(k));
+      IF s<>"" THEN ink(s,152,y+3,1,cPen); END;
+      IF gDrw==20 THEN ink(gBd(k),30,y+17,1,cPen); END;
+      y:=y+rp;
+    END;
+    yb:=y;
+    shapeDraw(gDrw);
+    ye:=130;
+    IF gDrw<20 THEN
+      FOR k FROM 1 TO SIZE(gEq) DO
+        ink(gEq(k),178,ye,1,cBlue);
+        ye:=ye+13;
+      END;
+    END;
+    ye:=MAX(ye,yb);
+  END;
+  gCh:=drawWork(ye+6);
+END;
+
+// ================= the contents page of a tab =================
+
+drawContents()
+BEGIN
+  LOCAL n:=tabN(gTab);
+  LOCAL k, y, s;
+  hil(24,24,295,44,gTabC(gTab));
+  ink(tabNm(gTab),30,27,3,RGB(255,255,255));
+  y:=50;
+  FOR k FROM 1 TO n DO
+    IF k==gCsel THEN hil(26,y,290,y+15,cHiY); END;
+    inkR(istr(k),48,y,2,cPen);
+    s:=pgName(gTab,k);
+    ink(s,56,y,2,cInk);
+    zone(24,y,295,y+15,100+k);
+    y:=y+16;
+  END;
+  gCh:=y+8;
+END;
+
+// ================= the cover =================
+
+drawCover()
+BEGIN
+  RECT_P(G1,0,0,295,239,cCov,cCov);
+  RECT_P(G1,0,0,16,239,RGB(24,32,60),RGB(24,32,60));
+  RECT_P(G1,40,44,270,150,cPap,cPap);
+  LINE_P(G1,48,96,262,96,cRule);
+  LINE_P(G1,48,120,262,120,cRule);
+  TEXTOUT_P("APPLIED",G1,60,54,5,cInk);
+  TEXTOUT_P("TECHNICAL MATH",G1,60,76,5,cInk);
+  TEXTOUT_P("Fall 2026  -  class notebook",G1,60,102,2,cBlue);
+  TEXTOUT_P("everything from the semester",G1,60,126,1,cPen);
+  TEXTOUT_P("Tap a coloured tab  >",G1,150,170,2,RGB(255,255,255));
+  TEXTOUT_P("or press 1 to 6.   Help: how to use it",G1,60,196,1,RGB(200,206,226));
+  TEXTOUT_P("Esc: close the notebook",G1,60,212,1,RGB(200,206,226));
+END;
+// ================= turning pages =================
+
+// keep what is typed on the page that is open
+savePage()
+BEGIN
+  IF gTab>=1 THEN
+    gSt(pid(gTab,gPg)):=gBt;
+    gSo(pid(gTab,gPg)):=gOpt;
+  END;
+END;
+
+// open page p behind tab t
+openPage(t,p)
+BEGIN
+  LOCAL k, pn;
+  savePage();
+  gTab:=t;
+  gPg:=p;
+  gTy:=0;
+  gSh:=0;
+  gAl:=0;
+  gAbc:=0;
+  gSy:=0;
+  gSel:=1;
+  gDirty:=1;
+  gNB:=0;
+  gSingle:=0;
+  gBv:={"","","","","","","","","","","",""};
+  gBe:={0,0,0,0,0,0,0,0,0,0,0,0};
+  IF t==0 THEN RETURN 0; END;
+  pn:=pid(t,p);
+  gBt:=gSt(pn);
+  gOpt:=gSo(pn);
+  IF SIZE(gBt)<12 THEN
+    gBt:={"","","","","","","","","","","",""};
+    gOpt:={pgRnd(t,p),0,0,0,0,0,0,0};
+    IF t==5 AND p==11 THEN gOpt:={0,0,1,1,0,0,0,0}; END;
+  END;
+  gKind:=pgKind(t,p);
+  gTit:=pgName(t,p);
+  IF p==0 THEN
+    gCsel:=1;
+    gTit:="Contents";
+  END;
+END;
+
+// work the open page out again
+build()
+BEGIN
+  gRnd:=gOpt(1);
+  gErr:="";
+  IF gPg==0 THEN
+    gNB:=0;
+  ELSE
+    IF gKind==1 THEN
+      shBuild();
+      IF gTab==1 AND gPg==4 THEN tolWork(); END;
+    END;
+    IF gKind==2 THEN cvBuild(); END;
+    IF gKind==3 THEN custBuild(); END;
+  END;
+  gDirty:=0;
+END;
+
+// keep the blank being filled in on the screen
+showSel()
+BEGIN
+  IF gSel>=1 AND gSel<=SIZE(bY) THEN
+    IF bY(gSel)-gSy<28 THEN gSy:=MAX(0,bY(gSel)-30); END;
+    IF bY(gSel)-gSy>196 THEN gSy:=bY(gSel)-190; END;
+  END;
+END;
+
+drawBody()
+BEGIN
+  regClear();
+  paper();
+  gCh:=0;
+  IF gPg==0 THEN
+    drawContents();
+  ELSE
+    IF gKind==1 THEN drawSheet(); END;
+    IF gKind==2 THEN cvDraw(); END;
+    IF gKind==3 THEN custDraw(); END;
+  END;
+END;
+
+// the letters, to tap one (when Alpha cannot be used)
+abcDraw()
+BEGIN
+  LOCAL ab:="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  LOCAL k;
+  RECT_P(G1,0,160,295,224,cHiG,cHiG);
+  FOR k FROM 1 TO 52 DO
+    TEXTOUT_P(MID(ab,k,1),G1,8+((k-1) MOD 13)*22,163+IP((k-1)/13)*15,2,cInk);
+  END;
+END;
+
+drawAll()
+BEGIN
+  LOCAL s0;
+  IF gTab==0 THEN
+    drawCover();
+    drawTabs();
+    BLIT_P(G0,G1);
+    RETURN 0;
+  END;
+  IF gDirty THEN build(); END;
+  gSy:=MAX(0,MIN(gSy,MAX(0,gCh-196)));
+  drawBody();
+  // scroll so that the blank being filled in shows
+  s0:=gSy;
+  IF gNB>0 THEN showSel(); END;
+  gSy:=MAX(0,MIN(gSy,MAX(0,gCh-196)));
+  IF gSy<>s0 THEN drawBody(); END;
+  drawChrome();
+  drawTabs();
+  IF gAbc THEN abcDraw(); END;
+  BLIT_P(G0,G1);
+END;
+
+// ================= typing =================
+
+// the letter on key code k (0 if none)
+keyLetter(k)
+BEGIN
+  LOCAL kc:={14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,31,32,33,34,35,37,38,39,40,42,43};
+  LOCAL j;
+  FOR j FROM 1 TO 26 DO
+    IF kc(j)==k THEN RETURN j; END;
+  END;
+  RETURN 0;
+END;
+
+keyDigit(k)
+BEGIN
+  LOCAL kc:={47,42,43,44,37,38,39,32,33,34};
+  LOCAL j;
+  FOR j FROM 1 TO 10 DO
+    IF kc(j)==k THEN RETURN j-1; END;
+  END;
+  RETURN -1;
+END;
+
+// add text to what is being typed (starting to type if needed)
+tyAdd(s)
+BEGIN
+  IF gTy==0 THEN
+    gTy:=1;
+    gTx:="";
+  END;
+  IF DIM(gTx)<40 THEN gTx:=gTx+s; END;
+END;
+
+// "(" or ")": whichever fits what is typed so far
+tyParen()
+BEGIN
+  LOCAL o:=0;
+  LOCAL k, ch, lc;
+  lc:="";
+  IF gTy==1 THEN
+    FOR k FROM 1 TO DIM(gTx) DO
+      ch:=MID(gTx,k,1);
+      IF ch=="(" THEN o:=o+1; END;
+      IF ch==")" THEN o:=o-1; END;
+      lc:=ch;
+    END;
+  END;
+  IF o>0 AND lc<>"" AND INSTRING("+-×÷^(√ ",lc)==0 THEN
+    tyAdd(")");
+  ELSE
+    tyAdd("(");
+  END;
+END;
+
+// keep what was typed in the blank
+commit()
+BEGIN
+  LOCAL k;
+  IF gTy==0 THEN RETURN 0; END;
+  gTy:=0;
+  IF gSel<1 OR gSel>12 THEN RETURN 0; END;
+  IF gSingle==1 THEN
+    FOR k FROM 1 TO 12 DO gBt(k):=""; END;
+  END;
+  IF gSingle==2 AND gSel<=2 THEN
+    FOR k FROM 3 TO 12 DO gBt(k):=""; END;
+  END;
+  gBt(gSel):=gTx;
+  gDirty:=1;
+  RETURN 1;
+END;
+
+// a key while a blank is picked.  Returns 1 if the key was used.
+tyKey(k)
+BEGIN
+  LOCAL kd:=1;
+  LOCAL d, j, ab;
+  IF gSel>=1 AND gSel<=SIZE(bK) THEN kd:=bK(gSel); END;
+  // letters (expressions only)
+  IF gAl>0 THEN
+    j:=keyLetter(k);
+    ab:="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    IF j>0 AND kd==2 THEN tyAdd(MID(ab,j+IFTE(gAl==2,26,0),1)); END;
+    gAl:=0;
+    RETURN 1;
+  END;
+  IF gSh THEN
+    gSh:=0;
+    IF kd==2 THEN
+      IF k==26 THEN
+        tyAdd("√(");
+        RETURN 1;
+      END;
+      IF k==44 THEN
+        tyAdd("π");
+        RETURN 1;
+      END;
+    END;
+  END;
+  d:=keyDigit(k);
+  IF d>=0 THEN
+    tyAdd(istr(d));
+    RETURN 1;
+  END;
+  IF k==48 THEN
+    tyAdd(".");
+    RETURN 1;
+  END;
+  IF k==19 THEN
+    IF gTy==1 THEN
+      IF DIM(gTx)>0 THEN gTx:=LEFT(gTx,DIM(gTx)-1); END;
+    ELSE
+      IF gSel>=1 AND gSel<=12 THEN
+        gBt(gSel):="";
+        gDirty:=1;
+      END;
+    END;
+    RETURN 1;
+  END;
+  IF kd==3 THEN RETURN 0; END;
+  IF k==49 THEN
+    IF gTy==1 THEN tyAdd(" "); END;
+    RETURN 1;
+  END;
+  IF k==18 THEN
+    tyAdd("/");
+    RETURN 1;
+  END;
+  IF k==27 THEN
+    tyAdd("-");
+    RETURN 1;
+  END;
+  IF kd==1 THEN
+    // a number: ÷ makes a fraction, - a negative number
+    IF k==35 THEN
+      tyAdd("/");
+      RETURN 1;
+    END;
+    IF k==45 THEN
+      IF gTy==0 OR gTx=="" THEN tyAdd("-"); END;
+      RETURN 1;
+    END;
+    RETURN 0;
+  END;
+  IF k==50 THEN
+    tyAdd(" + ");
+    RETURN 1;
+  END;
+  IF k==45 THEN
+    tyAdd(" - ");
+    RETURN 1;
+  END;
+  IF k==40 THEN
+    tyAdd(" × ");
+    RETURN 1;
+  END;
+  IF k==35 THEN
+    tyAdd(" ÷ ");
+    RETURN 1;
+  END;
+  IF k==20 THEN
+    tyAdd("^");
+    RETURN 1;
+  END;
+  IF k==26 THEN
+    tyAdd("²");
+    RETURN 1;
+  END;
+  IF k==28 THEN
+    tyParen();
+    RETURN 1;
+  END;
+  RETURN 0;
+END;
+
+// ================= things you can tap or press =================
+
+
+// erase everything typed on the page
+erasePage()
+BEGIN
+  LOCAL k;
+  FOR k FROM 1 TO 12 DO gBt(k):=""; END;
+  gTy:=0;
+  gDirty:=1;
+END;
+
+// what a tap place or a key does
+doAct(a)
+BEGIN
+  LOCAL k;
+  IF a==1 AND gKind==1 THEN
+    // the class example
+    FOR k FROM 1 TO 12 DO gBt(k):=""; END;
+    FOR k FROM 1 TO SIZE(gEx) DO gBt(k):=gEx(k); END;
+    gTy:=0;
+    gDirty:=1;
+  END;
+  IF a==2 THEN erasePage(); END;
+  IF a==3 THEN
+    gOpt(2):=(gOpt(2)+1) MOD 7;
+    gDirty:=1;
+  END;
+  IF a==4 THEN
+    gOpt(1):=(gOpt(1)+1) MOD 7;
+    gDirty:=1;
+  END;
+  IF a>=10 AND a<100 THEN custAct(a); END;
+  IF a>100 THEN openPage(gTab,a-100); END;
+END;
+
+// turn d pages on (1) or back (-1)
+flip(d)
+BEGIN
+  LOCAL n:=tabN(gTab);
+  LOCAL p:=gPg+d;
+  commit();
+  IF p<0 THEN p:=n; END;
+  IF p>n THEN p:=0; END;
+  openPage(gTab,p);
+END;
+
+// a tap at screen x, y
+onTap(x,y)
+BEGIN
+  LOCAL k, py, j;
+  IF x>=296 THEN
+    commit();
+    k:=MIN(6,IP((y-2)/37)+1);
+    openPage(k,0);
+    RETURN 1;
+  END;
+  IF gTab==0 THEN RETURN 1; END;
+  IF gAbc THEN
+    gAbc:=0;
+    IF y>=160 AND y<224 THEN
+      j:=IP((y-163)/15)*13+IP((x-2)/22)+1;
+      IF j>=1 AND j<=52 THEN tyAdd(MID("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",j,1)); END;
+    END;
+    RETURN 1;
+  END;
+  IF y>=225 THEN
+    IF gPg==0 THEN RETURN 1; END;
+    IF x<42 THEN
+      flip(-1);
+      RETURN 1;
+    END;
+    IF x>=280 THEN
+      flip(1);
+      RETURN 1;
+    END;
+    commit();
+    IF x<96 THEN doAct(1); END;
+    IF x>=96 AND x<136 THEN doAct(2); END;
+    IF x>=136 AND x<232 THEN doAct(4); END;
+    IF x>=232 AND gTab==5 THEN doAct(3); END;
+    RETURN 1;
+  END;
+  IF y<22 THEN
+    commit();
+    openPage(gTab,0);
+    RETURN 1;
+  END;
+  py:=y+gSy;
+  // a blank
+  FOR k FROM 1 TO SIZE(bX) DO
+    IF x>=bX(k)-34 AND x<=bX(k)+bW(k)+6 AND py>=bY(k)-2 AND py<=bY(k)+17 THEN
+      IF k<>gSel THEN commit(); END;
+      gSel:=k;
+      RETURN 1;
+    END;
+  END;
+  // another place to tap
+  FOR k FROM 1 TO SIZE(zA) DO
+    IF x>=zX1(k) AND x<=zX2(k) AND py>=zY1(k) AND py<=zY2(k) THEN
+      commit();
+      doAct(zA(k));
+      RETURN 1;
+    END;
+  END;
+  RETURN 1;
+END;
+
+// a key.  Returns 0 to close the notebook.
+onKey(k)
+BEGIN
+  LOCAL d, n;
+  IF gAbc THEN
+    gAbc:=0;
+    RETURN 1;
+  END;
+  IF k==41 THEN
+    gSh:=1-gSh;
+    RETURN 1;
+  END;
+  IF gTab==0 THEN
+    d:=keyDigit(k);
+    IF d>=1 AND d<=6 THEN openPage(d,0); END;
+    IF k==3 THEN openPage(6,1); END;
+    IF k==30 OR k==8 THEN openPage(1,0); END;
+    IF k==4 THEN RETURN 0; END;
+    RETURN 1;
+  END;
+  IF k==3 THEN
+    commit();
+    openPage(6,1);
+    RETURN 1;
+  END;
+  // Shift with the arrows: the next tab; Shift Del: erase the page
+  IF gSh AND (k==7 OR k==8) THEN
+    gSh:=0;
+    commit();
+    n:=gTab+IFTE(k==8,1,-1);
+    IF n<1 THEN n:=6; END;
+    IF n>6 THEN n:=1; END;
+    openPage(n,0);
+    RETURN 1;
+  END;
+  IF gSh AND k==19 THEN
+    gSh:=0;
+    erasePage();
+    RETURN 1;
+  END;
+  IF gPg==0 THEN
+    // the contents page
+    n:=tabN(gTab);
+    d:=keyDigit(k);
+    IF d>=1 AND d<=n THEN openPage(gTab,d); END;
+    IF d==0 AND n>=10 THEN openPage(gTab,10); END;
+    IF k==2 THEN gCsel:=IFTE(gCsel<=1,n,gCsel-1); END;
+    IF k==12 THEN gCsel:=IFTE(gCsel>=n,1,gCsel+1); END;
+    IF k==2 OR k==12 THEN gSy:=MAX(0,50+gCsel*16-180); END;
+    IF k==30 THEN openPage(gTab,gCsel); END;
+    IF k==8 THEN openPage(gTab,1); END;
+    IF k==7 THEN openPage(gTab,n); END;
+    IF k==4 THEN openPage(0,0); END;
+    RETURN 1;
+  END;
+  IF k==36 THEN
+    gAl:=(gAl+1) MOD 3;
+    RETURN 1;
+  END;
+  IF k==4 THEN
+    IF gTy==1 THEN
+      gTy:=0;
+    ELSE
+      openPage(gTab,0);
+    END;
+    RETURN 1;
+  END;
+  IF k==7 OR k==8 THEN
+    flip(IFTE(k==8,1,-1));
+    RETURN 1;
+  END;
+  IF k==13 THEN
+    commit();
+    doAct(4);
+    RETURN 1;
+  END;
+  IF k==14 AND gAl==0 AND gTab==5 THEN
+    commit();
+    doAct(3);
+    RETURN 1;
+  END;
+  IF k==9 THEN
+    commit();
+    doAct(1);
+    RETURN 1;
+  END;
+  IF gNB>0 THEN
+    IF k==30 OR k==12 THEN
+      IF k==12 AND gTy==0 AND gSel>=gNB THEN
+        gSy:=gSy+32;
+        RETURN 1;
+      END;
+      commit();
+      IF gDirty THEN build(); END;
+      d:=gSel+1;
+      WHILE d<=gNB AND d<=SIZE(bW) AND bW(MIN(d,SIZE(bW)))==0 DO d:=d+1; END;
+      IF d<=gNB THEN gSel:=d; END;
+      RETURN 1;
+    END;
+    IF k==2 THEN
+      IF gTy==0 AND gSy>0 AND gSel>=gNB THEN
+        gSy:=MAX(0,gSy-32);
+        IF gSy>0 THEN RETURN 1; END;
+      END;
+      commit();
+      d:=gSel-1;
+      WHILE d>=1 AND d<=SIZE(bW) AND bW(MAX(1,MIN(d,SIZE(bW))))==0 DO d:=d-1; END;
+      IF d>=1 THEN gSel:=d; END;
+      RETURN 1;
+    END;
+    tyKey(k);
+    RETURN 1;
+  END;
+  IF k==12 THEN gSy:=gSy+32; END;
+  IF k==2 THEN gSy:=MAX(0,gSy-32); END;
+  IF k==50 THEN gSy:=gSy+176; END;
+  IF k==45 THEN gSy:=MAX(0,gSy-176); END;
+  RETURN 1;
+END;
+
+// ================= start =================
+
+EXPORT TECHMATH()
+BEGIN
+  LOCAL run:=1;
+  LOCAL ha:=HAngle;
+  LOCAL ev, k, n, dx, dy;
+  HAngle:=1;
+  DIMGROB_P(G1,320,240);
+  DIMGROB_P(G9,320,30);
+  n:=pid(6,tabN(6));
+  IF SIZE(gSt)<n THEN
+    gSt:={};
+    gSo:={};
+    FOR k FROM 1 TO n DO
+      gSt(k):={};
+      gSo(k):={0,0,0,0,0,0,0,0};
+    END;
+  END;
+  gTab:=0;
+  gPg:=0;
+  openPage(0,0);
+  WHILE run DO
+    drawAll();
+    ev:=WAIT(-1);
+    IF TYPE(ev)==6 THEN
+      IF ev(1)==0 AND SIZE(ev)>=3 THEN
+        gDown:=1;
+        gX0:=ev(2);
+        gY0:=ev(3);
+        gY1:=ev(3);
+        gMoved:=0;
+      END;
+      IF ev(1)==1 AND SIZE(ev)>=3 AND gDown==1 AND gTab>0 THEN
+        dx:=ev(2)-gX0;
+        dy:=ev(3)-gY1;
+        IF ABS(dx)>70 AND ABS(ev(3)-gY0)<30 AND gPg>0 AND gMoved==0 THEN
+          // a swipe across turns the page
+          gMoved:=2;
+          flip(IFTE(dx<0,1,-1));
+        END;
+        IF ABS(dy)>=6 AND gMoved<2 THEN
+          gSy:=MAX(0,gSy-dy);
+          gY1:=ev(3);
+          gMoved:=1;
+        END;
+      END;
+      IF ev(1)==3 AND SIZE(ev)>=3 THEN
+        IF gMoved==0 THEN onTap(ev(2),ev(3)); END;
+        gDown:=0;
+        gMoved:=0;
+      END;
+    ELSE
+      IF ev>=0 THEN run:=onKey(ev); END;
+    END;
+  END;
+  savePage();
+  HAngle:=ha;
+END;

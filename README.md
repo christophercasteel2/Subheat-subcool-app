@@ -12,6 +12,7 @@ Color, touchscreen apps for HVAC/R and electricity classes on the **HP Prime G1*
 | **[REFCYCLE](#refcycle-refrigeration-cycle-and-service)** | The refrigeration cycle from saturation temperatures or gauge pressures (enthalpy at each point, refrigeration effect, COP, mass flow), refrigerant property look-ups, compressors, walk-in box loads, the 2026 EPA leak repair and evacuation rules, and service paperwork | [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip) |
 | **[CIRCUITS](#circuits-dc-circuits-for-electricity-class)** | DC circuits for electricity class: series, parallel, series-parallel and combination circuits (RT, IT, ET and every resistor's voltage, current and power), finding an open or shorted resistor, Kirchhoff's voltage and current laws, a two-source network, Ohm's law and power, dividers, the color code and metric prefixes | [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/CIRCUITS.zip) |
 | **[GEOMETRY](#geometry-practical-plane-geometry)** | Chapter 8 of a trades math class, Practical Plane Geometry: angles in degrees-minutes-seconds, angle facts, parallel lines, rectangles, squares, parallelograms, trapezoids, triangles (base and height, right, Hero's, isosceles, equilateral), circles, semicircles, rings, sectors, hexagons, polygons, two shapes combined, cost of materials and feet and inches. Big labeled drawings you tap to enter sizes, and the work shown step by step | [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip) |
+| **[TECHMATH](#techmath-applied-technical-math-notebook)** | Applied Technical Math, the whole semester as a ruled notebook with divider tabs: place value, rounding, fractions-decimals-percents, tolerance, unit conversions, reading rulers and gauges, percent, order of operations, 34 trade formulas, any formula you type, and Chapter 8 geometry. Each page writes out the substitution and every step | [`TECHMATH.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/TECHMATH.zip) |
 | **[ELECREV](#elecrev-electricity-exam-review)** | Exam review for electricity class Units 9, 11 and 13: 64 pages of notes, key terms and review answers, and 18 calculators for every equation in the units (Kirchhoff, Thevenin, Norton, superposition, wire resistance, voltage drop, ampacity, batteries). A separate app you can delete after the exam | [`ELECREV.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/ELECREV.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
@@ -487,6 +488,48 @@ The tests (`tools/test_geometry.py`, 147 checks) work the chapter's examples and
 
 They also play through the screens: tapping labels, feet-and-inches boxes, keypad typing, CLEAR, EXAMPLE, SETUP (units, rounding, save), the work page, SHAPES and PLACE, FIND, practice, history and saved problems. They check that no two labels on any screen cover each other.
 
+# TECHMATH: Applied Technical Math notebook
+
+One app for the whole semester of Applied Technical Math, built from the class handouts, classwork, practice sheets and the graded Chapter 5 and Chapter 7 exams. It looks and works like a binder of ruled paper, not a grid of boxes or a list of menus. Calculator only.
+
+![Cover](docs/screens/tm_cover.png) ![Pittsburgh lock](docs/screens/tm_4_9.png) ![Order of operations](docs/screens/tm_order.png)
+
+Download [`TECHMATH.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/TECHMATH.zip), unzip it, and drag `TECHMATH.hpappdir` onto **Application Library** (or `TECHMATH.hpprgm` onto **Programs**).
+
+**Getting around.**
+- Six coloured divider tabs run down the right edge. Tap one for its contents page, then tap a line or press its number.
+- Left/Right or a swipe turns the pages. Esc goes back to the contents, then to the cover.
+- Shift then Left/Right goes to the next tab. Help opens the how-to page.
+
+**Filling in a page.**
+- Each page has blanks on the ruled lines. Tap one (or Up/Down) and type; there are no pop-up boxes.
+- The ÷ key makes a fraction (7/8) and the space key a mixed number (78 3/4).
+- Leave the blank you want to find empty. It is worked out and marked in pink highlighter.
+- The work is written under the blanks the way it has to be shown: the formula, the numbers substituted, each step, then the answer.
+- At the foot of a page: **example** (the class's numbers), **erase**, and **round** (tap until it says what the question asks: whole number, tenth, hundredth, thousandth, ten or hundred).
+
+| Tab | Pages |
+|---|---|
+| **Numbers** | Place value (every digit named). Rounding to every place, done on the digits so it is exact. Fraction, decimal, percent. Tolerance (0.81 ± .003: does 13/16 fit?). Missing length with mixed numbers |
+| **Measurement** | Length, area, volume, weight and liquid tables: write an amount on one unit's line and every other unit is filled in, with the factor used (÷ 144, × 27, × 7.48 ...), including standard to metric. The metric stairs. Reading a ruler in 16ths and mm. Reading a gauge between two numbered marks |
+| **Percent** | "__ is __ % of __" solved as the class proportion (cross-multiply and divide), and percent change |
+| **Algebra and formulas** | Order of operations worked a PEMDAS pass at a time. Any formula you type, solved for whichever letter is left empty. The 34 formulas from the classwork and exams (pipes, feeder belt, piston, capacitors, Pittsburgh lock, grinding wheel, crushing load, Ohm's law ...) |
+| **Geometry** | Rectangle, square, parallelogram, trapezoid, triangle, Hero's formula, equilateral (.433s²), right triangle, hexagon (2.6s²), circle (π = 3.14) and composite figures of up to three shapes |
+| **Reference sheets** | How to use it, PEMDAS, percent, place value and rounding, standard units, metric and conversions, the Chapter 8 formulas, and an exam checklist |
+
+**How the work is written.** Solving works on both sides the way it is done by hand, and fractions stay fractions:
+
+```
+A = 2W + 3/16
+7/8 = 2W + 3/16
+subtract 3/16 from both sides
+11/16 = 2W
+divide both sides by 2
+W = 11/32
+```
+
+The tests (`tools/test_techmath.py`, 113 checks) rework the class's own answers: every problem on the Chapter 7 exam, the Chapter 5 exam's place value, rounding, tolerance, conversions and missing length, the conversion practice key, all 34 formulas with the classwork numbers, the percent handout, and the Chapter 8 homework figures. They also open and draw every page and play through typing, turning pages, swiping and the letter keys.
+
 # ELECREV: electricity exam review
 
 A separate study app for the exam on Units 9 (Kirchhoff's laws, Thevenin's, Norton's and the superposition theorems), 11 (conductors) and 13 (batteries and other small sources). Delete it after the exam without affecting the other apps. Calculator only.
@@ -572,6 +615,7 @@ tools/test_hvacgas.py     the same for HVACGAS (all 37 IFGC pipe tables checked)
 tools/test_refcycle.py    the same for REFCYCLE (checked against CoolProp and the EPA rules)
 tools/test_circuits.py    the same for CIRCUITS (checked against the homework problems)
 tools/test_geometry.py    the same for GEOMETRY (checked against the textbook's examples)
+tools/test_techmath.py    the same for TECHMATH (checked against the class exams and answer keys)
 tools/test_elecrev.py     the same for ELECREV (checked against the textbook's examples)
 tools/ppl2js.py           translates a PPL program into JavaScript for the Android apps
 tools/android/            the Android runtime (runtime.js), page (shell.html), signing key and test drivers
