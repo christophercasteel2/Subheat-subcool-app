@@ -188,6 +188,13 @@ def main():
         ok &= w[-1] == "Answer = 8"
         _, w = page(it, 4, 1, {1: "78 3/4 - 31 3/8 - 11.25"})  # Ch. 5 exam, missing length
         ok &= "Answer = 36 1/8" in w and any("36.125" in x for x in w)
+        # a number or a parenthesis next to a parenthesis multiplies, as in algebra (no × typed)
+        for text, want in (("3(3+3)", "18"), ("(2+1)(4+5)", "27"), ("2(3)(4)", "24"), ("(3+3)3", "18"),
+                           ("-2(5-8)", "6"), ("2(3+4(5-1))", "38"), ("3(2)²", "12"), ("4√(16)", "16")):
+            _, w = page(it, 4, 1, {1: text})
+            ok &= w[-1] == "Answer = " + want
+        _, w = page(it, 4, 1, {1: "3(2)²"})
+        ok &= w[0] == "3 × 2²"
         _, w = page(it, 4, 1, {1: "5 ÷ 0"})
         ok &= any("divide by 0" in x for x in w)
         _, w = page(it, 4, 1, {1: "√(30(30 - 15)(30 - 20)(30 - 25))"})

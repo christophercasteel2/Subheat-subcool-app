@@ -820,7 +820,11 @@ BEGIN
             s:=a+" × "+b;
           END;
         ELSE
-          s:=a+b;
+          IF INSTRING("0123456789.",LEFT(b,1))>0 THEN
+            s:=a+" × "+b;
+          ELSE
+            s:=a+b;
+          END;
         END;
       END;
       IF cx==1 OR cx==2 OR cx==4 THEN pr:=1; END;
@@ -2719,7 +2723,8 @@ BEGIN
     wk("E  exponents and roots",2);
     wk("MD multiply, divide: left to right",2);
     wk("AS add, subtract: left to right",2);
-    wk("Type the problem on the line. One key makes ( and ).",3);
+    wk("Type the problem on the line. 3(3 + 3) needs no ×",3);
+    wk("sign: it is put in for you. One key makes ( and ).",3);
     wk("x² key: squared. Shift x²: square root. a b/c: a",3);
     wk("fraction like 3/16. For a fraction bar type",3);
     wk("( top ) ÷ ( bottom ).",3);
@@ -2995,6 +3000,8 @@ BEGIN
     wk("over.  round: tap until it says what the",2);
     wk("question asks (Menu key).  unit: for geometry.",2);
     wk("Typing a formula",5);
+    wk("No × needed before a parenthesis: 3(3 + 3) = 18,",2);
+    wk("(2 + 1)(4 + 5) = 27, 2L, 3(8), as in algebra.",2);
     wk("( and ) are one key. x² squares. Shift x² is the",2);
     wk("square root. Shift 3 is π. ALPHA then a key",2);
     wk("types its letter (ALPHA twice: a small letter).",2);
