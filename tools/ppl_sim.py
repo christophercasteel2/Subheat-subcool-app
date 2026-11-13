@@ -316,8 +316,13 @@ def check_names(globs, funcs):
                 names += [(n, f"local in {fname}") for n, _ in st[2]]
             if isinstance(st, (tuple, list)):
                 stack.extend(x for x in st if isinstance(x, (tuple, list)))
+    # the calculator reads its language words in any mix of capitals, so
+    # a name like tO is the word TO to it
+    words = {"begin", "end", "if", "then", "else", "for", "from", "to", "step", "do", "while", "repeat",
+             "until", "local", "return", "export", "and", "or", "not", "xor", "mod", "case", "default",
+             "break", "continue", "kill", "iferr", "downto"}
     for n, where in names:
-        if n in RESERVED:
+        if n in RESERVED or n.lower() in words:
             raise PPLError(f"{where}: name {n!r} clashes with a calculator name")
 
 

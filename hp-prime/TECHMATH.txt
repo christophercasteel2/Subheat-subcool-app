@@ -13,15 +13,15 @@ gVk:={};
 gVg:={};
 gVt:={};
 // ---- expression trees
-tK:={};
-tO:={};
-tL:={};
-tR:={};
-tV:={};
-tN:={};
-tD:={};
-tF:={};
-tS:={};
+ndK:={};
+ndOp:={};
+ndL:={};
+ndR:={};
+ndV:={};
+ndN:={};
+ndD:={};
+ndF:={};
+ndS:={};
 gTn:=0;
 // tokens and the parser's stacks
 kT:={};
@@ -283,15 +283,15 @@ END;
 nNew(k,o,l,r)
 BEGIN
   gTn:=gTn+1;
-  tK(gTn):=k;
-  tO(gTn):=o;
-  tL(gTn):=l;
-  tR(gTn):=r;
-  tV(gTn):=0;
-  tN(gTn):=0;
-  tD(gTn):=0;
-  tF(gTn):=0;
-  tS(gTn):=0;
+  ndK(gTn):=k;
+  ndOp(gTn):=o;
+  ndL(gTn):=l;
+  ndR(gTn):=r;
+  ndV(gTn):=0;
+  ndN(gTn):=0;
+  ndD(gTn):=0;
+  ndF(gTn):=0;
+  ndS(gTn):=0;
   RETURN gTn;
 END;
 
@@ -300,10 +300,10 @@ END;
 nNum(v,n,d,f)
 BEGIN
   LOCAL m:=nNew(1,0,0,0);
-  tV(m):=v;
-  tN(m):=n;
-  tD(m):=d;
-  tF(m):=f;
+  ndV(m):=v;
+  ndN(m):=n;
+  ndD(m):=d;
+  ndF(m):=f;
   RETURN m;
 END;
 
@@ -333,17 +333,17 @@ END;
 // Returns 0 and sets gErr when it cannot be done.
 calcN(o,a,b)
 BEGIN
-  LOCAL x:=tV(a);
+  LOCAL x:=ndV(a);
   LOCAL y:=0;
-  LOCAL f:=tF(a);
+  LOCAL f:=ndF(a);
   LOCAL k, p, q, r;
   gRn:=0;
   gRd:=0;
   gRf:=0;
   gRv:=0;
   IF b>0 THEN
-    y:=tV(b);
-    f:=MAX(f,tF(b));
+    y:=ndV(b);
+    f:=MAX(f,ndF(b));
   END;
   IF o==1 THEN gRv:=x+y; END;
   IF o==2 THEN gRv:=x-y; END;
@@ -384,21 +384,21 @@ BEGIN
   END;
   IF o==7 THEN gRv:=-x; END;
   // the exact fraction, when both are exact
-  IF tD(a)>0 THEN
+  IF ndD(a)>0 THEN
     IF b>0 THEN
-      IF tD(b)>0 THEN
-        IF o==1 THEN ratSet(tN(a)*tD(b)+tN(b)*tD(a),tD(a)*tD(b),f); END;
-        IF o==2 THEN ratSet(tN(a)*tD(b)-tN(b)*tD(a),tD(a)*tD(b),f); END;
-        IF o==3 OR o==8 THEN ratSet(tN(a)*tN(b),tD(a)*tD(b),f); END;
-        IF o==4 THEN ratSet(tN(a)*tD(b),tD(a)*tN(b),f); END;
-        IF o==5 AND tD(b)==1 AND ABS(tN(b))<=8 THEN
+      IF ndD(b)>0 THEN
+        IF o==1 THEN ratSet(ndN(a)*ndD(b)+ndN(b)*ndD(a),ndD(a)*ndD(b),f); END;
+        IF o==2 THEN ratSet(ndN(a)*ndD(b)-ndN(b)*ndD(a),ndD(a)*ndD(b),f); END;
+        IF o==3 OR o==8 THEN ratSet(ndN(a)*ndN(b),ndD(a)*ndD(b),f); END;
+        IF o==4 THEN ratSet(ndN(a)*ndD(b),ndD(a)*ndN(b),f); END;
+        IF o==5 AND ndD(b)==1 AND ABS(ndN(b))<=8 THEN
           p:=1;
           q:=1;
-          FOR k FROM 1 TO ABS(tN(b)) DO
-            p:=p*tN(a);
-            q:=q*tD(a);
+          FOR k FROM 1 TO ABS(ndN(b)) DO
+            p:=p*ndN(a);
+            q:=q*ndD(a);
           END;
-          IF tN(b)<0 THEN
+          IF ndN(b)<0 THEN
             ratSet(q,p,f);
           ELSE
             ratSet(p,q,f);
@@ -406,11 +406,11 @@ BEGIN
         END;
       END;
     ELSE
-      IF o==7 THEN ratSet(-tN(a),tD(a),f); END;
+      IF o==7 THEN ratSet(-ndN(a),ndD(a),f); END;
       IF o==6 THEN
-        p:=ROUND(sqroot(tN(a)),0);
-        q:=ROUND(sqroot(tD(a)),0);
-        IF p*p==tN(a) AND q*q==tD(a) THEN ratSet(p,q,f); END;
+        p:=ROUND(sqroot(ndN(a)),0);
+        q:=ROUND(sqroot(ndD(a)),0);
+        IF p*p==ndN(a) AND q*q==ndD(a) THEN ratSet(p,q,f); END;
       END;
     END;
   END;
@@ -420,12 +420,12 @@ END;
 // put the answer of calcN into number node m
 nPut(m)
 BEGIN
-  tK(m):=1;
-  tV(m):=gRv;
-  tN(m):=gRn;
-  tD(m):=gRd;
-  tF(m):=gRf;
-  tS(m):=0;
+  ndK(m):=1;
+  ndV(m):=gRv;
+  ndN(m):=gRn;
+  ndD(m):=gRd;
+  ndF(m):=gRf;
+  ndS(m):=0;
 END;
 
 // ---- reading an expression typed as text ----
@@ -621,10 +621,10 @@ BEGIN
       RETURN 0;
     END;
     l:=gNs(gNp);
-    IF o==7 AND tK(l)==1 THEN
+    IF o==7 AND ndK(l)==1 THEN
       // a minus sign on a number: a negative number
-      tV(l):=-tV(l);
-      tN(l):=-tN(l);
+      ndV(l):=-ndV(l);
+      ndN(l):=-ndN(l);
       RETURN 1;
     END;
     gNs(gNp):=nNew(4,o,l,0);
@@ -658,7 +658,7 @@ BEGIN
     IF t==1 THEN
       IF kF(k)==2 THEN
         m:=nNum(kV(k),kN(k),kD(k),0);
-        tS(m):=2;
+        ndS(m):=2;
       ELSE
         m:=nNum(kV(k),kN(k),kD(k),kF(k));
       END;
@@ -759,8 +759,8 @@ END;
 // the number in node n
 numTx(n)
 BEGIN
-  IF tF(n)==1 AND tD(n)>1 AND tD(n)<=64 THEN RETURN fracTx(tN(n),tD(n)); END;
-  RETURN fmtG(tV(n));
+  IF ndF(n)==1 AND ndD(n)>1 AND ndD(n)<=64 THEN RETURN fracTx(ndN(n),ndD(n)); END;
+  RETURN fmtG(ndV(n));
 END;
 
 // node n as text.  cx says where it sits, which decides the
@@ -769,29 +769,29 @@ END;
 // a division, 4 bottom of a division.
 exprTx(n,cx)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   LOCAL o, a, b, s, parF, l, r;
   parF:=0;
   IF k==1 THEN
-    IF tS(n)==2 THEN RETURN "π"; END;
+    IF ndS(n)==2 THEN RETURN "π"; END;
     s:=numTx(n);
-    IF tS(n)==1 AND (cx==1 OR cx==2 OR cx==6) THEN parF:=1; END;
-    IF tV(n)<0 AND cx>=1 AND cx<=4 THEN parF:=1; END;
+    IF ndS(n)==1 AND (cx==1 OR cx==2 OR cx==6) THEN parF:=1; END;
+    IF ndV(n)<0 AND cx>=1 AND cx<=4 THEN parF:=1; END;
     IF INSTRING(s,"/")>0 AND (cx==1 OR cx==2 OR cx==4 OR cx==6 OR cx==7) THEN parF:=1; END;
     IF parF THEN s:="("+s+")"; END;
     RETURN s;
   END;
-  IF k==2 THEN RETURN gVs(tO(n)); END;
-  o:=tO(n);
-  l:=tL(n);
-  r:=tR(n);
+  IF k==2 THEN RETURN gVs(ndOp(n)); END;
+  o:=ndOp(n);
+  l:=ndL(n);
+  r:=ndR(n);
   IF k==4 THEN
     IF o==7 THEN
       s:="-"+exprTx(l,1);
       IF cx>=1 AND cx<=4 THEN parF:=1; END;
     ELSE
       a:=exprTx(l,0);
-      IF tK(l)==1 AND (INSTRING(a," ")==0 OR LEFT(a,1)=="(") THEN
+      IF ndK(l)==1 AND (INSTRING(a," ")==0 OR LEFT(a,1)=="(") THEN
         s:="√"+a;
       ELSE
         s:="√("+a+")";
@@ -813,7 +813,7 @@ BEGIN
       IF LEFT(b,1)=="(" THEN
         s:=a+b;
       ELSE
-        IF tK(r)==1 THEN
+        IF ndK(r)==1 THEN
           IF RIGHT(a,1)==")" THEN
             s:=a+"("+b+")";
           ELSE
@@ -836,9 +836,9 @@ BEGIN
     IF o==5 THEN
       a:=exprTx(l,2);
       b:="";
-      IF tK(r)==1 THEN
-        IF tV(r)==2 THEN b:="²"; END;
-        IF tV(r)==3 THEN b:="³"; END;
+      IF ndK(r)==1 THEN
+        IF ndV(r)==2 THEN b:="²"; END;
+        IF ndV(r)==3 THEN b:="³"; END;
       END;
       IF b=="" THEN b:="^"+exprTx(r,2); END;
       s:=a+b;
@@ -855,21 +855,21 @@ END;
 // out.  Returns 1 if anything changed.
 redP(n)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   LOCAL l, r, c;
   IF k<3 THEN RETURN 0; END;
-  l:=tL(n);
-  r:=tR(n);
+  l:=ndL(n);
+  r:=ndR(n);
   c:=redP(l);
   IF k==3 THEN c:=MAX(c,redP(r)); END;
   IF c THEN RETURN 1; END;
-  IF tK(l)<>1 THEN RETURN 0; END;
+  IF ndK(l)<>1 THEN RETURN 0; END;
   IF k==3 THEN
-    IF tK(r)<>1 THEN RETURN 0; END;
+    IF ndK(r)<>1 THEN RETURN 0; END;
   ELSE
     r:=0;
   END;
-  IF calcN(tO(n),l,r)==0 THEN RETURN 0; END;
+  IF calcN(ndOp(n),l,r)==0 THEN RETURN 0; END;
   nPut(n);
   RETURN 1;
 END;
@@ -878,40 +878,40 @@ END;
 // by their values
 cloneT(n)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   LOCAL m, v, a, b;
   IF k==1 THEN
-    m:=nNum(tV(n),tN(n),tD(n),tF(n));
-    IF tS(n)==2 THEN tS(m):=1; END;
+    m:=nNum(ndV(n),ndN(n),ndD(n),ndF(n));
+    IF ndS(n)==2 THEN ndS(m):=1; END;
     RETURN m;
   END;
   IF k==2 THEN
-    v:=tO(n);
+    v:=ndOp(n);
     IF gVk(v)==1 THEN
       m:=nNum(gVv(v),gVnn(v),gVd(v),gVf(v));
-      tS(m):=1;
+      ndS(m):=1;
       RETURN m;
     END;
     RETURN nNew(2,v,0,0);
   END;
-  a:=cloneT(tL(n));
+  a:=cloneT(ndL(n));
   b:=0;
-  IF k==3 THEN b:=cloneT(tR(n)); END;
-  RETURN nNew(k,tO(n),a,b);
+  IF k==3 THEN b:=cloneT(ndR(n)); END;
+  RETURN nNew(k,ndOp(n),a,b);
 END;
 
 // after the substitution line is written the numbers put in for
 // letters are ordinary numbers
 clrS(n)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   IF k==1 THEN
-    tS(n):=0;
+    ndS(n):=0;
     RETURN 0;
   END;
   IF k==2 THEN RETURN 0; END;
-  clrS(tL(n));
-  IF k==3 THEN clrS(tR(n)); END;
+  clrS(ndL(n));
+  IF k==3 THEN clrS(ndR(n)); END;
   RETURN 0;
 END;
 
@@ -919,45 +919,45 @@ END;
 // gUc (how many times they appear)
 scanU(n)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   LOCAL j, f;
   IF k==1 THEN RETURN 0; END;
   IF k==2 THEN
-    IF gVk(tO(n))==0 THEN
+    IF gVk(ndOp(n))==0 THEN
       gUc:=gUc+1;
       f:=0;
       FOR j FROM 1 TO SIZE(gUl) DO
-        IF gUl(j)==tO(n) THEN f:=1; END;
+        IF gUl(j)==ndOp(n) THEN f:=1; END;
       END;
-      IF f==0 THEN gUl(SIZE(gUl)+1):=tO(n); END;
+      IF f==0 THEN gUl(SIZE(gUl)+1):=ndOp(n); END;
     END;
     RETURN 0;
   END;
-  scanU(tL(n));
-  IF k==3 THEN scanU(tR(n)); END;
+  scanU(ndL(n));
+  IF k==3 THEN scanU(ndR(n)); END;
   RETURN 0;
 END;
 
 // is letter v somewhere under n
 hasV(n,v)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   IF k==1 THEN RETURN 0; END;
-  IF k==2 THEN RETURN tO(n)==v; END;
-  IF hasV(tL(n),v) THEN RETURN 1; END;
-  IF k==3 THEN RETURN hasV(tR(n),v); END;
+  IF k==2 THEN RETURN ndOp(n)==v; END;
+  IF hasV(ndL(n),v) THEN RETURN 1; END;
+  IF k==3 THEN RETURN hasV(ndR(n),v); END;
   RETURN 0;
 END;
 
 // the value of the tree under n, with every letter at its value
 evalT(n)
 BEGIN
-  LOCAL k:=tK(n);
+  LOCAL k:=ndK(n);
   LOCAL a, b, o;
-  IF k==1 THEN RETURN tV(n); END;
-  IF k==2 THEN RETURN gVv(tO(n)); END;
-  o:=tO(n);
-  a:=evalT(tL(n));
+  IF k==1 THEN RETURN ndV(n); END;
+  IF k==2 THEN RETURN gVv(ndOp(n)); END;
+  o:=ndOp(n);
+  a:=evalT(ndL(n));
   IF k==4 THEN
     IF o==7 THEN RETURN -a; END;
     IF a<0 THEN
@@ -966,7 +966,7 @@ BEGIN
     END;
     RETURN a^0.5;
   END;
-  b:=evalT(tR(n));
+  b:=evalT(ndR(n));
   IF o==1 THEN RETURN a+b; END;
   IF o==2 THEN RETURN a-b; END;
   IF o==3 OR o==8 THEN RETURN a*b; END;
@@ -1169,12 +1169,12 @@ BEGIN
     sideN:=2;
   END;
   // undo what is done to the letter, the same on both sides
-  WHILE tK(s)<>2 DO
-    o:=tO(s);
-    l:=tL(s);
-    r:=tR(s);
+  WHILE ndK(s)<>2 DO
+    o:=ndOp(s);
+    l:=ndL(s);
+    r:=ndR(s);
     ok:=1;
-    IF tK(s)==4 THEN
+    IF ndK(s)==4 THEN
       IF o==7 THEN
         ok:=calcN(7,v,0);
         t:="change the sign of both sides";
@@ -1203,15 +1203,15 @@ BEGIN
           t:="multiply both sides by "+numTx(r);
         END;
         IF o==5 THEN
-          IF tV(r)==2 THEN
+          IF ndV(r)==2 THEN
             ok:=calcN(6,v,0);
             t:="take the square root of both sides";
           ELSE
-            IF tV(r)==0 THEN
+            IF ndV(r)==0 THEN
               gErr:="A power of 0 cannot be undone.";
               ok:=0;
             ELSE
-              m:=nNum(1/tV(r),0,0,0);
+              m:=nNum(1/ndV(r),0,0,0);
               ok:=calcN(5,v,m);
               t:="take the root ("+numTx(r)+") of both sides";
             END;
@@ -1248,16 +1248,16 @@ BEGIN
     END;
     nPut(v);
     wkAdd(t,3);
-    IF sideN==1 OR tK(s)==2 THEN
+    IF sideN==1 OR ndK(s)==2 THEN
       wkAdd(exprTx(s,0)+" = "+numTx(v),2);
     ELSE
       wkAdd(numTx(v)+" = "+exprTx(s,0),2);
     END;
   END;
-  gVv(x):=tV(v);
-  gVnn(x):=tN(v);
-  gVd(x):=tD(v);
-  gVf(x):=tF(v);
+  gVv(x):=ndV(v);
+  gVnn(x):=ndN(v);
+  gVd(x):=ndD(v);
+  gVf(x):=ndF(v);
   gVk(x):=1;
   wkAns(x);
   RETURN 1;
@@ -1711,11 +1711,11 @@ BEGIN
       go:=redP(r);
       IF gErr<>"" THEN go:=0; END;
     END;
-    IF tK(r)==1 AND gErr=="" THEN
-      gRv:=tV(r);
-      gRn:=tN(r);
-      gRd:=tD(r);
-      gRf:=tF(r);
+    IF ndK(r)==1 AND gErr=="" THEN
+      gRv:=ndV(r);
+      gRn:=ndN(r);
+      gRd:=ndD(r);
+      gRf:=ndF(r);
       ok:=1;
     END;
   END;
@@ -2743,7 +2743,7 @@ BEGIN
   END;
   a:=evalWork(r);
   IF a>0 THEN
-    IF tK(a)==1 THEN ansLine("Answer",tV(a),tN(a),tD(a),tF(a)); END;
+    IF ndK(a)==1 THEN ansLine("Answer",ndV(a),ndN(a),ndD(a),ndF(a)); END;
   END;
   RETURN 1;
 END;
