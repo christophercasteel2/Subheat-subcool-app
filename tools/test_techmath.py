@@ -91,7 +91,7 @@ def main():
         for k, v in (opt or {}).items():
             it.g["gOpt"][k - 1] = float(v)
         it.g["gDirty"] = 1.0
-        fn_call(it, "build")
+        fn_call(it, "buildPg")
         return list(it.g["gBv"]), list(it.g["gWk"])
 
     def var(it, name):
@@ -108,7 +108,7 @@ def main():
         _, w = page(it, 4, 36)                         # 2C + 1.6(D + d) + (D + d)/(4C)
         it.g["gBt"][:4] = ["", "30", "10", "5"]
         it.g["gDirty"] = 1.0
-        fn_call(it, "build")
+        fn_call(it, "buildPg")
         w = list(it.g["gWk"])
         ok &= "X = 2(30) + 1.6(10 + 5) + (10 + 5) ÷ (4(30))" in w and "X = 84.125" in w
         ok &= any("84 1/8" in x for x in w)
