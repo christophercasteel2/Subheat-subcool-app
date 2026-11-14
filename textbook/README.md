@@ -4,7 +4,7 @@ A full-colour textbook covering the whole semester: place value and rounding, fr
 the percent proportion, standard and metric measurement, rulers/gauges/tolerance, order of operations,
 evaluating and solving formulas, and the perimeter and area of flat shapes.
 
-- `Applied_Technical_Math.pdf`: the print-ready book (127 pages, Letter size).
+- `Applied_Technical_Math.pdf`: the print-ready book (128 pages, Letter size).
 - `Applied_Technical_Math.docx`: the same text as an editable Word document.
 
 ## Rebuilding

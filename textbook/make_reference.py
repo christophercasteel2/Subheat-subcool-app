@@ -60,7 +60,7 @@ st["Heading 1"].paragraph_format.space_after = Pt(10)
 font(st["Heading 2"], "Calibri", 16, "1F6FB5", True)
 font(st["Heading 3"], "Calibri", 12.5, "C8452F", True)
 for name, fill, border, fnt in (("Objectives", "EEF4FB", "1F6FB5", None), ("Work", "F4F6FA", "1F6FB5", "Calibri"), ("BoxRule", "E6F0FB", "1F6FB5", None),
-                                ("BoxWarn", "FBE7E3", "C8452F", None), ("BoxTip", "EEE8F8", "7453B8", None), ("BoxShop", "E3F3E8", "2F8F4E", None),
+                                ("BoxWarn", "FBE7E3", "C8452F", None), ("BoxTip", "EEE8F8", "7453B8", None), ("BoxShop", "E3F3E8", "2F8F4E", None), ("BoxHandout", "DDF1F1", "0F8A8A", "Calibri"),
                                 ("ExampleHead", "FFFFFF", "D98A14", "Calibri"), ("Answer", "FDF3DA", "D98A14", None), ("Caption", None, None, "Calibri")):
     s = st[name] if name in [x.name for x in st] else st.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
     s.base_style = st["Normal"]

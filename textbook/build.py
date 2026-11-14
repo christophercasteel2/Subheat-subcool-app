@@ -76,6 +76,8 @@ measurement, then algebra with formulas, then the geometry of flat shapes. Every
 <div class="box shop"><div class="boxhead"><span class="tag">ON THE JOB</span><span class="boxtitle">Green boxes</span></div>
 <div class="boxbody"><p>Where the skill shows up in the trades: sheet metal, piping, electrical, machining, building.</p></div></div>
 </div>
+<div class="box handout"><div class="boxhead"><span class="tag">CLASS HANDOUT</span><span class="boxtitle">Teal boxes</span></div>
+<div class="boxbody"><p>The instructor's own definitions and formulas, copied word for word from the class handouts.</p></div></div>
 <p><b>Worked examples</b> show the work on the left and the reason for each line on the right. Cover the right-hand
 column and explain each line yourself; that is the fastest way to find out what you do not yet understand.</p>
 <p><b>Practice sets</b> follow each section and a <b>chapter review</b> closes each chapter. Answers to every

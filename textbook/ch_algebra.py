@@ -11,7 +11,7 @@ part("Part 3 · Algebra", "A formula is a set of instructions written in symbols
 # =====================================================================  7
 chapter("Order of Operations",
         ["State the order of operations and explain why an agreed order is needed.",
-         "Recognise every kind of grouping symbol, including the fraction bar.",
+         "Recognize every kind of grouping symbol, including the fraction bar.",
          "Evaluate expressions with exponents and square roots.",
          "Work multiplication with division, and addition with subtraction, from left to right.",
          "Show the work for a multi-step evaluation one operation at a time."],
@@ -36,6 +36,9 @@ rule("The order of operations (PEMDAS)",
 warn("PEMDAS has four steps, not six",
      "Multiplication does **not** come before division, and addition does **not** come before subtraction. Each pair shares a level and is "
      "worked in the order it appears, left to right. 24 ÷ 4 × 2 is 6 × 2 = 12, not 24 ÷ 8 = 3.")
+
+fig(figs.pemdas_two_way(), "PEMDAS runs both ways. To evaluate, start at P and work down. To solve, start at A S and work up to P, undoing each operation.")
+p("This chapter is about the left-hand arrow: **evaluating**. Chapter 9 uses the right-hand arrow: **solving**.")
 
 sec("7.2 Exponents and roots")
 p("An **exponent** is shorthand for repeated multiplication. In 4², the 4 is the **base** and the 2 is the exponent: use 4 as a "
@@ -123,7 +126,7 @@ chapter("Evaluating Formulas",
          "Evaluate formulas containing exponents, roots and fraction bars.",
          "Round and label the answer as a problem directs."],
         "The trades run on formulas: for the load a post will carry, the speed of a grinding wheel, the capacitance of a circuit. "
-        "Nobody memorises them all. What matters is the skill of putting the right numbers in and working them out correctly.",
+        "Nobody memorizes them all. What matters is the skill of putting the right numbers in and working them out correctly.",
         [("formula", "A rule written with letters that tells how to calculate one quantity from others."),
          ("variable", "A letter that stands for a number."),
          ("substitute", "To replace each letter with its given number."),
@@ -179,7 +182,7 @@ example("**Electronics.** For one capacitor in series with two in parallel, the 
         [("C_{T} = [[12(5 + 7)|12 + 5 + 7]]", "Substitute. The subscripts only say which capacitor is which."),
          ("C_{T} = [[12(12)|24]]", "Parentheses on top; add across the bottom."), ("C_{T} = [[144|24]] = 6", "Multiply the top, then divide.")],
         "6 µF", title="Subscripts and a fraction bar")
-example("**Manufacturing.** The capacity of a feeder belt in metric tons per hour is C = [[W²DS|1.085]], where W is the belt width in metres, D is the density of the material in kg/m³ and S is the belt speed in m/s. "
+example("**Manufacturing.** The capacity of a feeder belt in metric tons per hour is C = [[W²DS|1.085]], where W is the belt width in meters, D is the density of the material in kg/m³ and S is the belt speed in m/s. "
         "Find the capacity for W = 1.2 m, D = 800 kg/m³ and S = 2.5 m/s. Round to the nearest whole number.",
         [("C = [[(1.2)²(800)(2.5)|1.085]]", "Substitute."), ("C = [[(1.44)(800)(2.5)|1.085]]", "Exponent first."), ("C = [[2880|1.085]]", "Multiply across the top."),
          ("C = 2654.37…", "Divide."), ("C = 2654", "Round.")], "2654 metric tons per hour")
@@ -290,6 +293,10 @@ sec("9.3 Two-step equations")
 p("When the unknown has been multiplied **and** something has been added or subtracted, there are two operations to undo. "
   "Undo them in the **reverse** of the order of operations: first the addition or subtraction, then the multiplication or division. "
   "Think of taking off shoes and socks: the last thing put on is the first thing taken off.")
+fig(figs.pemdas_two_way(), "The same list, read in opposite directions. Evaluating does the operations from P down; solving undoes them from A S up.")
+p("When you **evaluate**, the value of the letter is known and you do the operations in PEMDAS order, starting at P and finishing with A S. "
+  "When you **solve**, the letter is unknown and has already had those operations done to it, so you take them off again in the opposite order: "
+  "start at **A S** (whichever comes first), then **M D**, then **E**, and finish with **P**.")
 rule("Solving a two-step equation",
      "**1.** Substitute and simplify each side.",
      "**2.** Undo the **addition or subtraction**: move the plain number away from the unknown’s side.",
@@ -303,7 +310,7 @@ example("The perimeter of a rectangle is P = 2L + 2W. A pasture is to be fenced 
 example("A service call is billed as T = 45 + 60H dollars, where H is the number of hours. A bill came to T = $345. How many hours were worked?",
         [("345 = 45 + 60H", "Substitute."), ("345 − 45 = 60H", "Subtract 45 from both sides."), ("300 = 60H", ""), ("H = 300 ÷ 60 = 5", "Divide both sides by 60.")],
         "H = 5 hours")
-example("The length of a belt around two pulleys is L = 2d + 3.26(r + R). With r = 5 in, R = 9 in and L = 90 in, find the distance d between centres to the nearest inch.",
+example("The length of a belt around two pulleys is L = 2d + 3.26(r + R). With r = 5 in, R = 9 in and L = 90 in, find the distance d between centers to the nearest inch.",
         [("90 = 2d + 3.26(5 + 9)", "Substitute."), ("90 = 2d + 3.26(14)", "Simplify inside the parentheses."), ("90 = 2d + 45.64", "Multiply."),
          ("90 − 45.64 = 2d", "Subtract 45.64 from both sides."), ("44.36 = 2d", ""), ("d = 22.18", "Divide both sides by 2."), ("d = 22", "Round to the nearest inch.")],
         "d = 22 in")

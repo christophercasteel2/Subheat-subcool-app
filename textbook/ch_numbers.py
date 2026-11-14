@@ -43,7 +43,7 @@ sec("1.1 The base ten system")
 p("Our number system uses only ten digits, yet it can write any amount. It does this by giving each *position* in a "
   "number its own value. Moving one place to the left makes a digit worth **ten times as much**. Moving one place to the "
   "right makes it worth **one tenth as much**. That single idea runs straight through the decimal point without changing.")
-fig(figs.place_value("3528416", "7359"), "The place values used in this course, shown with the number 3,528,416.7359.")
+fig(figs.place_value("3528416", "7359"), "Base 10 place values, shown with the number 3,528,416.7359.")
 p("In the number above, the digit 5 sits in the hundred thousands place, so it is worth 500,000. Another 5 sits in the "
   "thousandths place and is worth only 0.005. Same digit, very different value.")
 rule("Whole-number places end in s; decimal places end in ths",
@@ -98,13 +98,13 @@ p("Rounding replaces a number with a nearby number that is easier to use. A tape
   "and a supplier will not sell 71,428.57 psi steel. The question is always the same: **which round value is the number closest to?**")
 fig(figs.rounding_line(9370, 9380, 9372.6, "9370", "9380", "9372.6"),
     "Rounding 9372.6 to the nearest ten. It lies between 9370 and 9380, and it is closer to 9370.")
-rule("The five steps of rounding",
-     "**1.** Find the **rounding digit**, the digit in the place you are rounding to. Underline it.",
-     "**2.** Look at the **test digit**, the one digit immediately to its right. Ignore everything after that.",
-     "**3.** If the test digit is **5, 6, 7, 8 or 9**, round up: add one to the rounding digit.",
-     "**4.** If the test digit is **0, 1, 2, 3 or 4**, leave the rounding digit as it is.",
-     "**5.** Replace what follows. In a whole number, digits after the rounding digit become **zeros**. "
-     "After the decimal point, digits after the rounding digit are **dropped**.")
+handout("The Basic Rules",
+        "**1. Identify the rounding digit:** Find the digit in the place value you want to round to",
+        "**2. Look at the next digit:** Examine the digit immediately to the right of your rounding digit.",
+        "**3. Round Up (Increase by One):** If the digit to the right is 5, 6, 7, 8, or 9, increase the rounding digit by one.",
+        "**4. (Keep it the Same):** If the digit to the right is 0, 1, 2, 3, or 4, leave the rounding digit as it is.",
+        "**5. Replace Remaining Digits:** Change all digits to the right of the rounded digit to zeros (for whole numbers) or drop them (for decimals).")
+p("In this book the digit to the right of the rounding digit is also called the **test digit**, because it decides which way to round.")
 example("Round 9372.6485 to the nearest (a) ten, (b) hundredth, (c) thousand.",
         [("93**7**2.6485 → test digit 2", "(a) The tens digit is 7. The digit to its right is 2, which is 4 or less, so the 7 stays."),
          ("9370", "The ones digit becomes a zero and the decimal part is dropped."),
@@ -176,7 +176,7 @@ chapter("Fractions, Decimals and Percents",
         ["Reduce a fraction to lowest terms and change between improper fractions and mixed numbers.",
          "Change a fraction to a decimal and a decimal to a fraction.",
          "Change a decimal to a percent and a percent to a decimal.",
-         "Move freely among all three forms and recognise the common shop equivalents.",
+         "Move freely among all three forms and recognize the common shop equivalents.",
          "Add and subtract measurements that mix fractions and decimals."],
         "Five-eighths of an inch, 0.625 inch and 62.5% of an inch are the same length written three ways. Tape measures "
         "use fractions, calculators use decimals, and specifications use percents. A technician has to translate among them without hesitation.",

@@ -91,6 +91,11 @@ def tip(title, *body):
     add("box", box="tip", title=title, body=body)
 
 
+def handout(title, *body):
+    """the instructor's own wording, copied exactly from a class handout"""
+    add("box", box="handout", title=title, body=body)
+
+
 def shop(title, *body):
     add("box", box="shop", title=title, body=body)
 
@@ -137,7 +142,7 @@ def pagebreak():
 # ---------------------------------------------------------------- HTML for the PDF
 
 def _box(kind, title, inner):
-    label = {"rule": "KEY RULE", "warn": "WATCH OUT", "tip": "CALCULATOR TIP", "shop": "ON THE JOB"}[kind]
+    label = {"rule": "KEY RULE", "warn": "WATCH OUT", "tip": "CALCULATOR TIP", "shop": "ON THE JOB", "handout": "CLASS HANDOUT"}[kind]
     return (f'<div class="box {kind}"><div class="boxhead"><span class="tag">{label}</span>'
             f'<span class="boxtitle">{fmt(title)}</span></div><div class="boxbody">{inner}</div></div>')
 
@@ -259,8 +264,8 @@ def render_docx():
         elif kind == "eq":
             out.append("".join(f'<div custom-style="Work"><p>{f(x)}</p></div>' for x in b["lines"]))
         elif kind == "box":
-            label = {"rule": "KEY RULE", "warn": "WATCH OUT", "tip": "CALCULATOR TIP", "shop": "ON THE JOB"}[b["box"]]
-            style = {"rule": "BoxRule", "warn": "BoxWarn", "tip": "BoxTip", "shop": "BoxShop"}[b["box"]]
+            label = {"rule": "KEY RULE", "warn": "WATCH OUT", "tip": "CALCULATOR TIP", "shop": "ON THE JOB", "handout": "CLASS HANDOUT"}[b["box"]]
+            style = {"rule": "BoxRule", "warn": "BoxWarn", "tip": "BoxTip", "shop": "BoxShop", "handout": "BoxHandout"}[b["box"]]
             body = "".join(f"<p>{f(x)}</p>" for x in b["body"])
             out.append(f'<div custom-style="{style}"><p><b>{label}: {f(b["title"])}</b></p>{body}</div>')
         elif kind == "example":

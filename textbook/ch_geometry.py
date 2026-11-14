@@ -43,8 +43,10 @@ sec("10.2 Rectangles and squares")
 p("A **rectangle** has four right angles. Its opposite sides are equal, so it has two lengths and two widths. "
   "A **square** is a rectangle with all four sides equal.")
 fig(figs.side_by_side([figs.rectangle(), figs.rectangle("s", "s", 120, 120)], gap=50), "A rectangle with length L and width W, and a square with side s.")
-rule("Rectangle", "Perimeter:  P = 2L + 2W", "Area:  A = LW")
-rule("Square", "Perimeter:  P = 4s", "Area:  A = s²")
+handout("RECTANGLES", "A polygon in which the opposite sides are both parallel and of equal length. All four interior angles are right angles.",
+        "**PERIMETER= 2L + 2W**   (or sum of the sides)", "**AREA= LW**")
+handout("SQUARE", "A polygon with all 4 sides of *equal* length and all angles are right angles.",
+        "**PERIMETER= 4s**   (or sum of the sides)", "**AREA= s²**   (or LW)")
 example("A rectangular return-air grille opening is 30 in long and 14 in wide. Find its perimeter and its area.",
         [("P = 2L + 2W", "Perimeter formula."), ("P = 2(30) + 2(14)", "Substitute."), ("P = 60 + 28 = 88", "Multiply, then add."),
          ("A = LW", "Area formula."), ("A = (30)(14) = 420", "Substitute and multiply.")], "P = 88 in;  A = 420 sq in")
@@ -60,7 +62,8 @@ example("A square room has an area of 196 sq ft. How long is each wall?",
 sec("10.3 Parallelograms")
 p("A **parallelogram** has two pairs of parallel sides. It looks like a rectangle pushed over. Its sides are a base *b* and a slanted side *a*.")
 fig(figs.parallelogram(), "A parallelogram. The height h is perpendicular to the base; the side a is slanted.")
-rule("Parallelogram", "Perimeter:  P = 2a + 2b", "Area:  A = bh")
+handout("PARALLELOGRAM", "A polygon whose opposite pairs of sides are *equal* and *parallel*. Angles are **NOT** right angles.",
+        "**PERIMETER= 2a + 2b**   (or sum of the sides)", "**AREA= bh**")
 p("Why base times **height** and not base times side? Cut the triangle off one end of a parallelogram and slide it to the other end. "
   "The result is a rectangle with the same base and the same height. The slanted side does not appear in the area at all.")
 warn("Height is never the slanted side",
@@ -74,7 +77,7 @@ sec("10.4 Trapezoids")
 p("A **trapezoid** has exactly one pair of parallel sides. Those two sides are its bases, b_{1} and b_{2}. They are different lengths. "
   "The height is the perpendicular distance between them.")
 fig(figs.trapezoid(), "A trapezoid with bases b₁ and b₂, height h and slanted sides c and d.")
-rule("Trapezoid", "Perimeter:  P = b_{1} + b_{2} + c + d   (the sum of the four sides)", "Area:  A = [[(b_{1} + b_{2})h|2]]")
+handout("TRAPEZOID", "a polygon with only one pair of parallel sides.", "**PERIMETER= sum of the sides**", "**AREA=** [[(b1+b2)h|2]]")
 p("The area formula says: average the two bases, then multiply by the height. Two identical trapezoids, one flipped, fit together into a "
   "parallelogram whose base is b_{1} + b_{2}. One trapezoid is half of that.")
 example("A trapezoidal transition panel has parallel sides of 12 in and 20 in, a height of 9 in, and slanted sides of 9.8 in each. Find the perimeter and the area.",
@@ -147,8 +150,11 @@ sec("11.1 Kinds of triangles")
 p("Triangles are named by their sides. The angles of any triangle add up to 180°.")
 fig(figs.side_by_side([figs.triangle("scalene", fs=22), figs.triangle("isosceles", fs=22), figs.triangle("equilateral", fs=22)], gap=6),
     "Scalene (no sides equal), isosceles (two sides equal), equilateral (all sides equal). The dashed line is the height.")
-rule("Any triangle", "Perimeter:  P = a + b + c", "Area:  A = [[bh|2]]",
-     "where *b* is the base and *h* is the height measured at a right angle to that base.")
+handout("TRIANGLES", "**Scalene** (no sides/angles are equal):   Area= [[bh|2]]   -OR-   A= Use Hero's Formula",
+        "**Isosceles** (two sides/angles are equal):   Area= [[bh|2]]   -OR-   A= Use Hero's Formula",
+        "**Equilateral** (all 3 sides/angles are equal (60°)):   Area= [[bh|2]]   -OR-   A= .433s²   (s = side length)",
+        "Perimeter for any triangle = Sum of the sides...(a + b + c)")
+p("In A = [[bh|2]], *b* is the base and *h* is the height measured at a right angle to that base.")
 p("A triangle is half of a parallelogram with the same base and height. That is where the “divide by 2” comes from.")
 example("A triangular gusset has a base of 16 in and a height of 9 in. Its other two sides are 15 in and 9.85 in. Find its area and perimeter.",
         [("A = [[bh|2]] = [[(16)(9)|2]]", "Substitute base and height."), ("A = [[144|2]] = 72", "Multiply, then halve."),
@@ -158,7 +164,8 @@ warn("Do not forget the 2", "The most common triangle error is stopping at base 
 sec("11.2 Hero’s formula: area from three sides")
 p("On a job the three sides of a triangle can be measured with a tape, but the height usually cannot. **Hero’s formula** "
   "(also written Heron’s) gives the area from the sides alone. It works for every triangle.")
-rule("Hero’s formula", "First find the semi-perimeter:  s = [[a + b + c|2]]", "Then:  A = √(s(s − a)(s − b)(s − c))")
+handout("HERO'S Formula (for ANY triangle where you don't have a *height*)", "A = √(s(s − a)(s − b)(s − c))",
+        "(s stands for *'semi-perimeter'* or **half** of the perimeter)   S = [[a+b+c|2]]")
 example("Find the area of a triangle with sides 15 m, 20 m and 25 m. Round to the nearest tenth if needed.",
         [("s = [[15 + 20 + 25|2]] = [[60|2]] = 30", "Semi-perimeter: add the sides and halve."),
          ("A = √(30(30 − 15)(30 − 20)(30 − 25))", "Substitute s and each side."), ("A = √(30(15)(10)(5))", "Do the three subtractions."),
@@ -172,7 +179,7 @@ tip("Keying Hero’s formula",
 
 sec("11.3 The equilateral triangle")
 p("Because all three sides of an equilateral triangle are the same length *s*, its area depends on that one number.")
-rule("Equilateral triangle", "Perimeter:  P = 3s", "Area:  A = 0.433s²")
+rule("Equilateral triangle", "Perimeter:  P = 3s   (the sum of the three equal sides)", "Area:  A = .433s²   (s = side length)")
 example("Find the area of an equilateral triangle 8 in on a side.",
         [("A = 0.433s²", "Formula."), ("A = 0.433(8)²", "Substitute."), ("A = 0.433(64)", "Exponent first."), ("A = 27.712", "Multiply.")], "27.712 sq in")
 p("The 0.433 is a rounded constant (it is √3 ÷ 4), so this shortcut and Hero’s formula agree to about three digits. Here *s* means the "
@@ -183,7 +190,8 @@ p("A **right triangle** has one square corner. The two sides that form the corne
   "from the right angle is the **hypotenuse**, *c*, and it is always the longest side.")
 fig(figs.triangle("right"), "A right triangle. The legs a and b form the right angle; the hypotenuse c is opposite it.", width="3.2in")
 fig(figs.pythag(), "The squares built on the two legs of a 3-4-5 triangle together equal the square built on the hypotenuse.")
-rule("The Pythagorean theorem", "a² + b² = c²",
+handout("RIGHT TRIANGLE (CONTAINS A 90° ANGLE)", "HYPOTENUSE= *longest* side of a *right* triangle (c)", "PYTHAGOREAN THEOREM:  a² + b² = c²")
+rule("Using the Pythagorean theorem", "a² + b² = c²",
      "To find the hypotenuse:  c = √(a² + b²)", "To find a leg:  a = √(c² − b²)", "It is true **only** for right triangles.")
 example("A ladder’s foot is 5 ft from a wall and its top touches the wall 12 ft up. How long is the ladder?",
         [("c = √(a² + b²)", "The ladder is the hypotenuse."), ("c = √(5² + 12²)", "Substitute the legs."), ("c = √(25 + 144) = √169", "Square, then add."),
@@ -252,7 +260,7 @@ chapter("Circles, Hexagons and Composite Figures",
          "Find the area of a composite figure by adding or subtracting simple shapes."],
         "Pipe, duct, shafting, tanks and bolt heads: round and six-sided shapes are everywhere in mechanical work. "
         "And real parts are seldom one simple shape. The last skill in the book is taking a complicated figure apart into shapes you already know.",
-        [("radius", "The distance from the centre of a circle to its edge."), ("diameter", "The distance across a circle through its centre: two radii."),
+        [("radius", "The distance from the center of a circle to its edge."), ("diameter", "The distance across a circle through its center: two radii."),
          ("circumference", "The distance around a circle; its perimeter."), ("π (pi)", "The circumference of any circle divided by its diameter; about 3.14."),
          ("regular hexagon", "A six-sided figure with all sides equal and all angles 120°."),
          ("composite figure", "A figure made of two or more simple shapes.")])
@@ -261,7 +269,10 @@ sec("12.1 The circle")
 fig(figs.circle(), "The radius r, the diameter d and the circumference C of a circle.")
 p("Measure around any circle, divide by the distance across, and the answer is always the same number, a little more than 3. "
   "That number is called **π** (pi). Its decimal never ends; this course uses **3.14**.")
-rule("Circle", "d = 2r     and     r = [[d|2]]", "Circumference:  C = πd   or   C = 2πr", "Area:  A = πr²", "Use π = 3.14.")
+handout("CIRCLES", "**d = diameter**...measurement across the circle through the center. ...twice the measurement of the radius (r)...   **d = 2r**",
+        "**r = radius**...meas. from the center of the circle to any point on the circle. ...(one-half the measurement of the diameter (d))...   **r =** [[d|2]]",
+        "**C = circumference**...measurement “around” (perimeter)   **C = πd   -or-   C = 2πr**", "**A = πr²**",
+        "**π** ... the ratio of the circumference to the diameter   C:d.....C to d..... [[C|d]]", "**π ≈ 3.14**")
 example("A round duct has a diameter of 14 in. Find its circumference and its cross-sectional area.",
         [("C = πd = (3.14)(14) = 43.96", "The circumference formula takes the diameter directly."),
          ("r = [[d|2]] = [[14|2]] = 7", "The area formula needs the **radius**. Halve the diameter first."),
@@ -286,7 +297,8 @@ p("A **regular hexagon** has six equal sides and six equal 120° angles. Bolt he
   "**across the corners** (the distance *d* from one point to the opposite point) and **across the flats** (the distance *f* between opposite sides, "
   "which is the wrench size).")
 fig(figs.hexagon(), "A regular hexagon with side s, distance across corners d and distance across flats f.")
-rule("Regular hexagon", "Perimeter:  P = 6s", "Area:  A = 2.6s²", "Across corners:  d = 2s", "Across flats:  f = 1.732s")
+handout("REGULAR HEXAGON", "A six-sided polygon in which all sides (s) are the same length and all interior angles measure 120°",
+        "**Perimeter = 6s**   (or sum of the sides)", "**Area = 2.6s²**", "Distance across the **corners**:   d = 2s", "Distance across the **'flats'**:   f = 1.732s")
 example("A hexagonal bar has sides of 0.75 in. Find its perimeter, area, distance across corners and distance across flats.",
         [("P = 6s = 6(0.75) = 4.5", "Six equal sides."), ("A = 2.6s² = 2.6(0.75)² = 2.6(0.5625) = 1.4625", "Square the side first."),
          ("d = 2s = 2(0.75) = 1.5", "Across corners."), ("f = 1.732s = 1.732(0.75) = 1.299", "Across flats.")],

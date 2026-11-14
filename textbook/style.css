@@ -68,6 +68,9 @@ ul.plain li, ol.plain li { margin-bottom: 3pt; }
 .box.tip { border-color: #7453b8; background: #f7f4fc; } .box.tip .tag { background: #7453b8; } .box.tip .boxhead { background: #ebe4f7; }
 .box.shop { border-color: #2f8f4e; background: #f3faf5; } .box.shop .tag { background: #2f8f4e; } .box.shop .boxhead { background: #dff2e4; }
 
+.box.handout { border-color: #0f8a8a; background: #f1fafa; border-width: 1.4pt; } .box.handout .tag { background: #0f8a8a; } .box.handout .boxhead { background: #d6efef; }
+.box.handout .boxbody { font-family: Inter, sans-serif; font-size: 10.2pt; }
+
 /* ---------- worked examples ---------- */
 .example { margin: 10pt 0 12pt; border: 1pt solid #d3d9e6; border-top: 3.5pt solid var(--c); border-radius: 3pt 3pt 8pt 8pt;
   break-inside: avoid; background: #fff; }

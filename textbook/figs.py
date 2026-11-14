@@ -377,6 +377,41 @@ def pemdas():
     return svg(560, 222, "".join(b))
 
 
+def pemdas_two_way():
+    """evaluating runs down the PEMDAS list; solving undoes it from the bottom up"""
+    rows = [("P", "Parentheses (grouping)", RED), ("E", "Exponents and roots", GOLD), ("M D", "Multiply or Divide, left to right", GREEN),
+            ("A S", "Add or Subtract, left to right", BLUE)]
+    b = []
+    x0, w, y0, h = 190, 260, 62, 46
+    for i, (k, name, col) in enumerate(rows):
+        y = y0 + i * (h + 8)
+        b.append(R(x0, y, w, h, "#fff", col, 2.2, 8))
+        b.append(R(x0, y, 66, h, col, col, 2.2, 8))
+        b.append(T(x0 + 33, y + 30, k, 18, "#fff", weight="700"))
+        b.append(T(x0 + 78, y + 28, name, 12.5, INK, anchor="start", weight="600"))
+    top, bot = y0 + 4, y0 + 4 * (h + 8) - 12
+    b.append(arrow(150, top, 150, bot, GREEN, 5))
+    b.append(T(92, 30, "EVALUATE", 16, GREEN, weight="800"))
+    b.append(T(92, 48, "(calculate)", 11.5, GREEN, weight="600"))
+    for k, s in enumerate(["Start at P", "and work DOWN", "to A S.", "", "You are DOING", "the operations."]):
+        b.append(T(92, 110 + k * 17, s, 12, INK if k < 3 else "#555", weight="700" if k < 3 else "400"))
+    b.append(arrow(490, bot, 490, top, RED, 5))
+    b.append(T(552, 30, "SOLVE", 16, RED, weight="800"))
+    b.append(T(552, 48, "(find the unknown)", 11.5, RED, weight="600"))
+    for k, s in enumerate(["Start at A S", "and work UP", "to P.", "", "You are UNDOING", "the operations."]):
+        b.append(T(552, 110 + k * 17, s, 12, INK if k < 3 else "#555", weight="700" if k < 3 else "400"))
+    yb = bot + 40
+    b.append(R(20, yb, 290, 78, PALE["green"], GREEN, 1.4, 8))
+    b.append(T(165, yb + 20, "Evaluate 2x + 3 when x = 5", 12.5, GREEN, weight="700"))
+    b.append(T(165, yb + 40, "2(5) + 3  →  multiply first: 10 + 3", 12, INK))
+    b.append(T(165, yb + 60, "→  then add: 13", 12, INK))
+    b.append(R(334, yb, 290, 78, PALE["red"], RED, 1.4, 8))
+    b.append(T(479, yb + 20, "Solve 2x + 3 = 13", 12.5, RED, weight="700"))
+    b.append(T(479, yb + 40, "undo the add first: 2x = 10", 12, INK))
+    b.append(T(479, yb + 60, "→  then undo the multiply: x = 5", 12, INK))
+    return svg(644, yb + 90, "".join(b))
+
+
 def balance(left, right, note=""):
     b = [L(280, 40, 280, 150, INK, 4), P([(250, 166), (310, 166), (280, 146)], "#555", INK, 1.5), L(110, 60, 450, 60, INK, 4)]
     for x, txt, col in ((110, left, BLUE), (450, right, RED)):
