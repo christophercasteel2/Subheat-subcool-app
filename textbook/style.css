@@ -117,8 +117,8 @@ ol li::marker { font-family: Inter, sans-serif; font-weight: 700; font-size: 0.8
 .sumhead, .rvhead { font-family: Inter, sans-serif; font-weight: 800; font-size: 10pt; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--c); margin-bottom: 5pt; }
 .summary ul { margin: 0; padding-left: 16pt; } .summary li { margin-bottom: 3.5pt; }
-.review { break-inside: avoid; margin-top: 12pt; border-top: 3.5pt solid var(--c); padding-top: 9pt; }
-.rvhead { font-size: 13pt; letter-spacing: 0.06em; }
+.review { margin-top: 12pt; border-top: 3.5pt solid var(--c); padding-top: 9pt; }
+.rvhead { font-size: 13pt; letter-spacing: 0.06em; break-after: avoid; }
 .pb { break-after: page; }
 
 /* ---------- front and back matter ---------- */

@@ -122,14 +122,36 @@ def fig(svg, caption, width=None):
 def practice(title, intro, items, cols=2):
     """a practice set: items are (question, answer) pairs; the answers go
     to the key at the back"""
+    seen, uniq = set(), []
+    for q, ans in items:            # generated sets can repeat a question; keep the first
+        if q not in seen:
+            seen.add(q)
+            uniq.append((q, ans))
+    items = uniq
     _state["set"] += 1
     label = f'{_state["ch"]}.{_state["set"]}'
-    add("practice", label=label, title=title, intro=intro, items=[q for q, _ in items], cols=cols)
+    add("practice", label=label, tag=f"PRACTICE {label}", title=title, intro=intro, items=[q for q, _ in items], cols=cols)
     ANSWERS.append((_state["ch"], _state["title"], f"Practice {label}: {title}", [a for _, a in items]))
+
+
+_more = []
+
+
+def more_review(items):
+    """extra questions that are added to the end of this chapter's review"""
+    _more.extend(items)
+
+
+def cumulative(title, intro, items, cols=2):
+    """a review that follows a whole part of the book"""
+    add("practice", label=title, tag="CUMULATIVE REVIEW", title=title, intro=intro, items=[q for q, _ in items], cols=cols)
+    ANSWERS.append((_state["ch"], _state["title"], f"Cumulative review: {title}", [a for _, a in items]))
 
 
 def review(items):
     """the chapter review: (question, answer) pairs"""
+    items = list(items) + list(_more)
+    del _more[:]
     add("review", n=_state["ch"], items=[q for q, _ in items])
     ANSWERS.append((_state["ch"], _state["title"], "Chapter review", [a for _, a in items]))
 
@@ -203,7 +225,7 @@ def render_pdf(toc_pages=None):
             out.append(f'<figure{w}>{b["svg"]}<figcaption><b>Figure {b["n"]}</b> {fmt(b["caption"])}</figcaption></figure>')
         elif kind == "practice":
             items = "".join(f"<li>{fmt(q)}</li>" for q in b["items"])
-            out.append(f'<div class="practice"><div class="prhead"><span class="prnum">PRACTICE {b["label"]}</span> '
+            out.append(f'<div class="practice"><div class="prhead"><span class="prnum">{b["tag"]}</span> '
                        f'{fmt(b["title"])}</div><p class="printro">{fmt(b["intro"])}</p>'
                        f'<ol class="cols{b["cols"]}">{items}</ol></div>')
         elif kind == "review":
@@ -287,7 +309,7 @@ def render_docx():
             out.append(f'<p><img src="figs/fig{b["idx"]:03d}.png" style="width:{min(6.0, vw / 105):.2f}in"/></p>'
                        f'<div custom-style="Caption"><p><b>Figure {b["n"]}</b> {f(b["caption"])}</p></div>')
         elif kind == "practice":
-            out.append(f'<h3>Practice {b["label"]}: {f(b["title"])}</h3><p>{f(b["intro"])}</p><ol>'
+            out.append(f'<h3>{b["tag"].title()}: {f(b["title"])}</h3><p>{f(b["intro"])}</p><ol>'
                        + "".join(f"<li>{f(q)}</li>" for q in b["items"]) + "</ol>")
         elif kind == "review":
             out.append(f'<h2>Chapter {b["n"]} review</h2><ol>' + "".join(f"<li>{f(q)}</li>" for q in b["items"]) + "</ol>")

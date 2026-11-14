@@ -589,3 +589,146 @@ def pythag():
     body.append(T(440, 200, "9 + 16 = 25", 16, INK, weight="700"))
     body.append(T(440, 224, "a² + b² = c²", 15, PURPLE, weight="700"))
     return svg(540, 320, "".join(body))
+
+
+# ---------------------------------------------------------------- added drawings
+
+def trapezoid_dims(b1, b2, h, c=None, d=None, unit="in"):
+    """a trapezoid with its real measurements written on it"""
+    pts = [(40, 150), (320, 150), (250, 40), (110, 40)]
+    b = [P(pts, PALE["gold"], GOLD, 2.2), L(140, 40, 140, 150, INK, 1.3, "5 4"), corner(140, 150, 1, -1)]
+    b.append(T(180, 30, f"{b1} {unit}", 14, INK, weight="700"))
+    b.append(T(180, 172, f"{b2} {unit}", 14, INK, weight="700"))
+    b.append(T(146, 100, f"{h} {unit}", 14, INK, anchor="start", weight="700"))
+    if c:
+        b.append(T(66, 92, f"{c} {unit}", 13, INK, anchor="end", weight="600"))
+    if d:
+        b.append(T(294, 92, f"{d} {unit}", 13, INK, anchor="start", weight="600"))
+    return svg(380, 184, "".join(b))
+
+
+def trapezoid_pair():
+    """two equal trapezoids, one turned over, make a parallelogram"""
+    a = [(40, 150), (240, 150), (200, 50), (100, 50)]
+    c = [(240, 150), (340, 150), (400, 50), (200, 50)]
+    b = [P(a, PALE["gold"], GOLD, 2.2), P(c, PALE["blue"], BLUE, 2.2), L(130, 50, 130, 150, INK, 1.2, "5 4"), corner(130, 150, 1, -1)]
+    b.append(T(150, 42, "b₁", 14, INK, weight="700", italic=True))
+    b.append(T(300, 42, "b₂", 14, INK, weight="700", italic=True))
+    b.append(T(140, 172, "b₂", 14, INK, weight="700", italic=True))
+    b.append(T(290, 172, "b₁", 14, INK, weight="700", italic=True))
+    b.append(T(142, 104, "h", 14, INK, weight="700", italic=True))
+    b.append(T(220, 198, "whole base = b₁ + b₂", 13, RED, weight="700"))
+    b.append(T(520, 84, "parallelogram area = (b₁ + b₂)h", 12.5, INK, weight="600"))
+    b.append(T(520, 108, "one trapezoid = half of it", 12.5, INK, weight="600"))
+    b.append(T(520, 136, "A = (b₁ + b₂)h ÷ 2", 14, GOLD, weight="700"))
+    return svg(640, 208, "".join(b))
+
+
+def parallelogram_slide():
+    """cut the end triangle off a parallelogram and slide it across: a rectangle"""
+    b = [P([(40, 150), (220, 150), (270, 50), (90, 50)], PALE["green"], GREEN, 2.2), P([(40, 150), (90, 150), (90, 50)], "#bfe0c9", GREEN, 2.2),
+         L(90, 50, 90, 150, INK, 1.2, "5 4"), T(130, 172, "b", 14, INK, weight="700", italic=True), T(102, 104, "h", 14, INK, weight="700", italic=True),
+         arrow(292, 100, 348, 100, RED, 2.2), T(320, 90, "slide", 11.5, RED, weight="700"),
+         R(400, 50, 180, 100, PALE["green"], GREEN, 2.2), P([(580, 150), (630, 150), (630, 50)], "#bfe0c9", GREEN, 2.2)]
+    b[-2] = P([(420, 150), (600, 150), (600, 50), (420, 50)], PALE["green"], GREEN, 2.2)
+    b[-1] = P([(550, 150), (600, 150), (600, 50)], "#bfe0c9", GREEN, 2.2)
+    b += [L(550, 150, 600, 50, GREEN, 1.2, "4 3"), T(510, 172, "b", 14, INK, weight="700", italic=True), T(612, 104, "h", 14, INK, weight="700", italic=True),
+          T(510, 38, "same base, same height: A = bh", 12, INK, weight="600")]
+    return svg(650, 184, "".join(b))
+
+
+def composite_L_trap(a, b_, c, d, unit="ft"):
+    """an L (a wide, b_ tall, a c by d corner cut from the top right) split into two trapezoids
+    by one cut from the inside corner to the far outside corner"""
+    s = 200 / max(a, b_)
+    W, H, cw, ch = a * s, b_ * s, c * s, d * s
+    x0, y0 = 70, 34
+    A = [(x0, y0), (x0 + W - cw, y0), (x0 + W - cw, y0 + ch), (x0, y0 + H)]
+    B = [(x0, y0 + H), (x0 + W - cw, y0 + ch), (x0 + W, y0 + ch), (x0 + W, y0 + H)]
+    body = [P(A, PALE["gold"], GOLD, 2.2), P(B, PALE["blue"], BLUE, 2.2), L(x0 + W - cw, y0 + ch, x0, y0 + H, RED, 2, "6 4"),
+            T(x0 + (W - cw) * 0.36, y0 + H * 0.34, "A", 18, "#a36408", weight="700"),
+            T(x0 + W * 0.66, y0 + ch + (H - ch) * 0.62, "B", 18, BLUE, weight="700"),
+            T(x0 + W / 2, y0 + H + 20, f"{a} {unit}", 13, INK, weight="600"),
+            T(x0 - 10, y0 + H / 2 + 4, f"{b_} {unit}", 13, INK, anchor="end", weight="600"),
+            T(x0 + (W - cw) / 2, y0 - 9, f"{a - c} {unit}", 13, INK, weight="600"),
+            T(x0 + W - cw + 8, y0 + ch / 2 + 4, f"{d} {unit}", 13, INK, anchor="start", weight="600"),
+            T(x0 + W - cw / 2, y0 + ch - 9, f"{c} {unit}", 13, INK, weight="600"),
+            T(x0 + W + 10, y0 + ch + (H - ch) / 2 + 4, f"{b_ - d} {unit}", 13, INK, anchor="start", weight="600")]
+    return svg(x0 + W + 80, y0 + H + 34, "".join(body))
+
+
+def composite_L_plain(a, b_, c, d, unit="ft"):
+    """the same L with no cut lines, for practice"""
+    s = 150 / max(a, b_)
+    W, H, cw, ch = a * s, b_ * s, c * s, d * s
+    x0, y0 = 60, 30
+    pts = [(x0, y0), (x0 + W - cw, y0), (x0 + W - cw, y0 + ch), (x0 + W, y0 + ch), (x0 + W, y0 + H), (x0, y0 + H)]
+    body = [P(pts, PALE["blue"], BLUE, 2.2),
+            T(x0 + W / 2, y0 + H + 19, f"{a} {unit}", 12.5, INK, weight="600"),
+            T(x0 - 8, y0 + H / 2 + 4, f"{b_} {unit}", 12.5, INK, anchor="end", weight="600"),
+            T(x0 + (W - cw) / 2, y0 - 8, f"{a - c} {unit}", 12.5, INK, weight="600"),
+            T(x0 + W + 8, y0 + ch + (H - ch) / 2 + 4, f"{b_ - d} {unit}", 12.5, INK, anchor="start", weight="600")]
+    return svg(x0 + W + 66, y0 + H + 30, "".join(body))
+
+
+def trap_on_rect(w, h, top, th, unit="ft"):
+    """a rectangle w by h with a trapezoid (bases w and top, height th) on top"""
+    s = 170 / max(w, h + th)
+    W, H, Tp, Th = w * s, h * s, top * s, th * s
+    x0, y0 = 70, 26 + Th
+    tr = [(x0, y0), (x0 + W, y0), (x0 + (W + Tp) / 2, y0 - Th), (x0 + (W - Tp) / 2, y0 - Th)]
+    body = [R(x0, y0, W, H, PALE["blue"], BLUE, 2.2), P(tr, PALE["gold"], GOLD, 2.2), L(x0 + W / 2, y0 - Th, x0 + W / 2, y0, INK, 1.2, "5 4"),
+            T(x0 + W / 2, y0 + H + 19, f"{w} {unit}", 12.5, INK, weight="600"), T(x0 - 8, y0 + H / 2 + 4, f"{h} {unit}", 12.5, INK, anchor="end", weight="600"),
+            T(x0 + W / 2, y0 - Th - 8, f"{top} {unit}", 12.5, INK, weight="600"), T(x0 + W / 2 + 8, y0 - Th / 2 + 4, f"{th} {unit}", 12.5, INK, anchor="start", weight="600")]
+    return svg(x0 + W + 60, y0 + H + 30, "".join(body))
+
+
+def trap_hole(b1, b2, h, dia, unit="in"):
+    """a trapezoid plate with a round hole"""
+    pts = [(40, 150), (320, 150), (250, 40), (110, 40)]
+    b = [P(pts, PALE["gold"], GOLD, 2.2), C(180, 98, 30, "#fff", GOLD, 2.2), L(150, 98, 210, 98, INK, 1.2),
+         T(180, 30, f"{b1} {unit}", 13, INK, weight="600"), T(180, 172, f"{b2} {unit}", 13, INK, weight="600"),
+         L(292, 40, 292, 150, INK, 1.2, "5 4"), T(300, 100, f"{h} {unit}", 13, INK, anchor="start", weight="600"),
+         T(180, 92, f"{dia} {unit}", 11.5, INK, weight="600")]
+    return svg(380, 184, "".join(b))
+
+
+def number_line(vals, lo, hi, step, labels=None):
+    """points marked on a number line"""
+    x0, w = 40, 520
+    f = lambda v: x0 + w * (v - lo) / (hi - lo)  # noqa: E731
+    b = [L(x0 - 14, 60, x0 + w + 14, 60, INK, 2)]
+    k = 0
+    while lo + k * step <= hi + 1e-9:
+        v = lo + k * step
+        b.append(L(f(v), 52, f(v), 68, INK, 1.4))
+        b.append(T(f(v), 86, f"{v:g}", 11.5, INK, weight="600"))
+        k += 1
+    for i, v in enumerate(vals):
+        b.append(C(f(v), 60, 4.5, RED, RED))
+        b.append(T(f(v), 40 - (14 if i % 2 else 0), (labels[i] if labels else f"{v:g}"), 11.5, RED, weight="700"))
+        b.append(L(f(v), 44 - (14 if i % 2 else 0), f(v), 55, RED, 0.8))
+    return svg(600, 96, "".join(b))
+
+
+def fraction_bars(rows):
+    """equal bars cut into different numbers of pieces; rows are (shaded, pieces)"""
+    b = []
+    for i, (k, nn) in enumerate(rows):
+        y = 14 + i * 42
+        for j in range(nn):
+            b.append(R(60 + j * 400 / nn, y, 400 / nn, 28, PALE["blue"] if j < k else "#fff", BLUE, 1.2))
+        b.append(T(500, y + 20, f"{k}/{nn}", 15, INK, anchor="start", weight="700"))
+    return svg(580, 14 + len(rows) * 42, "".join(b))
+
+
+def right_tri_dims(a, b_, c, unit="ft", note=""):
+    """a right triangle with measurements; any may be '?'"""
+    pts = [(60, 150), (300, 150), (60, 40)]
+    b = [P(pts, PALE["purple"], PURPLE, 2.2), corner(60, 150, 1, -1),
+         T(50, 100, f"{a}" + ("" if a == "?" else f" {unit}"), 13.5, INK, anchor="end", weight="700"),
+         T(180, 172, f"{b_}" + ("" if b_ == "?" else f" {unit}"), 13.5, INK, weight="700"),
+         T(196, 84, f"{c}" + ("" if c == "?" else f" {unit}"), 13.5, INK, anchor="start", weight="700")]
+    if note:
+        b.append(T(180, 190, note, 11.5, "#555"))
+    return svg(360, 196, "".join(b))

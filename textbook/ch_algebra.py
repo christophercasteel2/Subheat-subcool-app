@@ -4,6 +4,7 @@ from math import sqrt
 from book import *  # noqa: F401,F403
 from util import n, r, rnd, fr, F, frtxt
 import figs
+import x3
 
 part("Part 3 · Algebra", "A formula is a set of instructions written in symbols. Part 3 covers the order in which those "
      "instructions are carried out, how to put numbers into a formula, and how to run a formula backward to find a missing value.")
@@ -101,6 +102,7 @@ practice("Order of operations", "Evaluate. Show one operation per line. Round to
           ("3[20 − 2(4 + 3)]", n(3 * 6)), ("100 − 4(2 + 3)²", n(100 - 4 * 25)), ("2³ + 6(9 − 5) ÷ 8", n(8 + 24 / 8)),
           ("(7 + 12)(7 − 12)", n(19 * -5)), ("[[8(6 + 14)|8 + 6 + 14]]", r(160 / 28, 2))], cols=3)
 
+x3.ch7()
 summary(["Order: grouping symbols, then exponents and roots, then × and ÷ left to right, then + and − left to right.",
          "A fraction bar and a root sign are grouping symbols.",
          "A number against a parenthesis means multiply.",
@@ -210,6 +212,7 @@ ev = [("N = (a + b)(a − b);  a = 9, b = 14", n((9 + 14) * (9 - 14))),
       ("**Manufacturing.** C = [[W²DS|1.085]]. W = 0.9 m, D = 1500 kg/m³, S = 2 m/s. Nearest whole number.", r(0.81 * 1500 * 2 / 1.085, 0) + " t/h")]
 practice("Substitute and evaluate", "Write the formula, show the substitution, and evaluate. Do not round unless told to.", ev, cols=1)
 
+x3.ch8()
 summary(["A formula is a rule; its letters are placeholders for numbers.",
          "Write the formula, substitute with parentheses, then evaluate by the order of operations.",
          "Capital and lowercase letters, and letters with different subscripts, are different variables.",
@@ -354,6 +357,7 @@ two = [("P = 2L + 2W. P = 2,600 ft, W = 350 ft. Find L.", n((2600 - 700) / 2) + 
        ("3x + 8 = 29", n(7)), ("5y − 12 = 48", n(12)), ("[[n|4]] + 6 = 15", n(36))]
 practice("Two-step equations", "Substitute and solve. Show every substitution and the steps.", two, cols=1)
 
+x3.ch9()
 summary(["An equation stays true when the same thing is done to both sides.",
          "Solve by undoing operations with their inverses until the unknown stands alone.",
          "Substitute first, simplify each side, then solve.",
@@ -375,3 +379,4 @@ review([("x + 9.5 = 21", n(11.5)), ("7m = 94.5", n(13.5)), ("[[k|12]] = 2.5", n(
         ("S = [[πdn|12]]. S = 5,000 ft/min, d = 6 in, π = 3.14. Find n to the nearest hundred rpm.", r(5000 * 12 / (3.14 * 6), -2) + " rpm"),
         ("A student solves [[5|8]] = 2w + [[1|8]] and gets w = 1 [[1|2]]. Find the correct answer and name the likely mistakes.",
          "w = [[1|4]]. The student added 1/8 instead of subtracting it and multiplied by 2 instead of dividing.")])
+x3.part3()

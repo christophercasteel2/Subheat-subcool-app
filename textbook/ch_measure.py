@@ -3,6 +3,7 @@ from fractions import Fraction
 from book import *  # noqa: F401,F403
 from util import n, r, rnd, fr, F, frtxt
 import figs
+import x2
 
 part("Part 2 · Measurement", "Measuring is counting units. Part 2 covers the two systems of units used in American shops, "
      "how to move between them, and how to read the instruments that do the measuring.")
@@ -166,6 +167,7 @@ practice("Area and volume", "Convert. Round to the nearest tenth if needed.",
                            (3, "gal", "cu in", 231, 1), (2, "cu yd", "cu in", 46656, 1), (120, "gal", "cu ft", 7.48, 0),
                            (0.5, "sq yd", "sq in", 1296, 1)]], cols=2)
 
+x2.ch4()
 summary(["Larger unit to smaller unit: multiply. Smaller unit to larger unit: divide.",
          "Length facts: 12 in per ft, 3 ft per yd, 36 in per yd, 5280 ft per mile.",
          "Area factors are length factors squared: 144, 9, 1296.",
@@ -365,6 +367,7 @@ practice("Conversions by category", "Convert. Round to the nearest tenth if need
          + [mc(*t) for t in [(1.5, "L", "mL", 3), (2400, "mL", "L", -3), (36, "dL", "L", -1)]]
          + [xc(*t) for t in [(30, "qt", "L", 1.06, 0), (60, "L", "gal", 3.785, 0), (7.5, "gal", "L", 3.785, 1)]], cols=3)
 
+x2.ch5()
 summary(["Base units: meter, gram, liter. Prefixes in order: kilo, hecto, deka, (unit), deci, centi, milli.",
          "Inside the metric system, count the steps on the stairs and move the decimal point that many places, the same direction.",
          "Between systems use the facts 2.54, 3.28, 1.61, 28.35, 2.205, 1.06 and 3.785.",
@@ -531,6 +534,7 @@ its += [("A 150-Ω resistor has a tolerance of ±10%. What are its limits?", "13
         ("A stud is to be cut 92 [[5|8]] in ± [[1|8]] in. What are the limits?", f"{fr(F('92 5/8') - Fraction(1, 8))} in to {fr(F('92 5/8') + Fraction(1, 8))} in")]
 practice("Tolerance and missing lengths", "Do not round.", its, cols=1)
 
+x2.ch6()
 summary(["Metric rule: the numbers are centimeters and each small space is 1 mm.",
          "Inch rule: count sixteenths past the last whole inch, then reduce the fraction.",
          "Gauge: scale value = difference between numbered marks ÷ number of spaces between them.",
@@ -552,3 +556,4 @@ review([("How many millimeters are in 7.3 cm?", "73 mm"),
         ("Overall length 54 [[1|4]] in; known parts 20.5 in and 16 [[3|8]] in. Find the missing part without rounding.",
          f"{n(float(F('54 1/4') - F('20.5') - F('16 3/8')))} in"),
         ("Four equal spaces and two end margins of 1.25 in make up a 30-in panel. How wide is each space?", n((30 - 2.5) / 4) + " in")])
+x2.part2()

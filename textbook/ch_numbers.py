@@ -3,6 +3,7 @@ from fractions import Fraction
 from book import *  # noqa: F401,F403
 from util import n, r, rnd, fr, F, frtxt
 import figs
+import x1
 
 PLACES = {"millions": 6, "hundred thousands": 5, "ten thousands": 4, "thousands": 3, "hundreds": 2, "tens": 1, "ones": 0,
           "tenths": -1, "hundredths": -2, "thousandths": -3, "ten-thousandths": -4}
@@ -152,6 +153,7 @@ shop("Rounding costs money",
      "A concrete order of 92.59 cubic yards rounded *down* to 92 leaves the pour short. Rounded to the nearest tenth it is 92.6. "
      "On the job, know whether being a little over or a little under is the safer mistake.")
 
+x1.ch1()
 summary(["Each place is worth ten times the place to its right. Places left of the point end in **s**; places right of it end in **ths**.",
          "To compare decimals, line up the points and compare from the left.",
          "To round: find the rounding digit, look only at the next digit, 5 or more rounds up, 4 or less stays.",
@@ -319,6 +321,7 @@ for a, op, b in mix:
     its.append((f"{frtxt(a)} in {'+' if op == '+' else '−'} {frtxt(b)} in  (decimal answer)", n(float(v)) + " in"))
 practice("Adding and subtracting", "Give fraction answers in lowest terms as mixed numbers.", its, cols=2)
 
+x1.ch2()
 summary(["A fraction is a division: top ÷ bottom gives the decimal.",
          "A decimal becomes a fraction by writing it over 10, 100, 1000 … and reducing.",
          "Decimal to percent: point 2 places right, add %. Percent to decimal: point 2 places left, drop %.",
@@ -475,6 +478,7 @@ wp = [("A 250-ft spool of wire has had 85 ft used. What percent has been used?",
       ("With 8% sales tax a compressor costs $702. What was the price before tax?", "$" + n(702 * 100 / 108, 2))]
 practice("Applications", "Solve each problem. Round only where the problem says.", wp, cols=1)
 
+x1.ch3()
 summary(["Every percent problem fits one sentence: the **part** *is* a **percent** *of* the **whole**.",
          "The percent proportion is part over whole equals percent over 100.",
          "Cross-multiply the diagonal pair of numbers, then divide by the third number.",
@@ -492,3 +496,4 @@ review([pp(*t) for t in [(1, 35, 260), (2, 84, 70), (3, 27, 180), (1, 4.5, 800),
           ("A bill of $1,391 includes 7% sales tax. What was the amount before tax?", "$" + n(1391 * 100 / 107)),
           ("A student says 8% of 50 is 40. Explain the error and give the correct answer.",
            "8% was used as 0.8 instead of 0.08 (or the ÷ 100 was skipped). 8 × 50 ÷ 100 = 4.")])
+x1.part1()

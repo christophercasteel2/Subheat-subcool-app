@@ -3,6 +3,7 @@ from math import sqrt
 from book import *  # noqa: F401,F403
 from util import n, r, rnd
 import figs
+import x4
 
 PI = 3.14
 
@@ -64,6 +65,7 @@ p("A **parallelogram** has two pairs of parallel sides. It looks like a rectangl
 fig(figs.parallelogram(), "A parallelogram. The height h is perpendicular to the base; the side a is slanted.")
 handout("PARALLELOGRAM", "A polygon whose opposite pairs of sides are *equal* and *parallel*. Angles are **NOT** right angles.",
         "**PERIMETER= 2a + 2b**   (or sum of the sides)", "**AREA= bh**")
+fig(figs.parallelogram_slide(), "Cut the triangle off one end and slide it to the other end. The parallelogram becomes a rectangle with the same base and height.")
 p("Why base times **height** and not base times side? Cut the triangle off one end of a parallelogram and slide it to the other end. "
   "The result is a rectangle with the same base and the same height. The slanted side does not appear in the area at all.")
 warn("Height is never the slanted side",
@@ -80,6 +82,8 @@ fig(figs.trapezoid(), "A trapezoid with bases b₁ and b₂, height h and slante
 handout("TRAPEZOID", "a polygon with only one pair of parallel sides.", "**PERIMETER= sum of the sides**", "**AREA=** [[(b1+b2)h|2]]")
 p("The area formula says: average the two bases, then multiply by the height. Two identical trapezoids, one flipped, fit together into a "
   "parallelogram whose base is b_{1} + b_{2}. One trapezoid is half of that.")
+fig(figs.trapezoid_pair(), "Where the trapezoid formula comes from: two equal trapezoids make a parallelogram.")
+fig(figs.trapezoid_dims(12, 20, 9, 9.8, 9.8), "The transition panel of Example 10.6.", width="3.6in")
 example("A trapezoidal transition panel has parallel sides of 12 in and 20 in, a height of 9 in, and slanted sides of 9.8 in each. Find the perimeter and the area.",
         [("P = 12 + 20 + 9.8 + 9.8 = 51.6", "Add all four sides."), ("A = [[(b_{1} + b_{2})h|2]]", "Area formula."),
          ("A = [[(12 + 20)(9)|2]]", "Substitute."), ("A = [[(32)(9)|2]] = [[288|2]]", "Parentheses first, then multiply across the top."), ("A = 144", "Divide by 2.")],
@@ -113,6 +117,7 @@ q = [("Rectangle: L = 16 ft, W = 9 ft. Find P and A.", f"P = {n(50)} ft; A = {n(
      ("How many feet of baseboard go around a 12 ft by 15.5 ft room, ignoring doors?", n(55) + " ft")]
 practice("Quadrilaterals", "Show the formula and the substitution. Do not round.", q, cols=1)
 
+x4.ch10()
 summary(["Perimeter is the distance around (add; length units). Area is the surface inside (multiply; square units).",
          "Rectangle: P = 2L + 2W, A = LW. Square: P = 4s, A = s².",
          "Parallelogram: P = 2a + 2b, A = bh. Trapezoid: P = sum of the sides, A = (b₁ + b₂)h ÷ 2.",
@@ -232,6 +237,7 @@ q = [("Triangle: b = 14 in, h = 9 in. Find A.", n(63) + " sq in"), ("Triangle: b
      ("A rectangular gate is 4 ft by 7 ft. How long is its diagonal brace, to the nearest hundredth?", r(sqrt(65), 2) + " ft")]
 practice("Triangles", "Show the formula and the substitution. Round only where the problem says.", q, cols=1)
 
+x4.ch11()
 summary(["Any triangle: P = a + b + c and A = bh ÷ 2, with h perpendicular to b.",
          "Hero’s formula finds area from the three sides: s = (a + b + c) ÷ 2, A = √(s(s − a)(s − b)(s − c)).",
          "Equilateral triangle: P = 3s, A = .433s².",
@@ -328,14 +334,23 @@ rule("Area of a composite figure",
      "**3. Calculate** the area of each shape.",
      "**4. Add** the areas of shapes that are joined. **Subtract** the areas of holes and cut-outs.")
 sub("Adding parts")
-fig(figs.side_by_side([figs.composite_L(20, 14, 8, 6), figs.composite_house(16, 10, 6)], gap=30),
-    "Left: an L-shaped floor split into rectangles A and B. Right: a gable wall, a rectangle with a triangle on top.")
-example("Find the area of the L-shaped floor in Figure 12.3.",
-        [("A: 12 ft by 6 ft;  B: 20 ft by 8 ft", "Split along the dashed line. Rectangle A is 12 ft wide. Its height is 14 − 8 = 6 ft."),
-         ("Area A = (12)(6) = 72", ""), ("Area B = (20)(8) = 160", ""), ("72 + 160 = 232", "The parts are joined, so add.")], "232 sq ft")
-p("The same floor can be done by subtraction: a full 20 by 14 rectangle is 280 sq ft, and the missing corner is 8 by 6 = 48 sq ft. "
-  "280 − 48 = 232 sq ft. Either plan must give the same answer, which makes a good check.")
-example("Find the area of the gable wall in Figure 12.3.",
+p("An L-shaped figure can be separated in more than one way. One straight cut from the **inside corner** to the **far outside corner** "
+  "turns the L into **two trapezoids**. In each trapezoid the two parallel sides are the bases, and the distance between them is the height.")
+fig(figs.composite_L_trap(20, 14, 8, 6), "An L-shaped floor split into two trapezoids, A and B, by one cut from the inside corner to the far corner.")
+example("Find the area of the L-shaped floor in Figure 12.3 by splitting it into two trapezoids.",
+        [("Trapezoid A: bases 14 ft and 6 ft, height 12 ft", "A’s parallel sides are its two **vertical** edges: the 14-ft left wall and the 6-ft step. The distance between them is the 12-ft top edge."),
+         ("Area A = [[(14 + 6)(12)|2]] = [[(20)(12)|2]] = 120", "Trapezoid formula: add the bases, multiply by the height, divide by 2."),
+         ("Trapezoid B: bases 8 ft and 20 ft, height 8 ft", "B’s parallel sides are **horizontal**: the 8-ft ledge and the 20-ft bottom. The distance between them is 14 − 6 = 8 ft."),
+         ("Area B = [[(8 + 20)(8)|2]] = [[(28)(8)|2]] = 112", "Trapezoid formula again."),
+         ("120 + 112 = 232", "The parts are joined, so add.")], "232 sq ft", title="An L as two trapezoids")
+warn("Find the parallel sides first",
+     "A trapezoid’s bases are its two **parallel** sides, wherever they are. In trapezoid A they run up and down, so its height is measured across. "
+     "The slanted cut line is never a base and never the height, and its length is not needed.")
+p("**Check with rectangles.** Split the same floor with a horizontal line instead: a 12 ft by 6 ft rectangle on top (72 sq ft) and a 20 ft by 8 ft rectangle below (160 sq ft). "
+  "72 + 160 = 232 sq ft. Or subtract: a full 20 by 14 rectangle is 280 sq ft, and the missing corner is 8 by 6 = 48 sq ft; 280 − 48 = 232 sq ft. "
+  "All three plans give the same answer, which is the best check there is.")
+fig(figs.composite_house(16, 10, 6), "A gable wall: a rectangle with a triangle on top.", width="3in")
+example("Find the area of the gable wall in Figure 12.4.",
         [("Rectangle: (16)(10) = 160", "The lower part."), ("Triangle: [[(16)(6)|2]] = 48", "The triangle’s base is the width of the wall, 16 ft; its height is 6 ft."),
          ("160 + 48 = 208", "Add.")], "208 sq ft")
 sub("Subtracting holes")
@@ -373,6 +388,7 @@ comp = [("An L-shaped room is 24 ft by 18 ft overall with a 10 ft by 6 ft corner
          r(2.6 * 0.25 - PI * 0.0625, 2) + " sq in")]
 practice("Composite figures", "Sketch each figure, split it into simple shapes, and show each area. Use π = 3.14.", comp, cols=1)
 
+x4.ch12()
 summary(["Circle: d = 2r, C = πd, A = πr², with π = 3.14. Use the radius for area.",
          "Regular hexagon: P = 6s, A = 2.6s², across corners d = 2s, across flats f = 1.732s.",
          "To work backward from an area with a squared term, divide first, then take the square root.",
@@ -392,3 +408,4 @@ review([("Circle: r = 9 in. Find d and C.", f"d = 18 in; C = {n(PI * 18)} in"), 
         ("A gable end is 24 ft wide, 8 ft to the eaves and 5 ft more to the peak. Find its area.", n(192 + 60) + " sq ft"),
         ("Why is the area of a ring with radii 10 and 7 not the area of a circle with radius 3?",
          "Areas depend on the square of the radius: 10² − 7² = 51, but 3² = 9. Subtract the areas, not the radii.")])
+x4.part4()
