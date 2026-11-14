@@ -526,7 +526,7 @@ miss = [("60", ["14.5", "22 3/8"]), ("96 1/2", ["18.25", "40 5/8"]), ("42 3/8", 
 for tot, parts in miss:
     v = F(tot) - sum(F(x) for x in parts)
     its.append((f"Overall length {frtxt(tot)} in; known parts " + ", ".join(frtxt(x) + " in" for x in parts) + ". Find the missing part.",
-                f"{n(float(v))} in = {fr(v)} in"))
+                f"{n(float(v))} in" + ("" if v.denominator == 1 else f" = {fr(v)} in")))
 its += [("A 150-Ω resistor has a tolerance of ±10%. What are its limits?", "135 Ω to 165 Ω"),
         ("A stud is to be cut 92 [[5|8]] in ± [[1|8]] in. What are the limits?", f"{fr(F('92 5/8') - Fraction(1, 8))} in to {fr(F('92 5/8') + Fraction(1, 8))} in")]
 practice("Tolerance and missing lengths", "Do not round.", its, cols=1)

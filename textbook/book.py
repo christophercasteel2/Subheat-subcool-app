@@ -26,6 +26,9 @@ def fmt(t, mode="pdf"):
     t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
     t = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<i>\1</i>", t)
     t = re.sub(r"`(.+?)`", r'<span class="val">\1</span>', t)
+    t = re.sub(r" {3,}", "&emsp;&emsp;", t)
+    if mode == "pdf":
+        t = re.sub(r"([→←↔✓≈≤≥]+)", r'<span class="sym">\1</span>', t)
     t = re.sub(r"\^\{(.+?)\}", r"<sup>\1</sup>", t)
     t = re.sub(r"_\{(.+?)\}", r"<sub>\1</sub>", t)
     return t

@@ -53,11 +53,16 @@ def toc_html(pages):
     return '<section class="front"><h1>Contents</h1><div class="toc">' + "".join(rows) + "</div></section>"
 
 
-def main_html(pages):
+def main_html(pages, markers=True):
     body = book.render_pdf()
     # markers so the page of each chapter can be found
-    body = re.sub(r'<h1 id="(ch\d+)">', r'<span class="mk">@@\1@@</span><h1 id="\1">', body)
-    ans = book.answers_pdf().replace('<h1 id="answers">', '<span class="mk">@@answers@@</span><h1 id="answers">')
+    ans = book.answers_pdf()
+    if markers:
+        body = re.sub(r'<span class="mk">@@\w+@@</span>', "", body)
+        body = re.sub(r'(<h1 id="(\w+)">.*?</h1>)', r'\1<span class="mk">@@\2@@</span>', body, flags=re.S)
+        ans = re.sub(r'(<h1 id="(answers)">.*?</h1>)', r'\1<span class="mk">@@\2@@</span>', ans, flags=re.S)
+    else:
+        body = re.sub(r'<span class="mk">@@\w+@@</span>', "", body)
     return (f'<!doctype html><html><head><meta charset="utf-8"><title>{TITLE}</title><style>{CSS}</style></head><body>'
             + toc_html(pages) + PREFACE + body + ans + "</body></html>")
 
@@ -149,6 +154,8 @@ def build_pdf():
         open(html, "w").write(main_html(pages))
         node("pdf", html, main, TITLE)
         pages = find_pages(main)
+    open(html, "w").write(main_html(pages, markers=False))      # the final copy carries no hidden marker text
+    node("pdf", html, main, TITLE)
     open(os.path.join(OUT, "cover.html"), "w").write(COVER)
     node("pdf", os.path.join(OUT, "cover.html"), os.path.join(OUT, "cover.pdf"))
     w = PdfWriter()

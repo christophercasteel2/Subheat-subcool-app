@@ -21,9 +21,9 @@ def n(x, places=None):
         return f"{x:,.{places}f}"
     x = round(float(x), 9)
     if x == int(x):
-        return f"{int(x):,}"
+        return f"{int(x):,}".replace("-", "−")
     s = f"{x:,.8f}".rstrip("0").rstrip(".")
-    return s
+    return s.replace("-", "−")
 
 
 def r(x, places):

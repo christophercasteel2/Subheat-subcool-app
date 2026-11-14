@@ -234,7 +234,7 @@ practice("Triangles", "Show the formula and the substitution. Round only where t
 
 summary(["Any triangle: P = a + b + c and A = bh ÷ 2, with h perpendicular to b.",
          "Hero’s formula finds area from the three sides: s = (a + b + c) ÷ 2, A = √(s(s − a)(s − b)(s − c)).",
-         "Equilateral triangle: P = 3s, A = 0.433s².",
+         "Equilateral triangle: P = 3s, A = .433s².",
          "Right triangle: a² + b² = c². Add the squares to find the hypotenuse; subtract to find a leg.",
          "The hypotenuse is always the longest side."])
 review([("A triangle has sides 5, 5 and 8 in. What kind of triangle is it?", "isosceles"),

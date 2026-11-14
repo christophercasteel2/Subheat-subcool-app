@@ -90,7 +90,7 @@ def place_value(digits_whole, digits_dec):
         b.append(f'<text transform="translate({x + cw / 2 + 4:.0f},126) rotate(60)" font-size="13" fill="{INK}">{names_d[i]}</text>')
     b.append(T(x0 + nw * cw / 2, 22, "WHOLE NUMBER PLACES  (each is 10 times the one to its right)", 10.5, BLUE, weight="700"))
     b.append(T(xd + 30 + nd * cw / 2, 22, "DECIMAL PLACES", 10.5, "#a36408", weight="700"))
-    return svg(w, 250, "".join(b))
+    return svg(w + 44, 250, "".join(b))
 
 
 def rounding_line(lo, hi, x, label_lo, label_hi, label_x):
@@ -110,22 +110,23 @@ def rounding_line(lo, hi, x, label_lo, label_hi, label_x):
 
 def fdp_cycle():
     b = []
-    pts = {"FRACTION": (130, 60), "DECIMAL": (400, 60), "PERCENT": (265, 200)}
+    pts = {"FRACTION": (120, 60), "DECIMAL": (480, 60), "PERCENT": (300, 218)}
     for name, (x, y) in pts.items():
         col = {"FRACTION": BLUE, "DECIMAL": GREEN, "PERCENT": RED}[name]
-        b.append(R(x - 62, y - 24, 124, 48, "#fff", col, 2.2, 10))
+        b.append(R(x - 66, y - 24, 132, 48, "#fff", col, 2.2, 10))
         b.append(T(x, y + 5, name, 14, col, weight="700"))
-    b.append(arrow(196, 50, 334, 50, INK))
-    b.append(T(265, 40, "divide top by bottom", 11.5))
-    b.append(arrow(334, 72, 196, 72, INK))
-    b.append(T(265, 90, "write over 10, 100, 1000 ... and reduce", 11.5))
-    b.append(arrow(418, 88, 330, 180, INK))
-    b.append(T(456, 138, "move the point 2 places", 11.5))
-    b.append(T(456, 152, "RIGHT, add %", 11.5, RED, weight="700"))
-    b.append(arrow(310, 170, 392, 88, INK))
-    b.append(T(300, 124, "2 places LEFT,", 11.5, GREEN, anchor="end", weight="700"))
-    b.append(T(300, 138, "drop %", 11.5, anchor="end"))
-    return svg(560, 232, "".join(b))
+    b.append(arrow(192, 48, 408, 48, INK))
+    b.append(T(300, 38, "divide top by bottom", 12, INK, weight="600"))
+    b.append(arrow(408, 74, 192, 74, INK))
+    b.append(T(300, 94, "write over 10, 100, 1000 …", 12, INK, weight="600"))
+    b.append(T(300, 109, "then reduce", 12, INK, weight="600"))
+    b.append(arrow(492, 88, 372, 192, RED))
+    b.append(T(452, 146, "point 2 places RIGHT,", 12, RED, anchor="start", weight="700"))
+    b.append(T(452, 161, "add %", 12, RED, anchor="start", weight="700"))
+    b.append(arrow(336, 192, 456, 88, GREEN))
+    b.append(T(374, 146, "point 2 places LEFT,", 12, GREEN, anchor="end", weight="700"))
+    b.append(T(374, 161, "drop %", 12, GREEN, anchor="end", weight="700"))
+    return svg(620, 250, "".join(b))
 
 
 def percent_bar(part, whole, pct, labels=("part", "whole")):
@@ -145,13 +146,13 @@ def percent_bar(part, whole, pct, labels=("part", "whole")):
 
 def proportion():
     b = [T(150, 52, "PART  (is)", 17, RED, weight="700"), L(70, 64, 230, 64, INK, 2.4),
-         T(150, 92, "WHOLE  (of)", 17, BLUE, weight="700"), T(280, 72, "=", 26, INK, weight="700"),
+         T(150, 92, "WHOLE  (of)", 17, BLUE, weight="700"),
+         L(240, 44, 332, 86, GOLD, 2, "5 4"), L(240, 86, 332, 44, GOLD, 2, "5 4"),
+         C(286, 65, 13, "#fff", "#fff"), T(286, 73, "=", 24, INK, weight="700"),
          T(410, 52, "PERCENT", 17, GREEN, weight="700"), L(340, 64, 480, 64, INK, 2.4),
          T(410, 92, "100", 17, INK, weight="700"),
-         f'<path d="M200 44 Q 280 4 380 80" fill="none" stroke="{GOLD}" stroke-width="2" stroke-dasharray="5 4"/>',
-         f'<path d="M200 96 Q 280 130 370 50" fill="none" stroke="{GOLD}" stroke-width="2" stroke-dasharray="5 4"/>',
-         T(280, 128, "cross-multiply, then divide by the number left over", 11.5, "#8a5a00")]
-    return svg(560, 140, "".join(b))
+         T(286, 124, "cross-multiply the diagonal pair, then divide by the number left over", 11.5, "#8a5a00", weight="600")]
+    return svg(560, 136, "".join(b))
 
 
 # ---------------------------------------------------------------- measurement
@@ -506,8 +507,9 @@ def hexagon():
          L(cx + 30, cy - 78, cx + 30, cy + 78, INK, 1.3, "5 4")]
     b.append(T(cx, cy + r * 0.866 + 20, "s", 15, INK, weight="700", italic=True))
     b.append(T(cx - 40, cy - 8, "d = 2s", 13, INK, weight="700", italic=True))
-    b.append(T(cx + 40, cy + 50, "f = 1.732s", 12, INK, anchor="start", weight="700", italic=True))
-    return svg(300, 214, "".join(b))
+    b.append(L(cx + 30, cy + 46, cx + 100, cy + 46, INK, 0.8))
+    b.append(T(cx + 104, cy + 50, "f = 1.732s", 13, INK, anchor="start", weight="700", italic=True))
+    return svg(360, 214, "".join(b))
 
 
 def composite_L(a, b_, c, d):
