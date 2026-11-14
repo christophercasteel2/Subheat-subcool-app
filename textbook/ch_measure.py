@@ -33,6 +33,12 @@ table(["Length", "Weight", "Liquid capacity"],
 p("A measurement has two parts, a **number** and a **unit**. Converting changes both: the same board is 8 feet or 96 inches. "
   "The number grew because the unit shrank.")
 
+p("This chapter takes the standard system one **category** at a time. Each category has its own set of facts:")
+table(["Category", "What it measures", "Units", "Section"],
+      [["Length", "how long, how far", "in, ft, yd, mi", "4.3"], ["Weight", "how heavy", "oz, lb, T", "4.4"],
+       ["Liquid capacity", "how much a container holds", "cup, pt, qt, gal", "4.5"], ["Area", "how much surface", "sq in, sq ft, sq yd", "4.6"],
+       ["Volume", "how much space", "cu in, cu ft, cu yd, and gallons", "4.7"]], caption="Table 4.2  The five conversion categories", widths=[20, 32, 32, 16])
+
 sec("4.2 Multiply or divide?")
 rule("Converting units",
      "Going to a **smaller** unit, you will need **more** of them: **multiply** by the conversion factor.",
@@ -59,23 +65,58 @@ eq("7.5 ft × [[12 in|1 ft]] = 90 in          (ft cancels ft, inches remain)",
    "150 oz × [[1 lb|16 oz]] = 9.375 lb          (oz cancels oz, pounds remain)")
 
 
+sec("4.3 Category 1: length")
+fig(figs.chain(["mile", "yard", "foot", "inch"], ["1760", "3", "12"], figs.BLUE, "LENGTH"),
+    "The length chain. Move right (to a smaller unit) and multiply; move left (to a larger unit) and divide.")
+table(["Fact", "To go to the smaller unit", "To go to the larger unit"],
+      [["1 ft = 12 in", "ft → in: × 12", "in → ft: ÷ 12"], ["1 yd = 3 ft", "yd → ft: × 3", "ft → yd: ÷ 3"], ["1 yd = 36 in", "yd → in: × 36", "in → yd: ÷ 36"],
+       ["1 mi = 5280 ft", "mi → ft: × 5280", "ft → mi: ÷ 5280"], ["1 mi = 1760 yd", "mi → yd: × 1760", "yd → mi: ÷ 1760"]], small=True)
+example("A run of conduit is 46 ft long. How many yards is that, to the nearest tenth? How many inches?",
+        [("46 ÷ 3 = 15.333…", "Feet to yards: a yard is larger, so divide by 3."), ("15.3 yd", "Round to the nearest tenth."),
+         ("46 × 12 = 552 in", "Feet to inches: an inch is smaller, so multiply by 12.")], "15.3 yd;  552 in")
+example("A pipeline is 3960 ft long. What part of a mile is that?",
+        [("1 mi = 5280 ft", "The fact."), ("3960 ÷ 5280 = 0.75", "Feet to miles: divide.")], "0.75 mi")
+
+sec("4.4 Category 2: weight")
+fig(figs.chain(["ton", "pound", "ounce"], ["2000", "16"], figs.GOLD, "WEIGHT"), "The weight chain.")
+table(["Fact", "To go to the smaller unit", "To go to the larger unit"],
+      [["1 lb = 16 oz", "lb → oz: × 16", "oz → lb: ÷ 16"], ["1 T = 2000 lb", "T → lb: × 2000", "lb → T: ÷ 2000"]], small=True)
+example("A rooftop unit weighs 1.75 tons. How many pounds is that?",
+        [("1 T = 2000 lb", "The fact."), ("1.75 × 2000 = 3500", "Tons to pounds: smaller unit, multiply.")], "3500 lb")
+example("A system is charged with 6 lb 4 oz of refrigerant. Write the charge in ounces, and in pounds as a decimal.",
+        [("6 × 16 = 96 oz", "Change the pounds to ounces."), ("96 + 4 = 100 oz", "Add the extra ounces."),
+         ("4 ÷ 16 = 0.25 lb", "Or change the 4 ounces to pounds."), ("6 + 0.25 = 6.25 lb", "Add to the whole pounds.")], "100 oz, or 6.25 lb",
+        title="A measurement in two units")
+
+sec("4.5 Category 3: liquid capacity")
+fig(figs.chain(["gallon", "quart", "pint", "cup"], ["4", "2", "2"], figs.PURPLE, "LIQUID CAPACITY"), "The capacity chain.")
+table(["Fact", "To go to the smaller unit", "To go to the larger unit"],
+      [["1 pt = 2 cups", "pt → cups: × 2", "cups → pt: ÷ 2"], ["1 qt = 2 pt", "qt → pt: × 2", "pt → qt: ÷ 2"], ["1 gal = 4 qt", "gal → qt: × 4", "qt → gal: ÷ 4"],
+       ["1 gal = 8 pt = 16 cups", "gal → pt: × 8", "pt → gal: ÷ 8"]], small=True)
+example("A compressor takes 54 fluid quarts of oil over a year. How many gallons is that?",
+        [("1 gal = 4 qt", "The fact."), ("54 ÷ 4 = 13.5", "Quarts to gallons: larger unit, divide.")], "13.5 gal")
+example("How many pints are in 2.5 gallons?",
+        [("2.5 × 4 = 10 qt", "Gallons to quarts."), ("10 × 2 = 20 pt", "Quarts to pints.")], "20 pt")
+
+
 def cv(val, a, b, factor, mult, places=1):
     ans = val * factor if mult else val / factor
     return (f"{n(val)} {a} to {b}", f"{r(ans, places)} {b}")
 
 
-practice("Length, weight and capacity", "Convert. Round to the nearest tenth if needed.",
+practice("Length, weight and capacity", "Convert. Round to the nearest tenth if needed. Problems 1 to 6 are length, 7 to 10 weight, 11 to 14 capacity, 15 and 16 length.",
          [cv(*t) for t in [(9, "ft", "in", 12, 1), (102, "in", "ft", 12, 0), (4.5, "yd", "ft", 3, 1), (50, "ft", "yd", 3, 0),
                            (2.5, "mi", "ft", 5280, 1), (9000, "ft", "mi", 5280, 0), (5, "lb", "oz", 16, 1), (72, "oz", "lb", 16, 0),
                            (3.2, "T", "lb", 2000, 1), (5500, "lb", "T", 2000, 0), (6, "gal", "qt", 4, 1), (18, "qt", "gal", 4, 0),
                            (7, "pt", "qt", 2, 0), (2, "gal", "pt", 8, 1), (180, "in", "yd", 36, 0), (0.75, "mi", "yd", 1760, 1)]], cols=2)
 
-sec("4.3 Converting area")
+sec("4.6 Category 4: area")
 p("Area is measured in **square units**. A square foot is a square that measures 1 foot on each side. Since each side is "
   "12 inches, the square holds 12 rows of 12 square inches: 144 of them, not 12.")
 fig(figs.unit_square(), "One square foot holds 144 square inches. The small red square is one square inch.")
 rule("Area conversion factors", "Square the length factor.",
      "1 sq ft = 12 × 12 = **144** sq in", "1 sq yd = 3 × 3 = **9** sq ft", "1 sq yd = 36 × 36 = **1296** sq in")
+fig(figs.chain(["sq yd", "sq ft", "sq in"], ["9", "144"], figs.BLUE, "AREA"), "The area chain. From square yards straight to square inches the factor is 9 × 144 = 1296.")
 example("A duct opening has an area of 1000 sq in. How many square feet is that, to the nearest tenth?",
         [("1 sq ft = 144 sq in", "The area fact, not the length fact."), ("sq in → sq ft: smaller → larger", "Divide."),
          ("1000 ÷ 144 = 6.944…", "Divide by 144."), ("6.9", "Round to the nearest tenth.")], "6.9 sq ft")
@@ -85,18 +126,22 @@ warn("The most common conversion mistake",
      "Dividing square inches by 12 to get square feet. Twelve converts *lengths*. Areas use 144. "
      "Watch for the words “square” or “sq” or the exponent in in² and ft².")
 
-sec("4.4 Converting volume")
+sec("4.7 Category 5: volume")
 p("Volume is measured in **cubic units**. A cubic foot is a cube 1 foot long on every edge. It holds 12 layers, each with "
   "144 cubic inches, so the length factor is used **three** times.")
 fig(figs.unit_cube(), "One cubic foot holds 12 × 12 × 12 = 1,728 cubic inches.")
 rule("Volume conversion factors", "Cube the length factor.",
      "1 cu ft = 12 × 12 × 12 = **1728** cu in", "1 cu yd = 3 × 3 × 3 = **27** cu ft", "1 cu yd = 36 × 36 × 36 = **46,656** cu in")
+fig(figs.chain(["cu yd", "cu ft", "cu in"], ["27", "1728"], figs.GREEN, "VOLUME"), "The volume chain. From cubic yards straight to cubic inches the factor is 27 × 1728 = 46,656.")
+example("An air handler cabinet has a volume of 5.5 cu ft. How many cubic inches is that?",
+        [("1 cu ft = 1728 cu in", "The volume fact."), ("5.5 × 1728 = 9504", "Larger unit to smaller: multiply.")], "9504 cu in")
 example("A slab needs 2500 cu ft of concrete. Concrete is ordered by the cubic yard. How many cubic yards, to the nearest tenth?",
         [("1 cu yd = 27 cu ft", "The volume fact."), ("2500 ÷ 27 = 92.592…", "Smaller unit to larger: divide."),
          ("92.6", "Round to the nearest tenth.")], "92.6 cu yd")
 sub("Cubic measure and gallons")
 p("Tanks, pans and sumps are built to dimensions in inches or feet but are filled in gallons. Two facts connect them.")
 rule("Volume and liquid capacity", "1 cu ft = **7.48** gallons", "1 gallon = **231** cu in")
+fig(figs.chain(["cu ft", "gallon", "cu in"], ["7.48", "231"], figs.PURPLE, "VOLUME AND GALLONS"), "A gallon sits between the cubic foot and the cubic inch.")
 example("A condensate tank has a volume of 5 cu ft. How many gallons does it hold?",
         [("1 cu ft = 7.48 gal", "A gallon is smaller than a cubic foot, so there will be more gallons."), ("5 × 7.48 = 37.4", "Multiply.")], "37.4 gal")
 example("A drain pan holds 1500 cu in. How many gallons is that, to the nearest tenth?",
@@ -104,7 +149,7 @@ example("A drain pan holds 1500 cu in. How many gallons is that, to the nearest 
 table(["To convert", "Factor", "To convert", "Factor"],
       [["sq ft ↔ sq in", "144", "cu ft ↔ cu in", "1728"], ["sq yd ↔ sq ft", "9", "cu yd ↔ cu ft", "27"],
        ["sq yd ↔ sq in", "1296", "cu yd ↔ cu in", "46,656"], ["cu ft ↔ gal", "7.48", "gal ↔ cu in", "231"]],
-      caption="Table 4.2  Area and volume factors. Multiply going to the smaller unit; divide going to the larger.", small=True)
+      caption="Table 4.3  Area and volume factors. Multiply going to the smaller unit; divide going to the larger.", small=True)
 shop("Ordering concrete",
      "A patio 20 ft long, 12 ft wide and 4 in thick has a volume of 20 × 12 × [[4|12]] = 80 cu ft. Divide by 27: 2.96 cu yd. "
      "The thickness had to be changed to feet first. All three dimensions must be in the same unit before multiplying.")
@@ -165,7 +210,7 @@ tip("Remembering the order",
 sec("5.2 Converting on the metric stairs")
 p("Each step on the stairs is a factor of 10, and multiplying or dividing by 10 moves the decimal point one place. "
   "So a metric conversion is done by counting steps.")
-fig(figs.stairs(), "The metric stairs for length. The same stairs work for grams and litres.")
+fig(figs.stairs(), "The metric stairs. Every step holds a length unit, a weight unit and a capacity unit, and the same stairs serve all three.")
 rule("Converting within the metric system",
      "**1.** Find the unit you have and the unit you want on the stairs.",
      "**2.** Count the steps between them.",
@@ -187,6 +232,34 @@ warn("Count steps, not units",
 warn("m, mm and M",
      "Lowercase **m** alone is metre. As a prefix, lowercase **m** is milli (mm, mg, mL). Do not confuse millimetres with metres, "
      "or mg with g: the difference is a factor of 1000.")
+sec("5.3 The stairs, one category at a time")
+p("The stairs never change. Only the base unit changes with what is being measured.")
+sub("Category 1: metric length (the metre)")
+table(["km", "hm", "dam", "m", "dm", "cm", "mm"], [["kilometre", "hectometre", "dekametre", "**metre**", "decimetre", "centimetre", "millimetre"],
+      ["1000 m", "100 m", "10 m", "1 m", "0.1 m", "0.01 m", "0.001 m"]], small=True)
+p("The units used most are the **kilometre** (road distances), the **metre** (rooms and pipe runs), the **centimetre** and the **millimetre** (parts and drawings). "
+  "Worth knowing by heart: 1 m = 100 cm = 1000 mm, 1 cm = 10 mm, 1 km = 1000 m.")
+example("A pipe is 3.2 m long. Give its length in centimetres and in millimetres.",
+        [("m → dm → cm: 2 steps down", "Move the point 2 places right."), ("3.2 → 320 cm", ""),
+         ("m → dm → cm → mm: 3 steps down", "Move the point 3 places right."), ("3.2 → 3200 mm", "")], "320 cm;  3200 mm")
+example("Convert 4750 m to kilometres.",
+        [("m → dam → hm → km: 3 steps up", "Move the point 3 places left."), ("4750. → 4.750", "")], "4.75 km")
+sub("Category 2: metric weight (the gram)")
+table(["kg", "hg", "dag", "g", "dg", "cg", "mg"], [["kilogram", "hectogram", "dekagram", "**gram**", "decigram", "centigram", "milligram"],
+      ["1000 g", "100 g", "10 g", "1 g", "0.1 g", "0.01 g", "0.001 g"]], small=True)
+p("The **kilogram**, the **gram** and the **milligram** do nearly all the work: 1 kg = 1000 g and 1 g = 1000 mg.")
+example("A refrigerant charge is 1.36 kg. How many grams is that?",
+        [("kg → hg → dag → g: 3 steps down", "Move the point 3 places right."), ("1.36 → 1360", "Fill the empty place with a zero.")], "1360 g")
+example("Convert 85 cg to grams.",
+        [("cg → dg → g: 2 steps up", "Move the point 2 places left."), ("85. → 0.85", "")], "0.85 g")
+sub("Category 3: metric capacity (the litre)")
+table(["kL", "hL", "daL", "L", "dL", "cL", "mL"], [["kilolitre", "hectolitre", "dekalitre", "**litre**", "decilitre", "centilitre", "millilitre"],
+      ["1000 L", "100 L", "10 L", "1 L", "0.1 L", "0.01 L", "0.001 L"]], small=True)
+p("The **litre** and the **millilitre** are the everyday units: 1 L = 1000 mL.")
+example("A sample bottle holds 475 mL. How many litres is that?",
+        [("mL → cL → dL → L: 3 steps up", "Move the point 3 places left."), ("475. → 0.475", "")], "0.475 L")
+example("Convert 2.6 daL to decilitres.",
+        [("daL → L → dL: 2 steps down", "Deka to deci passes the base unit: two steps. Move the point 2 places right."), ("2.6 → 260", "")], "260 dL")
 sub("The larger prefixes and the smaller ones")
 p("Science and electronics reach beyond the seven stairs. These prefixes step by a factor of 1000, three decimal places at a time.")
 table(["Prefix", "Symbol", "Multiplies the unit by", "Example"],
@@ -205,7 +278,7 @@ practice("Metric to metric", "Convert by moving the decimal point.",
                            (460, "dg", "dag", -2), (3.2, "hL", "L", 2), (0.085, "kg", "g", 3), (95, "cm", "m", -2),
                            (7, "dam", "dm", 2), (12500, "mg", "g", -3), (0.4, "m", "mm", 3), (64, "cL", "L", -2)]], cols=2)
 
-sec("5.3 Between metric and standard")
+sec("5.4 Between metric and standard")
 p("Moving between the two systems needs conversion factors again. The course uses the seven below. Each line is a fact, "
   "and the multiply-or-divide rule from Chapter 4 applies: toward the **smaller** unit multiply, toward the **larger** unit divide.")
 table(["Length", "Weight", "Capacity"],
@@ -223,6 +296,33 @@ example("Convert 185 lb to kilograms. Round to the nearest tenth.",
          ("185 ÷ 2.205 = 83.900…", "Divide."), ("83.9", "Round.")], "83.9 kg")
 example("Convert 50 L to quarts.",
         [("1 L = 1.06 qt", "The litre is the larger unit."), ("L → qt: larger → smaller", "Multiply."), ("50 × 1.06 = 53", "Multiply.")], "53 qt")
+p("The three examples above come from the three categories. Each category is now set out in full, in both directions.")
+sub("Category 1: length (inch and centimetre, metre and foot, mile and kilometre)")
+fig(figs.stack([figs.chain(["inch", "centimetre"], ["2.54"], figs.BLUE), figs.chain(["metre", "foot"], ["3.28"], figs.BLUE),
+                figs.chain(["mile", "kilometre"], ["1.61"], figs.BLUE)]), "Length between the systems.")
+table(["Fact", "Multiply", "Divide"],
+      [["1 in = 2.54 cm", "in → cm: × 2.54", "cm → in: ÷ 2.54"], ["1 m = 3.28 ft", "m → ft: × 3.28", "ft → m: ÷ 3.28"],
+       ["1 mi = 1.61 km", "mi → km: × 1.61", "km → mi: ÷ 1.61"]], small=True)
+example("A room is 4.5 m long. How many feet is that, to the nearest tenth?",
+        [("1 m = 3.28 ft", "The metre is the larger unit."), ("4.5 × 3.28 = 14.76", "Metres to feet: multiply."), ("14.8", "Round.")], "14.8 ft")
+example("A job site is 12 km away. How many miles is that, to the nearest tenth?",
+        [("1 mi = 1.61 km", "The mile is the larger unit."), ("12 ÷ 1.61 = 7.453…", "Kilometres to miles: divide."), ("7.5", "Round.")], "7.5 mi")
+sub("Category 2: weight (ounce and gram, kilogram and pound)")
+fig(figs.stack([figs.chain(["ounce", "gram"], ["28.35"], figs.GOLD), figs.chain(["kilogram", "pound"], ["2.205"], figs.GOLD)]), "Weight between the systems.")
+table(["Fact", "Multiply", "Divide"],
+      [["1 oz = 28.35 g", "oz → g: × 28.35", "g → oz: ÷ 28.35"], ["1 kg = 2.205 lb", "kg → lb: × 2.205", "lb → kg: ÷ 2.205"]], small=True)
+example("A nameplate gives a charge of 14 oz. How many grams is that?",
+        [("1 oz = 28.35 g", "The ounce is the larger unit."), ("14 × 28.35 = 396.9", "Ounces to grams: multiply.")], "396.9 g")
+example("A motor has a mass of 32 kg. How many pounds is that, to the nearest tenth?",
+        [("1 kg = 2.205 lb", "The kilogram is the larger unit."), ("32 × 2.205 = 70.56", "Kilograms to pounds: multiply."), ("70.6", "Round.")], "70.6 lb")
+sub("Category 3: capacity (litre and quart, gallon and litre)")
+fig(figs.stack([figs.chain(["litre", "quart"], ["1.06"], figs.PURPLE), figs.chain(["gallon", "litre"], ["3.785"], figs.PURPLE)]), "Capacity between the systems.")
+table(["Fact", "Multiply", "Divide"],
+      [["1 L = 1.06 qt", "L → qt: × 1.06", "qt → L: ÷ 1.06"], ["1 gal = 3.785 L", "gal → L: × 3.785", "L → gal: ÷ 3.785"]], small=True)
+example("A sump holds 12 gal. How many litres is that, to the nearest tenth?",
+        [("1 gal = 3.785 L", "The gallon is the larger unit."), ("12 × 3.785 = 45.42", "Gallons to litres: multiply."), ("45.4", "Round.")], "45.4 L")
+example("An oil charge is 8 qt. How many litres is that, to the nearest tenth?",
+        [("1 L = 1.06 qt", "The litre is the larger unit."), ("8 ÷ 1.06 = 7.547…", "Quarts to litres: divide."), ("7.5", "Round.")], "7.5 L")
 sub("Conversions with more than one step")
 p("If the unit you have is not one of the units in the table, first move along the metric stairs or use a standard fact "
   "to reach a unit that is. Write down each step with its unit.")
@@ -249,6 +349,14 @@ practice("Metric and standard", "Convert. Round to the nearest tenth if needed. 
                            (26.2, "mi", "km", 1.61, 1), (10, "km", "mi", 1.61, 0), (8, "oz", "g", 28.35, 1), (500, "g", "oz", 28.35, 0),
                            (70, "kg", "lb", 2.205, 1), (220, "lb", "kg", 2.205, 0), (20, "L", "qt", 1.06, 1), (15, "gal", "L", 3.785, 1)]]
          + [("centimetre or inch", "inch"), ("litre or quart", "litre"), ("gram or ounce", "ounce"), ("kilometre or mile", "mile")], cols=2)
+
+practice("Conversions by category", "Convert. Round to the nearest tenth if needed. 1 to 6 length, 7 to 12 weight, 13 to 18 capacity.",
+         [mc(*t) for t in [(2.75, "m", "cm", 2), (640, "mm", "m", -3), (3.4, "km", "m", 3)]]
+         + [xc(*t) for t in [(18, "in", "cm", 2.54, 1), (60, "ft", "m", 3.28, 0), (55, "mi", "km", 1.61, 1)]]
+         + [mc(*t) for t in [(2.2, "kg", "g", 3), (350, "mg", "g", -3), (48, "g", "cg", 2)]]
+         + [xc(*t) for t in [(24, "oz", "g", 28.35, 1), (1000, "g", "oz", 28.35, 0), (45, "kg", "lb", 2.205, 1)]]
+         + [mc(*t) for t in [(1.5, "L", "mL", 3), (2400, "mL", "L", -3), (36, "dL", "L", -1)]]
+         + [xc(*t) for t in [(30, "qt", "L", 1.06, 0), (60, "L", "gal", 3.785, 0), (7.5, "gal", "L", 3.785, 1)]], cols=3)
 
 summary(["Base units: metre, gram, litre. Prefixes in order: kilo, hecto, deka, (unit), deci, centi, milli.",
          "Inside the metric system, count the steps on the stairs and move the decimal point that many places, the same direction.",

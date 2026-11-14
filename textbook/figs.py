@@ -157,25 +157,67 @@ def proportion():
 # ---------------------------------------------------------------- measurement
 
 def stairs(base="m"):
+    """the metric stairs with the length, weight and capacity unit on every step"""
     names = [("kilo", "k", "1000"), ("hecto", "h", "100"), ("deka", "da", "10"), ("UNIT", "", "1"),
              ("deci", "d", "0.1"), ("centi", "c", "0.01"), ("milli", "m", "0.001")]
     b = []
-    sw, sh = 68, 26
+    sw, sh, x0, y0 = 84, 34, 26, 44
+    bottom = y0 + 6 * sh + sh + 92
     for i, (nm, sym, val) in enumerate(names):
-        x, y = 30 + i * sw, 30 + i * sh
+        x, y = x0 + i * sw, y0 + i * sh
         col = BLUE if i != 3 else RED
-        b.append(R(x, y, sw, sh, PALE["blue"] if i != 3 else PALE["red"], col, 1.4))
-        b.append(R(x, y + sh, sw, 232 - y - sh, "#f6f8fc", GRID, 1))
-        b.append(T(x + sw / 2, y + 18, f"{sym}{base}", 14, col, weight="700"))
-        b.append(T(x + sw / 2, y + sh + 16, nm, 11, INK, weight="600"))
-        b.append(T(x + sw / 2, y + sh + 30, val, 10.5, "#555"))
-    b.append(arrow(120, 22, 430, 140, GREEN, 2))
-    b.append(T(330, 62, "DOWN the stairs: point moves RIGHT", 12, GREEN, weight="700"))
-    b.append(T(330, 77, "(multiply by 10 each step)", 11, GREEN))
-    b.append(arrow(400, 226, 110, 116, PURPLE, 2))
-    b.append(T(190, 212, "UP the stairs: point moves LEFT", 12, PURPLE, weight="700"))
-    b.append(T(190, 227, "(divide by 10 each step)", 11, PURPLE))
-    return svg(540, 240, "".join(b))
+        b.append(R(x, y + sh, sw, bottom - y - sh, "#f6f8fc", GRID, 1))
+        b.append(R(x, y, sw, sh, col, col, 1.4))
+        b.append(T(x + sw / 2, y + 15, nm, 13, "#fff", weight="700"))
+        b.append(T(x + sw / 2, y + 28, val, 10.5, "#fff", weight="600"))
+        for k, (u, c2) in enumerate((("m", BLUE), ("g", GREEN), ("L", PURPLE))):
+            b.append(T(x + sw / 2, bottom - 62 + k * 22, f"{sym}{u}", 15, c2, weight="700"))
+    b.append(T(x0 - 4, bottom - 62, "", 10))
+    for k, (lab, c2) in enumerate((("length", BLUE), ("weight", GREEN), ("capacity", PURPLE))):
+        b.append(T(x0 + 7 * sw + 8, bottom - 62 + k * 22, lab, 11, c2, anchor="start", weight="600"))
+    b.append(T(x0 + 3.5 * sw + 120, y0 + 20, "each step = one decimal place", 12, "#555", weight="600"))
+    ya = bottom + 26
+    b.append(arrow(x0 + 10, ya, x0 + 7 * sw - 10, ya, GREEN, 2.4))
+    b.append(T(x0 + 3.5 * sw, ya - 8, "DOWN the stairs (toward milli): move the decimal point RIGHT, one place per step", 12, GREEN, weight="700"))
+    yb = ya + 34
+    b.append(arrow(x0 + 7 * sw - 10, yb, x0 + 10, yb, RED, 2.4))
+    b.append(T(x0 + 3.5 * sw, yb - 8, "UP the stairs (toward kilo): move the decimal point LEFT, one place per step", 12, RED, weight="700"))
+    return svg(x0 + 7 * sw + 70, yb + 14, "".join(b))
+
+
+def chain(units, factors, col=BLUE, title=""):
+    """units from largest to smallest with the number of the smaller in one of the larger;
+    arrows show multiply going to the smaller unit and divide going to the larger"""
+    bw, gap, x0, y0 = 104, 96, 20, 52 if title else 40
+    b = []
+    if title:
+        b.append(T(x0, 18, title, 12.5, col, anchor="start", weight="700"))
+    for i, u in enumerate(units):
+        x = x0 + i * (bw + gap)
+        b.append(R(x, y0, bw, 40, "#fff", col, 2.2, 8))
+        b.append(T(x + bw / 2, y0 + 26, u, 15, INK, weight="700"))
+        if i < len(factors):
+            xa, xb = x + bw + 6, x + bw + gap - 6
+            b.append(arrow(xa, y0 + 11, xb, y0 + 11, GREEN, 1.8))
+            b.append(T((xa + xb) / 2, y0 + 3, f"× {factors[i]}", 12.5, GREEN, weight="700"))
+            b.append(arrow(xb, y0 + 29, xa, y0 + 29, RED, 1.8))
+            b.append(T((xa + xb) / 2, y0 + 46, f"÷ {factors[i]}", 12.5, RED, weight="700"))
+    w = x0 * 2 + len(units) * bw + (len(units) - 1) * gap
+    b.append(T(x0, y0 + 68, "larger unit", 10.5, "#666", anchor="start"))
+    b.append(T(w - x0, y0 + 68, "smaller unit", 10.5, "#666", anchor="end"))
+    return svg(max(w, 320), y0 + 76, "".join(b))
+
+
+def stack(svgs, gap=8):
+    """several drawings one under another, left aligned"""
+    import re
+    ys, body, w = 0, [], 0
+    for sv in svgs:
+        ww, hh = [float(v) for v in re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', sv).groups()]
+        body.append(f'<g transform="translate(0,{ys})">{sv[sv.index(">") + 1:sv.rindex("</svg>")]}</g>')
+        ys += hh + gap
+        w = max(w, ww)
+    return svg(w, ys - gap, "".join(body))
 
 
 def ruler(inch_marks=(), mm_marks=()):

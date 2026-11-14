@@ -92,7 +92,7 @@ table.data td { padding: 4pt 8pt; border-bottom: 0.6pt solid #dde2ec; vertical-a
 table.data tr:nth-child(odd) td { background: #f7f9fc; }
 table.data.small { font-size: 9.6pt; }
 table.data.small td { padding: 3pt 7pt; }
-figure { margin: 10pt auto 12pt; text-align: center; break-inside: avoid; max-width: 5.6in; }
+figure { margin: 10pt auto 12pt; text-align: center; break-inside: avoid; max-width: 6.7in; }
 figure svg { max-width: 100%; height: auto; }
 figcaption { font-family: Inter, sans-serif; font-size: 8.8pt; color: var(--soft); margin-top: 3pt; }
 figcaption b { color: var(--c); margin-right: 4pt; }
