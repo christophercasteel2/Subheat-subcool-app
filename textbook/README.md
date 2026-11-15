@@ -16,3 +16,12 @@ The text lives in `ch_numbers.py`, `ch_measure.py`, `ch_algebra.py`, `ch_geometr
 Drawings are in `figs.py`, the page design in `style.css`. Answers in the key are calculated by the
 code from the numbers in each question, so a changed question gets a correct answer automatically.
 Needs Node with Playwright (PDF), pandoc and python-docx (Word), and pypdf.
+
+## Teacher's edition
+
+    TEACHER=1 python3 build.py     # writes Applied_Technical_Math_Teachers_Edition.pdf and .docx
+
+The same book with the answer printed in red after every question, a notes box at the start of
+each chapter (sessions, big idea, teaching sequence, common errors, activity, exit ticket, what to
+assign), a sixteen-week pacing guide, and a one-page test with key for each chapter. The notes and
+tests are in `teacher.py`.

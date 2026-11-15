@@ -1,9 +1,9 @@
 """every page of the PDF as contact sheets of 8, for proofreading: out/all_NN.png"""
-import subprocess, glob, os
+import subprocess, glob, os, sys
 from PIL import Image
 here = os.path.dirname(os.path.abspath(__file__)); out = os.path.join(here, "out")
 for f in glob.glob(os.path.join(out, "a-*.png")) + glob.glob(os.path.join(out, "all_*.png")): os.remove(f)
-subprocess.run(["pdftoppm", "-r", "75", "-png", os.path.join(here, "Applied_Technical_Math.pdf"), os.path.join(out, "a")], stderr=subprocess.DEVNULL)
+subprocess.run(["pdftoppm", "-r", "75", "-png", os.path.join(here, sys.argv[1] if len(sys.argv) > 1 else "Applied_Technical_Math.pdf"), os.path.join(out, "a")], stderr=subprocess.DEVNULL)
 fs = sorted(glob.glob(os.path.join(out, "a-*.png")))
 for k in range(0, len(fs), 8):
     ims = [Image.open(f) for f in fs[k:k + 8]]

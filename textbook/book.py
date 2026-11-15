@@ -2,7 +2,10 @@
 (chapter, sec, p, example, practice ...) that collect blocks, and the
 blocks are turned into HTML for the print PDF or simpler HTML for Word."""
 import html
+import os
 import re
+
+TEACHER = os.environ.get("TEACHER") == "1"     # build the teacher's edition
 
 BLOCKS = []          # everything in the book, in order
 ANSWERS = []         # (chapter number, chapter title, set title, [answers])
@@ -130,7 +133,7 @@ def practice(title, intro, items, cols=2):
     items = uniq
     _state["set"] += 1
     label = f'{_state["ch"]}.{_state["set"]}'
-    add("practice", label=label, tag=f"PRACTICE {label}", title=title, intro=intro, items=[q for q, _ in items], cols=cols)
+    add("practice", label=label, tag=f"PRACTICE {label}", title=title, intro=intro, items=[q for q, _ in items], answers=[a for _, a in items], cols=cols)
     ANSWERS.append((_state["ch"], _state["title"], f"Practice {label}: {title}", [a for _, a in items]))
 
 
@@ -144,7 +147,7 @@ def more_review(items):
 
 def cumulative(title, intro, items, cols=2):
     """a review that follows a whole part of the book"""
-    add("practice", label=title, tag="CUMULATIVE REVIEW", title=title, intro=intro, items=[q for q, _ in items], cols=cols)
+    add("practice", label=title, tag="CUMULATIVE REVIEW", title=title, intro=intro, items=[q for q, _ in items], answers=[a for _, a in items], cols=cols)
     ANSWERS.append((_state["ch"], _state["title"], f"Cumulative review: {title}", [a for _, a in items]))
 
 
@@ -152,7 +155,7 @@ def review(items):
     """the chapter review: (question, answer) pairs"""
     items = list(items) + list(_more)
     del _more[:]
-    add("review", n=_state["ch"], items=[q for q, _ in items])
+    add("review", n=_state["ch"], items=[q for q, _ in items], answers=[a for _, a in items])
     ANSWERS.append((_state["ch"], _state["title"], "Chapter review", [a for _, a in items]))
 
 
@@ -170,6 +173,21 @@ def _box(kind, title, inner):
     label = {"rule": "KEY RULE", "warn": "WATCH OUT", "tip": "CALCULATOR TIP", "shop": "ON THE JOB", "handout": "CLASS HANDOUT"}[kind]
     return (f'<div class="box {kind}"><div class="boxhead"><span class="tag">{label}</span>'
             f'<span class="boxtitle">{fmt(title)}</span></div><div class="boxbody">{inner}</div></div>')
+
+
+def _items(b):
+    """the questions of a set; the teacher's edition prints each answer after its question"""
+    if not TEACHER:
+        return "".join(f"<li>{fmt(q)}</li>" for q in b["items"])
+    return "".join(f'<li>{fmt(q)} <span class="ta">{fmt(a)}</span></li>' for q, a in zip(b["items"], b["answers"]))
+
+
+def _cols(b):
+    """with answers printed in, long answers need wider columns"""
+    if not TEACHER:
+        return b["cols"]
+    longest = max(len(re.sub(r"\[\[|\]\]|\*", "", q + a)) for q, a in zip(b["items"], b["answers"]))
+    return 1 if longest > 60 else min(b["cols"], 2 if longest > 30 else 3)
 
 
 def render_pdf(toc_pages=None):
@@ -192,6 +210,9 @@ def render_pdf(toc_pages=None):
                        f'<p class="chintro">{fmt(b["intro"])}</p></div>'
                        f'<div class="objectives"><div class="objhead">After this chapter you will be able to</div>'
                        f'<ul>{obj}</ul></div>{terms}')
+            if TEACHER:
+                import teacher
+                out.append(teacher.notes_pdf(b["n"]))
         elif kind == "sec":
             out.append(f'<h2><span class="secbar"></span>{fmt(b["title"])}</h2>')
         elif kind == "sub":
@@ -224,12 +245,12 @@ def render_pdf(toc_pages=None):
             w = f' style="max-width:{b["width"]}"' if b["width"] else ""
             out.append(f'<figure{w}>{b["svg"]}<figcaption><b>Figure {b["n"]}</b> {fmt(b["caption"])}</figcaption></figure>')
         elif kind == "practice":
-            items = "".join(f"<li>{fmt(q)}</li>" for q in b["items"])
+            items = _items(b)
             out.append(f'<div class="practice"><div class="prhead"><span class="prnum">{b["tag"]}</span> '
                        f'{fmt(b["title"])}</div><p class="printro">{fmt(b["intro"])}</p>'
-                       f'<ol class="cols{b["cols"]}">{items}</ol></div>')
+                       f'<ol class="cols{_cols(b)}">{items}</ol></div>')
         elif kind == "review":
-            items = "".join(f"<li>{fmt(q)}</li>" for q in b["items"])
+            items = _items(b)
             out.append(f'<div class="review"><div class="rvhead">Chapter {b["n"]} review</div>'
                        f'<ol class="cols2">{items}</ol></div></section>')
         elif kind == "summary":
@@ -266,6 +287,12 @@ def answers_pdf():
 
 def render_docx():
     f = lambda t: fmt(t, "docx")  # noqa: E731
+
+    def qa(b):
+        if not TEACHER:
+            return "".join(f"<li>{f(q)}</li>" for q in b["items"])
+        return "".join(f"<li>{f(q)}  <b>[{f(a)}]</b></li>" for q, a in zip(b["items"], b["answers"]))
+
     out = []
     for kind, b in BLOCKS:
         if kind == "part":
@@ -277,6 +304,9 @@ def render_docx():
             if b["terms"]:
                 out.append("<p><b>Key terms</b></p><ul>"
                            + "".join(f"<li><b>{f(t)}</b>: {f(d)}</li>" for t, d in b["terms"]) + "</ul>")
+            if TEACHER:
+                import teacher
+                out.append(teacher.notes_docx(b["n"]))
         elif kind == "sec":
             out.append(f'<h2>{f(b["title"])}</h2>')
         elif kind == "sub":
@@ -310,9 +340,9 @@ def render_docx():
                        f'<div custom-style="Caption"><p><b>Figure {b["n"]}</b> {f(b["caption"])}</p></div>')
         elif kind == "practice":
             out.append(f'<h3>{b["tag"].title()}: {f(b["title"])}</h3><p>{f(b["intro"])}</p><ol>'
-                       + "".join(f"<li>{f(q)}</li>" for q in b["items"]) + "</ol>")
+                       + qa(b) + "</ol>")
         elif kind == "review":
-            out.append(f'<h2>Chapter {b["n"]} review</h2><ol>' + "".join(f"<li>{f(q)}</li>" for q in b["items"]) + "</ol>")
+            out.append(f'<h2>Chapter {b["n"]} review</h2><ol>' + qa(b) + "</ol>")
         elif kind == "summary":
             out.append('<div custom-style="BoxRule"><p><b>Chapter summary</b></p><ul>'
                        + "".join(f"<li>{f(x)}</li>" for x in b["points"]) + "</ul></div>")

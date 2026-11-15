@@ -19,6 +19,12 @@ for mod in ("ch_numbers", "ch_measure", "ch_algebra", "ch_geometry", "ch_back"):
     if os.path.exists(os.path.join(HERE, mod + ".py")):
         importlib.import_module(mod)
 
+TE = book.TEACHER
+if TE:
+    import teacher  # noqa: E402
+    teacher.add_tests()
+FOOT = TITLE + (" · Teacher’s Edition" if TE else "")
+NAME = "Applied_Technical_Math" + ("_Teachers_Edition" if TE else "")
 CSS = open(os.path.join(HERE, "style.css")).read()
 
 
@@ -64,7 +70,7 @@ def main_html(pages, markers=True):
     else:
         body = re.sub(r'<span class="mk">@@\w+@@</span>', "", body)
     return (f'<!doctype html><html><head><meta charset="utf-8"><title>{TITLE}</title><style>{CSS}</style></head><body>'
-            + toc_html(pages) + PREFACE + body + ans + "</body></html>")
+            + toc_html(pages) + (teacher.front_pdf() if TE else "") + PREFACE + body + ans + "</body></html>")
 
 
 PREFACE = """
@@ -152,17 +158,23 @@ def build_pdf():
     pages = {}
     for _ in range(2):
         open(html, "w").write(main_html(pages))
-        node("pdf", html, main, TITLE)
+        node("pdf", html, main, FOOT)
         pages = find_pages(main)
     open(html, "w").write(main_html(pages, markers=False))      # the final copy carries no hidden marker text
-    node("pdf", html, main, TITLE)
-    open(os.path.join(OUT, "cover.html"), "w").write(COVER)
+    node("pdf", html, main, FOOT)
+    cover = COVER
+    if TE:
+        cover = cover.replace("A FULL-COLOR COURSE TEXT", "TEACHER’S EDITION").replace(
+            '<div class="s">', '<div style="display:inline-block;background:#f2b84b;color:#1c2440;font-weight:800;letter-spacing:.14em;'
+            'font-size:13pt;padding:7pt 14pt;border-radius:5pt;margin-bottom:16pt">TEACHER’S EDITION</div>'
+            '<div class="s">Answers beside every question · teaching notes · pacing guide · chapter tests with keys<br><br>', 1)
+    open(os.path.join(OUT, "cover.html"), "w").write(cover)
     node("pdf", os.path.join(OUT, "cover.html"), os.path.join(OUT, "cover.pdf"))
     w = PdfWriter()
     w.append(os.path.join(OUT, "cover.pdf"))
     w.append(main)
     w.add_metadata({"/Title": f"{TITLE}: {SUB}"})
-    final = os.path.join(HERE, "Applied_Technical_Math.pdf")
+    final = os.path.join(HERE, NAME + ".pdf")
     w.write(final)
     print("PDF pages:", len(PdfReader(final).pages), pages)
 
@@ -175,13 +187,13 @@ def build_docx():
                         '.f{display:inline-block;padding:4px;background:#fff}</style></head><body>'
                         + "".join(f'<div><div class="f">{s}</div></div>' for s in book.FIGS) + "</body></html>")
     node("figs", fh, figdir)
-    body = book.render_docx()
+    body = (teacher.front_docx() if TE else "") + book.render_docx()
     dh = os.path.join(OUT, "docx.html")
     open(dh, "w").write(f'<!doctype html><html><head><meta charset="utf-8"><title>{TITLE}</title></head><body>{body}</body></html>')
     ref = os.path.join(HERE, "reference.docx")
-    cmd = ["pandoc", dh, "-f", "html", "-t", "docx", "-o", os.path.join(HERE, "Applied_Technical_Math.docx"),
+    cmd = ["pandoc", dh, "-f", "html", "-t", "docx", "-o", os.path.join(HERE, NAME + ".docx"),
            "--resource-path", OUT, "--toc", "--toc-depth=1",
-           "-M", f"title={TITLE}", "-M", f"subtitle={SUB}"]
+           "-M", f"title={TITLE}" + (": Teacher’s Edition" if TE else ""), "-M", f"subtitle={SUB}"]
     if os.path.exists(ref):
         cmd += ["--reference-doc", ref]
     subprocess.run(cmd, check=True, cwd=OUT)
