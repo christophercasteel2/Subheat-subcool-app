@@ -925,3 +925,98 @@ def unfolded_prism(L_, W_, H_):
     b.append(L(40 + L_ * k + 4, 58, 40 + L_ * k + 4, 66, RED, 1.2))
     b.append(T((40 + L_ * k + x) / 2, 50, f"p = {2 * L_ + 2 * W_}  (the perimeter of the base)", 12, RED, weight="700"))
     return svg(x + 90, 70 + H_ * k + W_ * k + 20, "".join(b))
+
+
+# ---------------------------------------------------------------- ratio and trigonometry
+
+def pulleys():
+    b = [C(110, 100, 72, PALE["blue"], BLUE, 2.2), C(110, 100, 6, INK, INK), C(380, 100, 24, PALE["gold"], GOLD, 2.2), C(380, 100, 4, INK, INK),
+         L(110 - 6, 28, 380 - 2, 76, INK, 2.4), L(110 - 6, 172, 380 - 2, 124, INK, 2.4),
+         L(38, 100, 182, 100, INK, 1, "4 3"), T(110, 92, "D = 12 in", 12.5, INK, weight="700"), T(110, 126, "driving", 11, "#555"),
+         T(110, 140, "N = 1,725 rpm", 11.5, BLUE, weight="700"), T(380, 148, "d = 4 in", 12.5, INK, weight="700"), T(380, 164, "driven", 11, "#555"),
+         T(380, 180, "n = ?", 11.5, GOLD, weight="700"), T(245, 205, "D × N = d × n", 14, RED, weight="700")]
+    return svg(440, 216, "".join(b))
+
+
+def trig_triangle(at="A", show=("opp", "adj", "hyp"), labels=None, size=1.0):
+    """a right triangle with the right angle at bottom left; theta at A (bottom right) or B (top left).
+    The sides are coloured by their name relative to theta."""
+    k = size
+    Cp, Ap, Bp = (110 * k, 170 * k), (380 * k, 170 * k), (110 * k, 30 * k)
+    if at == "A":
+        names = {"opp": (Cp, Bp), "adj": (Cp, Ap), "hyp": (Bp, Ap)}
+        ang = Ap
+    else:
+        names = {"opp": (Cp, Ap), "adj": (Cp, Bp), "hyp": (Bp, Ap)}
+        ang = Bp
+    col = {"opp": RED, "adj": BLUE, "hyp": GREEN}
+    word = {"opp": "opposite", "adj": "adjacent", "hyp": "hypotenuse"}
+    b = [P([Cp, Ap, Bp], "#fafbfe", INK, 1.2), corner(Cp[0], Cp[1], 1, -1, 12 * k)]
+    for nm, (p1, p2) in names.items():
+        b.append(L(*p1, *p2, col[nm], 4))
+        mx, my = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
+        txt = (labels or {}).get(nm, word[nm])
+        if nm == "hyp":
+            b.append(T(mx + 14, my - 10, txt, 13, col[nm], anchor="start", weight="700"))
+        elif p1[1] == p2[1]:
+            b.append(T(mx, my + 22, txt, 13, col[nm], weight="700"))
+        else:
+            b.append(T(mx - 10, my + 4, txt, 13, col[nm], anchor="end", weight="700"))
+    if at == "A":
+        b.append(f'<path d="M{Ap[0] - 42 * k} {Ap[1]} A{42 * k} {42 * k} 0 0 1 {Ap[0] - 37 * k} {Ap[1] - 19 * k}" fill="none" stroke="{INK}" stroke-width="1.6"/>')
+        b.append(T(Ap[0] - 58 * k, Ap[1] - 8 * k, "θ", 16, INK, weight="700", italic=True))
+    else:
+        b.append(f'<path d="M{Bp[0]} {Bp[1] + 42 * k} A{42 * k} {42 * k} 0 0 0 {Bp[0] + 35 * k} {Bp[1] + 23 * k}" fill="none" stroke="{INK}" stroke-width="1.6"/>')
+        b.append(T(Bp[0] + 14 * k, Bp[1] + 62 * k, "θ", 16, INK, weight="700", italic=True))
+    return svg(500 * k, 210 * k, "".join(b))
+
+
+def labeled_right_triangle(a_txt, b_txt, c_txt, ang_txt, at="A"):
+    """right angle bottom left, angle shown at A (bottom right) or B (top left); a vertical, b horizontal, c hypotenuse"""
+    Cp, Ap, Bp = (60, 170), (330, 170), (60, 40)
+    b = [P([Cp, Ap, Bp], PALE["purple"], PURPLE, 2.2), corner(60, 170, 1, -1, 12),
+         T(50, 108, a_txt, 13.5, INK, anchor="end", weight="700"), T(195, 194, b_txt, 13.5, INK, weight="700"),
+         T(204, 94, c_txt, 13.5, INK, anchor="start", weight="700")]
+    if at == "A":
+        b.append(f'<path d="M288 170 A42 42 0 0 1 293 151" fill="none" stroke="{INK}" stroke-width="1.6"/>')
+        b.append(T(282, 160, ang_txt, 13, RED, anchor="end", weight="700"))
+    else:
+        b.append(f'<path d="M60 82 A42 42 0 0 0 95 63" fill="none" stroke="{INK}" stroke-width="1.6"/>')
+        b.append(T(72, 100, ang_txt, 13, RED, anchor="start", weight="700"))
+    return svg(400, 206, "".join(b))
+
+
+def offset_bend():
+    """a conduit offset: two bends at the same angle; the travel is the hypotenuse"""
+    import math
+    a = math.radians(30)
+    x0, y0, off = 40, 180, 110
+    trav = off / math.sin(a)
+    x1 = x0 + 140
+    x2, y2 = x1 + trav * math.cos(a), y0 - off
+    b = [L(x0, y0, x1, y0, INK, 10), L(x1, y0, x2, y2, INK, 10), L(x2, y2, x2 + 140, y2, INK, 10),
+         L(x0, y0, x1, y0, "#9aa3b8", 6), L(x1, y0, x2, y2, "#9aa3b8", 6), L(x2, y2, x2 + 140, y2, "#9aa3b8", 6),
+         L(x2, y2 + 8, x2, y0, RED, 1.6, "5 4"), L(x1, y0 + 8, x2, y0 + 8, BLUE, 1.6, "5 4"),
+         T(x2 + 10, (y0 + y2) / 2 + 4, "offset (opposite)", 12.5, RED, anchor="start", weight="700"),
+         T((x1 + x2) / 2 - 6, (y0 + y2) / 2 - 12, "travel (hypotenuse)", 12.5, GREEN, anchor="end", weight="700"),
+         T((x1 + x2) / 2, y0 + 26, "run (adjacent)", 12.5, BLUE, weight="700"),
+         f'<path d="M{x1 + 46} {y0} A46 46 0 0 0 {x1 + 46 * math.cos(a)} {y0 - 46 * math.sin(a)}" fill="none" stroke="{INK}" stroke-width="1.6"/>',
+         T(x1 + 56, y0 - 10, "30°", 12.5, INK, anchor="start", weight="700")]
+    return svg(x2 + 200, y0 + 40, "".join(b))
+
+
+def ramp():
+    b = [P([(40, 160), (440, 160), (440, 120)], PALE["gold"], GOLD, 2.2), corner(440, 160, -1, -1, 10),
+         T(240, 182, "run 20 ft", 13, INK, weight="700"), T(450, 144, "rise 20 in", 13, INK, anchor="start", weight="700"),
+         T(240, 128, "ramp", 13, INK, weight="700"),
+         '<path d="M110 160 A70 70 0 0 0 109.7 153" fill="none" stroke="#1c2440" stroke-width="1.6"/>', T(122, 152, "θ", 15, RED, anchor="start", weight="700", italic=True)]
+    return svg(560, 196, "".join(b))
+
+
+def oblique():
+    A_, B_, C_ = (50, 170), (400, 170), (150, 40)
+    b = [P([A_, B_, C_], PALE["green"], GREEN, 2.2),
+         T(36, 184, "A", 15, INK, weight="700"), T(414, 184, "B", 15, INK, weight="700"), T(150, 30, "C", 15, INK, weight="700"),
+         T(225, 192, "c", 15, RED, weight="700", italic=True), T(86, 100, "b", 15, RED, weight="700", italic=True),
+         T(290, 100, "a", 15, RED, weight="700", italic=True)]
+    return svg(460, 204, "".join(b))

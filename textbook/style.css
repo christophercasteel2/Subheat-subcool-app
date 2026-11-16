@@ -145,7 +145,7 @@ ol li::marker { font-family: Inter, sans-serif; font-weight: 700; font-size: 0.8
 /* ---------- teacher's edition ---------- */
 .ta { font-family: Inter, sans-serif; font-weight: 700; font-size: 0.86em; color: #c8452f; background: #fdf0ee; border-radius: 3pt;
   padding: 0.5pt 4pt; margin-left: 3pt; }
-.tnotes { -webkit-box-decoration-break: clone; box-decoration-break: clone; border: 1.4pt solid #1c2440; border-radius: 8pt; margin: 6pt 0 14pt; overflow: hidden; font-size: 10.3pt; }
+.tnotes { break-inside: avoid; border: 1.4pt solid #1c2440; border-radius: 8pt; margin: 6pt 0 14pt; overflow: hidden; font-size: 10.3pt; }
 .tnotes .th { background: #1c2440; color: #fff; font-family: Inter, sans-serif; font-weight: 800; font-size: 9pt; letter-spacing: 0.14em;
   padding: 5pt 12pt; display: flex; justify-content: space-between; }
 .tnotes .th span:last-child { font-weight: 600; letter-spacing: 0.04em; color: #f2b84b; }
@@ -167,3 +167,19 @@ ol li::marker { font-family: Inter, sans-serif; font-weight: 700; font-size: 0.8
 .test .pts { font-family: Inter, sans-serif; font-size: 8.4pt; color: #5a6278; margin-left: 4pt; }
 .test.key ol li { margin-bottom: 4pt; }
 .test.key .thead { border-color: #c8452f; }
+
+/* ---------- chapters made of sections ---------- */
+.chtext { font-family: Inter, sans-serif; font-weight: 700; font-size: 10pt; letter-spacing: 0.08em; opacity: 0.9; margin: -4pt 0 8pt;
+  position: relative; z-index: 1; }
+.inch { border: 1.2pt solid var(--c); border-radius: 8pt; padding: 9pt 14pt 6pt; margin-bottom: 12pt; break-inside: avoid; }
+.inch ol { list-style: none; padding: 0; margin: 0; font-family: Inter, sans-serif; font-size: 11pt; font-weight: 600; }
+.inch li { padding: 3pt 0; }
+.inch li span { display: inline-block; width: 36pt; color: var(--c); font-weight: 800; }
+.unit { break-before: page; }
+.unit.first { break-before: auto; margin-top: 6pt; }
+.uhead { border-left: 7pt solid var(--c); padding: 4pt 0 4pt 14pt; margin-bottom: 10pt; }
+.unum { font-family: Inter, sans-serif; font-weight: 800; font-size: 9pt; letter-spacing: 0.22em; color: var(--c); }
+.uhead h1 { font-family: Inter, sans-serif; font-weight: 800; font-size: 22pt; line-height: 1.12; margin: 3pt 0 6pt; }
+.uintro { font-size: 11.5pt; color: #3a425a; margin: 0; }
+.toc .tunit { padding: 1.5pt 0 1.5pt 26pt; font-size: 9.6pt; color: #3a425a; }
+.toc .tunit i { font-style: normal; font-weight: 700; display: inline-block; width: 26pt; color: #5a6278; }

@@ -190,10 +190,47 @@ def _cols(b):
     return 1 if longest > 60 else min(b["cols"], 2 if longest > 30 else 3)
 
 
+def _notes(unit, mode):
+    if not TEACHER:
+        return ""
+    import teacher
+    return teacher.notes_pdf(unit) if mode == "pdf" else teacher.notes_docx(unit)
+
+
 def render_pdf(toc_pages=None):
     out = []
     color = "#1f5fbf"
+    open_ch = False
+    first_unit = False
     for kind, b in BLOCKS:
+        if kind in ("chapter", "raw") and open_ch:
+            out.append("</section>")
+            open_ch = False
+        if kind == "chapter" and "units" in b:
+            color = b["color"]
+            units = "".join(f'<li><span>{u}</span>{fmt(t)}</li>' for u, t in b["units"])
+            tb = f'<div class="chtext">{fmt(b["textbook"])}</div>' if b.get("textbook") else ""
+            out.append(f'<section class="chapter" style="--c:{color}">'
+                       f'<div class="chopen"><div class="chnum">CHAPTER {b["n"]}</div>'
+                       f'<h1 id="ch{b["n"]}">{fmt(b["title"])}</h1>{tb}'
+                       f'<p class="chintro">{fmt(b["intro"])}</p></div>'
+                       f'<div class="inch"><div class="objhead">In this chapter</div><ol>{units}</ol></div>')
+            open_ch = True
+            first_unit = True
+            continue
+        if kind == "unit":
+            obj = "".join(f"<li>{fmt(o)}</li>" for o in b["objectives"])
+            terms = ""
+            if b["terms"]:
+                terms = ('<div class="terms"><div class="termhead">Key terms</div><dl>'
+                         + "".join(f"<dt>{fmt(t)}</dt><dd>{fmt(d)}</dd>" for t, d in b["terms"]) + "</dl></div>")
+            objs = (f'<div class="objectives"><div class="objhead">After this section you will be able to</div><ul>{obj}</ul></div>'
+                    if obj else "")
+            out.append(f'<div class="unit{" first" if first_unit else ""}"><div class="uhead"><div class="unum">SECTION {b["n"]}</div>'
+                       f'<h1 id="u{b["n"].replace(".", "_")}">{fmt(b["title"])}</h1>'
+                       f'<p class="uintro">{fmt(b["intro"])}</p></div>{objs}{terms}</div>' + _notes(b["n"], "pdf"))
+            first_unit = False
+            continue
         if kind == "part":
             out.append(f'<section class="part"><div class="partlabel">APPLIED TECHNICAL MATH</div><h1>{fmt(b["title"])}</h1>'
                        f'<p>{fmt(b["blurb"])}</p></section>')
@@ -251,15 +288,17 @@ def render_pdf(toc_pages=None):
                        f'<ol class="cols{_cols(b)}">{items}</ol></div>')
         elif kind == "review":
             items = _items(b)
-            out.append(f'<div class="review"><div class="rvhead">Chapter {b["n"]} review</div>'
-                       f'<ol class="cols2">{items}</ol></div></section>')
+            out.append(f'<div class="review"><div class="rvhead">Section {b["n"]} review</div>'
+                       f'<ol class="cols2">{items}</ol></div>')
         elif kind == "summary":
-            out.append('<div class="summary"><div class="sumhead">Chapter summary</div><ul>'
+            out.append('<div class="summary"><div class="sumhead">Section summary</div><ul>'
                        + "".join(f"<li>{fmt(x)}</li>" for x in b["points"]) + "</ul></div>")
         elif kind == "break":
             out.append('<div class="pb"></div>')
         elif kind == "raw":
             out.append(b["pdf"])
+    if open_ch:
+        out.append("</section>")
     return "\n".join(out)
 
 
@@ -295,7 +334,19 @@ def render_docx():
 
     out = []
     for kind, b in BLOCKS:
-        if kind == "part":
+        if kind == "chapter" and "units" in b:
+            tb = f' ({f(b["textbook"])})' if b.get("textbook") else ""
+            out.append(f'<h1>Chapter {b["n"]}: {f(b["title"])}</h1><p><i>{f(b["intro"])}</i>{tb}</p><p><b>In this chapter:</b> '
+                       + "; ".join(f"{u} {f(t)}" for u, t in b["units"]) + "</p>")
+        elif kind == "unit":
+            out.append(f'<h2>Section {b["n"]}: {f(b["title"])}</h2><p><i>{f(b["intro"])}</i></p>')
+            if b["objectives"]:
+                out.append('<div custom-style="Objectives"><p><b>After this section you will be able to</b></p><ul>'
+                           + "".join(f"<li>{f(o)}</li>" for o in b["objectives"]) + "</ul></div>")
+            if b["terms"]:
+                out.append("<p><b>Key terms</b></p><ul>" + "".join(f"<li><b>{f(t)}</b>: {f(d)}</li>" for t, d in b["terms"]) + "</ul>")
+            out.append(_notes(b["n"], "docx"))
+        elif kind == "part":
             out.append(f'<h1 class="part">{f(b["title"])}</h1><p>{f(b["blurb"])}</p>')
         elif kind == "chapter":
             out.append(f'<h1>Chapter {b["n"]}: {f(b["title"])}</h1><p><i>{f(b["intro"])}</i></p>')
@@ -308,9 +359,9 @@ def render_docx():
                 import teacher
                 out.append(teacher.notes_docx(b["n"]))
         elif kind == "sec":
-            out.append(f'<h2>{f(b["title"])}</h2>')
-        elif kind == "sub":
             out.append(f'<h3>{f(b["title"])}</h3>')
+        elif kind == "sub":
+            out.append(f'<h4>{f(b["title"])}</h4>')
         elif kind == "p":
             out.append(f'<p>{f(b["text"])}</p>')
         elif kind == "list":
@@ -339,12 +390,12 @@ def render_docx():
             out.append(f'<p><img src="figs/fig{b["idx"]:03d}.png" style="width:{min(6.0, vw / 105):.2f}in"/></p>'
                        f'<div custom-style="Caption"><p><b>Figure {b["n"]}</b> {f(b["caption"])}</p></div>')
         elif kind == "practice":
-            out.append(f'<h3>{b["tag"].title()}: {f(b["title"])}</h3><p>{f(b["intro"])}</p><ol>'
+            out.append(f'<h4>{b["tag"].title()}: {f(b["title"])}</h4><p>{f(b["intro"])}</p><ol>'
                        + qa(b) + "</ol>")
         elif kind == "review":
-            out.append(f'<h2>Chapter {b["n"]} review</h2><ol>' + qa(b) + "</ol>")
+            out.append(f'<h3>Section {b["n"]} review</h3><ol>' + qa(b) + "</ol>")
         elif kind == "summary":
-            out.append('<div custom-style="BoxRule"><p><b>Chapter summary</b></p><ul>'
+            out.append('<div custom-style="BoxRule"><p><b>Section summary</b></p><ul>'
                        + "".join(f"<li>{f(x)}</li>" for x in b["points"]) + "</ul></div>")
         elif kind == "raw":
             out.append(b["docx"])

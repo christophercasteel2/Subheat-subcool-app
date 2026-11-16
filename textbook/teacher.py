@@ -198,10 +198,10 @@ def front_pdf():
             '<p>This edition contains the complete student text. Everything added for the instructor is listed below.</p>'
             f'<ul class="plain">{use}</ul>'
             '<h2><span class="secbar"></span>A sixteen-week pacing guide</h2>'
-            '<p>The guide assumes two or three class meetings a week. Sections numbered 5 and higher in each chapter are enrichment and extra practice; '
-            'a class that is short of time can skip them without losing anything the later chapters need.</p>'
+            '<p>The guide assumes two or three class meetings a week and follows the order of the course textbook. Practice sets marked Extra in the teacher’s notes, '
+            'and Section 7.4, are enrichment; a class that is short of time can skip them without losing anything later sections need.</p>'
             '<div class="tablewrap"><table class="data small"><colgroup><col style="width:8%"><col style="width:17%"><col style="width:47%"><col style="width:28%"></colgroup>'
-            f'<tr><th>Week</th><th>Chapter</th><th>Topics</th><th>Assign</th></tr>{rows}</table></div>'
+            f'<tr><th>Week</th><th>Section</th><th>Topics</th><th>Assign</th></tr>{rows}</table></div>'
             '<h2><span class="secbar"></span>Grading the work shown</h2>'
             '<p>The course exams give credit for work, not only for answers. A workable scheme for a formula problem worth 10 points: '
             '2 points for writing the formula, 3 for a correct substitution, 3 for the evaluation or solving steps, 1 for rounding as directed and 1 for the unit.</p>'
@@ -212,7 +212,7 @@ def front_docx():
     f = lambda x: fmt(x, "docx")  # noqa: E731
     rows = "".join(f"<tr><td>{w}</td><td>{f(c)}</td><td>{f(t)}</td><td>{f(a)}</td></tr>" for w, c, t, a in PACING)
     return ("<h1>Using the teacher’s edition</h1><ul>" + "".join(f"<li><b>{f(h)}.</b> {f(x)}</li>" for h, x in USING) + "</ul>"
-            f"<h2>A sixteen-week pacing guide</h2><table><tr><th>Week</th><th>Chapter</th><th>Topics</th><th>Assign</th></tr>{rows}</table>")
+            f"<h2>A sixteen-week pacing guide</h2><table><tr><th>Week</th><th>Section</th><th>Topics</th><th>Assign</th></tr>{rows}</table>")
 
 
 # ---------------------------------------------------------------- chapter tests
@@ -385,3 +385,231 @@ def add_tests():
                     + "".join(f"<li>{f(q)}" + (f" ({p} points)" if p else "") + "</li>" for q, a, p in items) + "</ol>"
                     + f"<h3>Chapter {ch} Test: key</h3><ol>" + "".join(f"<li>{f(a)}</li>" for q, a, p in items) + "</ol>")
     book.raw("".join(pdf), "".join(docx), toc=("tests", "Chapter tests and keys"))
+
+
+# ===================================================================== the seven-chapter structure
+# Notes and quizzes are keyed by section (1.1 ... 7.4). Old chapter notes are reused where a section
+# came from one old chapter; their references are rewritten to the new numbers when shown.
+import math as _m
+
+_OLD = {"1.1": 1, "2.3": 3, "3.1": 4, "3.2": 5, "4.1": 7, "4.2": 8, "4.3": 9, "5.1": 10, "5.2": 11, "5.3": 12, "6.1": 13}
+_ASSIGN = {
+    "1.1": "Core: Practice 1.1, 1.2. Extra: Practice 1.3 to 1.7. Assessment: Section 1.1 review, odd numbers in class and even numbers as homework.",
+    "2.3": "Core: Practice 2.6, 2.7, 2.8. Extra: Practice 2.9, 2.10. The mixed review for Chapters 1 and 2 follows this section and works as a practice test.",
+    "3.1": "Core: Practice 3.1, 3.2. Extra: Practice 3.3 to 3.5. Practice 3.2 mirrors the class conversion worksheet (nearest tenth).",
+    "3.2": "Core: Practice 3.6, 3.7, 3.8. Extra: Practice 3.9 to 3.12.",
+    "4.1": "Core: Practice 4.1. Extra: Practice 4.2, 4.3. Require at least three calculations shown, as on the course exam.",
+    "4.2": "Core: Practice 4.4. Extra: Practice 4.5.",
+    "4.3": "Core: Practice 4.6, 4.7. Extra: Practice 4.8 to 4.11. The mixed review for Chapter 4 follows this section.",
+    "5.1": "Core: Practice 5.1. Extra: Practice 5.2, 5.3, 5.4.",
+    "5.2": "Core: Practice 5.5. Extra: Practice 5.6, 5.7, 5.8.",
+    "5.3": "Core: Practice 5.9, 5.10, 5.13. Extra: Practice 5.11, 5.12.",
+    "6.1": "Core: Practice 6.1, 6.2, 6.3. Extra: Practice 6.4, 6.5, 6.6. The mixed review for Chapters 5 and 6 follows this section.",
+}
+_FIX = {"1.1": [("Do sections 1.6 to 1.8 only if the class needs the review; 1.9 (money, rounding up, estimating) is worth the time for every group.",
+                 "Teach the value of a digit, numbers in words and ordering decimals only if the class needs the review; Rounding on the job (money, rounding up, estimating) is worth the time for every group.")],
+        "2.3": [("Offer the decimal shortcut (3.3) as an alternative only after the proportion is secure.", "Offer the decimal shortcut as an alternative only after the proportion is secure.")],
+        "5.1": [("(section 10.8)", "(Working backward: a summary)")]}
+
+NEW_NOTES = {
+    "1.2": ("4 sessions", "A fraction is a division: top ÷ bottom is the decimal, and a decimal written over 10, 100 or 1000 and reduced is the fraction.",
+            ["Use the handout wording for fraction to decimal (divide top by bottom) and decimal to fraction (rewrite as a fraction and reduce, or use the FRAC key).",
+             "Practise reducing ruler fractions by halving until the top is odd; it is the fastest route for 16ths, 32nds and 64ths.",
+             "Teach both methods for mixed measurements: everything to decimals, or everything to fractions with a common denominator.",
+             "Multiplying and dividing fractions can wait until Section 4.3, where the lock-seam problem divides a fraction by 2."],
+            ["Adding denominators (1/4 + 1/4 = 2/8).", "Leaving a ruler fraction unreduced (6/16).", "Forgetting to borrow when subtracting mixed numbers.",
+             "Keying a mixed number without parentheses inside a longer calculation."],
+            "Give each pair a tape measure and five objects. They record each length as a fraction and as a decimal, then swap lists and check each other.",
+            [("Reduce 12/16.", "3/4"), ("Change 3 5/8 to a decimal.", "3.625"), ("5 1/4 − 2 5/8", "2 5/8")],
+            "Core: Practice 1.8, 1.9. Extra: Practice 1.10 to 1.12. The mixed decimal-and-fraction problems in Practice 1.9 (problems 9 to 12) prepare for the missing-length exam question."),
+    "1.3": ("2 sessions", "A toleranced dimension is a band of acceptable sizes: nominal minus tolerance up to nominal plus tolerance.",
+            ["Write the nominal size with as many decimal places as the tolerance before adding or subtracting (0.810 ± 0.003).",
+             "Compare a fraction with the limits by changing it to a decimal first (13/16 = 0.8125).",
+             "For missing dimensions, have students write “the parts add up to the whole” before calculating.",
+             "For equal spacing, count spaces, not holes."],
+            ["0.81 + 0.003 = 0.84.", "Comparing 0.8125 with 0.813 digit-length instead of place by place.", "Counting holes instead of spaces.",
+             "Rounding a missing length that the problem says not to round."],
+            "Hand out three drilled practice parts or bolts with a micrometer or caliper. Students measure each, record the limits from a drawing, and mark each part accept or reject.",
+            [("Find the limits of 0.81 in ± 0.003 in.", "0.807 in to 0.813 in"), ("Is a 13/16-in hole within those limits?", "Yes (0.8125)"),
+             ("Overall 78 3/4 in; parts 11.25 in and 31 3/8 in. Find the missing part.", "36.125 in")],
+            "Core: Practice 1.13. Extra: Practice 1.14, 1.15."),
+    "2.1": ("3 sessions", "A ratio compares two quantities by division; a proportion says two ratios are equal and is solved by cross-multiplying.",
+            ["Insist on matching units before any ratio is written.", "Set up proportions with like quantities in the same position on both sides; say the units out loud.",
+             "Connect cross-multiplying here to the percent proportion in Section 2.3: it is the same move.",
+             "Teach pulleys and gears last, and ask before every problem: should the answer be bigger or smaller?"],
+            ["Comparing feet with inches in one ratio.", "Setting up a pulley problem as a direct proportion.", "Putting unlike quantities on top of the two ratios.",
+             "Writing a ratio as a whole number (3 instead of 3 : 1)."],
+            "Bring two belt-drive pulleys or a bicycle. Count turns of the driver and the driven wheel, measure the diameters or count the teeth, and check D × N = d × n.",
+            [("Write 2 ft to 8 in as a ratio.", "3 : 1"), ("Solve x/15 = 8/24.", "5"), ("A 12-in pulley at 1,725 rpm drives a 4-in pulley. Find its speed.", "5,175 rpm")],
+            "Core: Practice 2.1, 2.2. Extra: Practice 2.3."),
+    "2.2": ("2 sessions", "A fraction, a decimal and a percent are three names for the same amount, and the decimal is the bridge between the other two.",
+            ["Use the handout wording: decimal to percent, move the decimal 2 places right and add %; percent to decimal, 2 places left and drop %.",
+             "Draw the three-forms diagram on the board and leave it up for the rest of the chapter.",
+             "Have students build the equivalents table on a calculator before they see it printed."],
+            ["Moving the decimal point the wrong way. The percent is always the bigger-looking number.", "Writing 6% as 0.6.", "Treating ½% as 0.5."],
+            "Hand out a store flyer. Students rewrite five advertised discounts as decimals and fractions.",
+            [("Change 7/8 to a percent.", "87.5%"), ("Change 4.5% to a decimal.", "0.045"), ("Change 37.5% to a fraction.", "3/8")],
+            "Core: Practice 2.4. Extra: Practice 2.5."),
+    "3.3": ("3 sessions", "Reading any scale starts with one question: what is each small space worth?",
+            ["Use real rules. Have students find 1/2, 1/4, 1/8 and 1/16 marks by length before reading any point.",
+             "For gauges, insist on the four steps in the Key Rule box and on counting by the scale value to check it.",
+             "Spend extra time on the dual-scale gauge: one needle, two rings, two scale values. It is a known trouble spot on the course exam."],
+            ["Counting marks instead of spaces.", "Leaving 2 6/16 unreduced.", "Reading the psi needle position against the kPa numbers."],
+            "Set up stations with a tape measure, a steel rule, a pressure gauge or multimeter and a set of drill bits. Students rotate and record five readings at each station.",
+            [("A point is 10 sixteenths past the 3-inch mark. Give the reading.", "3 5/8 in"), ("A gauge is numbered every 200 with 4 spaces between numbers. What is each space worth?", "50"),
+             ("A point is 6 small marks past the 4 on a centimeter scale. Give the reading in mm.", "46 mm")],
+            "Core: Practice 3.13, 3.14. Extra: Practice 3.15, 3.16. The mixed review for Chapter 3 follows this section."),
+    "7.1": ("2 sessions", "Angles are measured in degrees, and a degree divides into 60 minutes; the angles of a triangle add to 180°.",
+            ["Start with a protractor and a framing square: 90°, 45°, 30° and 60° by eye.", "Teach minutes by analogy with an hour: 15 minutes is a quarter.",
+             "Have students keep angles in decimal degrees on the calculator."],
+            ["Writing 32° 15′ as 32.15°.", "Forgetting to borrow 60′ when subtracting from whole degrees."],
+            "Students measure the angles of three cardboard triangles with a protractor and check that each set adds to 180°.",
+            [("Change 32° 15′ to decimal degrees.", "32.25°"), ("Change 47.36° to degrees, minutes and seconds.", "47° 21′ 36″"), ("A right triangle has an acute angle of 34°. Find the other.", "56°")],
+            "Core: Practice 7.1."),
+    "7.2": ("2 sessions", "Sine, cosine and tangent are ratios of sides that depend only on the angle; SOH CAH TOA names them.",
+            ["Mark θ first, then label the sides; draw the same triangle twice with θ in each acute corner.",
+             "Check every calculator for degree mode on day one: sin 30 must give 0.5.", "Introduce inverse functions as “angle from a ratio.”"],
+            ["Labeling opposite and adjacent before choosing the angle.", "Radian mode.", "Reading sin⁻¹ as 1 ÷ sin."],
+            "Students draw three right triangles with a 35° angle at different sizes, measure the sides, and find that opposite ÷ hypotenuse is about 0.57 every time.",
+            [("Write the ratio for sin θ.", "opposite ÷ hypotenuse"), ("Find tan 45°.", "1"), ("sin θ = 0.5. Find θ.", "30°")],
+            "Core: Practice 7.2."),
+    "7.3": ("3 sessions", "One angle and one side of a right triangle give every other part; choose the ratio that uses the known side and the wanted side.",
+            ["Require a sketch with θ, the known side and the wanted side marked before any calculation.",
+             "Teach the two cases: unknown on top (multiply) and unknown on the bottom (divide).",
+             "Use trade applications every day: roof pitch, ramps, ladders and conduit offsets. Electricians in the class will know the offset multipliers."],
+            ["Multiplying when the unknown is on the bottom.", "A hypotenuse that comes out shorter than a leg.", "Rise and run in different units for a ramp."],
+            "Lay out a 30° conduit offset with tape on the floor: mark the offset, multiply by 2 for the travel, and check with a protractor.",
+            [("Angle 35°, hypotenuse 20 in. Find the opposite side.", "11.47 in"), ("Legs 7 and 12. Find the angle across from 7.", "30.3°"), ("A 30° offset clears 8 in. Find the travel.", "16 in")],
+            "Core: Practice 7.3. Extra: Practice 7.4."),
+    "7.4": ("2 sessions", "The law of sines and the law of cosines extend trigonometry to triangles with no right angle.",
+            ["Label sides with the small letter of the opposite angle before writing either law.",
+             "Choose the law from what is known: two angles and a side, sines; two sides and the included angle, or three sides, cosines.",
+             "Check ½ab sin C against Hero’s Formula from Section 5.2 to show the two agree."],
+            ["Pairing a side with the wrong angle.", "Subtracting before multiplying in the law of cosines."],
+            "Measure a classroom triangle (three desks or floor tiles), then find each angle with the law of cosines and check with a protractor.",
+            [("A = 40°, B = 65°, a = 12. Find b.", "16.92"), ("a = 9, b = 14, C = 50°. Find c.", "10.72"), ("Sides 10 and 16 with 42° between them. Find the area.", "53.53")],
+            "Core: Practice 7.5. This section can be treated as enrichment if time is short."),
+}
+
+
+def _note(u):
+    import restructure
+    if u in NEW_NOTES:
+        return NEW_NOTES[u], True
+    if u in _OLD:
+        t = list(NOTES[_OLD[u]])
+        t[2] = list(t[2])
+        for a, b in _FIX.get(u, []):
+            t[2] = [x.replace(a, b) for x in t[2]]
+        rw = restructure.rewrite_text
+        t = [rw(t[0]), rw(t[1]), [rw(x) for x in t[2]], [rw(x) for x in t[3]], rw(t[4]), t[5], _ASSIGN[u]]
+        return t, False
+    return None, False
+
+
+def notes_pdf(u):
+    t, _ = _note(u)
+    if not t:
+        return ""
+    li = lambda xs: "".join(f"<li>{fmt(x)}</li>" for x in xs)  # noqa: E731
+    exit_ = "".join(f'<li>{fmt(_frac(q))} <span class="ta">{fmt(_frac(a))}</span></li>' for q, a in t[5])
+    return (f'<div class="tnotes"><div class="th"><span>TEACHER’S NOTES · SECTION {u}</span><span>{t[0]}</span></div><div class="tb">'
+            f'<h4>The big idea</h4><p>{fmt(t[1])}</p><h4>Teaching the section</h4><ul>{li(t[2])}</ul>'
+            f'<h4>Errors to watch for</h4><ul>{li(t[3])}</ul><h4>Activity</h4><p>{fmt(t[4])}</p>'
+            f'<h4>Exit ticket</h4><ol>{exit_}</ol><h4>Assigning the practice</h4><p>{fmt(t[6])}</p></div></div>')
+
+
+def notes_docx(u):
+    t, _ = _note(u)
+    if not t:
+        return ""
+    f = lambda x: fmt(_frac(x), "docx")  # noqa: E731
+    li = lambda xs: "".join(f"<li>{f(x)}</li>" for x in xs)  # noqa: E731
+    return (f'<div custom-style="TeacherNote"><p><b>TEACHER’S NOTES, SECTION {u} ({t[0]})</b></p><p><b>The big idea.</b> {f(t[1])}</p>'
+            f'<p><b>Teaching the section</b></p><ul>{li(t[2])}</ul><p><b>Errors to watch for</b></p><ul>{li(t[3])}</ul>'
+            f'<p><b>Activity.</b> {f(t[4])}</p><p><b>Exit ticket</b></p><ol>' + "".join(f"<li>{f(q)}  <b>[{f(a)}]</b></li>" for q, a in t[5])
+            + f'</ol><p><b>Assigning the practice.</b> {f(t[6])}</p></div>')
+
+
+PACING = [("1", "1.1", "Place value; rounding; The Basic Rules", "Practice 1.1, 1.2"),
+          ("2", "1.2", "Fractions and decimals; mixed measurements", "Practice 1.8, 1.9"),
+          ("3", "1.3", "Tolerance and missing dimensions; Quizzes 1.1 and 1.2", "Practice 1.13"),
+          ("4", "2.1", "Ratios, rates, proportions, gears and pulleys", "Practice 2.1 to 2.3"),
+          ("5", "2.2, 2.3", "Fractions, decimals and percents; the percent proportion", "Practice 2.4, 2.6 to 2.8"),
+          ("6", "Chapters 1, 2", "Percent applications; mixed review; Quizzes 2.1 and 2.3", "Practice 2.7; mixed review"),
+          ("7", "3.1", "Standard units: length, weight, capacity, area, volume", "Practice 3.1, 3.2"),
+          ("8", "3.2", "The metric stairs; standard and metric conversions", "Practice 3.6 to 3.8"),
+          ("9", "3.3", "Rulers, meters and gauges; mixed review; Quizzes 3.1 to 3.3", "Practice 3.13, 3.14"),
+          ("10", "4.1", "Order of operations (PEMDAS)", "Practice 4.1"),
+          ("11", "4.2, 4.3", "Evaluating and solving formulas", "Practice 4.4, 4.6, 4.7"),
+          ("12", "Chapter 4", "Equations with fractions; mixed review; Quizzes 4.1 to 4.3", "Practice 4.11; mixed review"),
+          ("13", "5.1, 5.2", "Quadrilaterals; triangles; Hero’s Formula; right triangles", "Practice 5.1, 5.5"),
+          ("14", "5.3", "Circles, hexagons, composite figures; Quizzes 5.1 to 5.3", "Practice 5.9, 5.10, 5.13"),
+          ("15", "6.1", "Solid figures: prisms, cylinders, spheres, pyramids, frustums, density; mixed review; Quiz 6.1", "Practice 6.1 to 6.3"),
+          ("16", "7.1 to 7.4", "Triangle trigonometry; Chapter 7 test; final exam", "Practice 7.1 to 7.3")]
+
+USING = [("Answers beside every question", "In practice sets, section reviews and mixed reviews, the answer is printed in red directly after each question. The complete key also remains at the back, as in the student book."),
+         ("Teacher’s notes", "Each section opens with a dark box giving the number of class sessions, the big idea, a teaching sequence, the errors students make most often, a hands-on activity, a three-question exit ticket and advice on which practice sets to assign."),
+         ("Class handout boxes", "Teal boxes reproduce the wording of the class handouts word for word, so the book and the handouts never disagree."),
+         ("Quizzes", "A one-page quiz for each section, and a test for Chapter 7, each with a full key, are at the back. They follow the style of the course exams: show the work, show all substitutions, and round as each question directs."),
+         ("Section and problem numbers", "Chapter, section, example, figure and practice numbers are identical in the student and teacher’s editions. Page numbers differ, because the notes and printed answers take space; assign work by practice number, not page.")]
+
+_S = lambda d: _m.sin(_m.radians(d))  # noqa: E731
+QUIZZES = [  # (label, title, old test number or new items)
+    ("Quiz 1.1", "Place Value and Rounding", 1),
+    ("Quiz 1.2", "Fractions, Decimals and Percents (Sections 1.2 and 2.2)", 2),
+    ("Quiz 2.1", "Ratio and Proportion", ("SHOW THE PROPORTION OR FORMULA FOR FULL CREDIT.",
+        [("Write 18 : 24 in lowest terms.", "3 : 4", 8), ("Write the ratio of 2 ft to 8 in.", "3 : 1", 8), ("Find the unit rate: $96 for 40 ft of pipe.", "$2.40 per ft", 8),
+         ("Solve x/15 = 4/6.", "10", 8), ("Solve 7/x = 21/30.", "10", 8), ("4 gal of paint cover 1,400 sq ft. How many gallons cover 3,850 sq ft?", "11 gal", 10),
+         ("A drawing is at 1/4 in = 1 ft. A wall is 5 1/2 in long on the drawing. How long is the wall?", "22 ft", 10),
+         ("Concrete is mixed 1 : 2 : 3 (cement : sand : gravel). With 4 bags of cement, how much sand and gravel?", "8 bags of sand; 12 bags of gravel", 10),
+         ("A 10-in pulley at 1,725 rpm drives a 5-in pulley. Find the speed of the 5-in pulley.", "3,450 rpm", 10),
+         ("A 36-tooth gear at 400 rpm drives a 24-tooth gear. Find its speed.", "600 rpm", 10),
+         ("A fan with a 6-in pulley must turn 1,150 rpm. The motor turns 1,725 rpm. What size motor pulley is needed?", "4 in", 10),
+         ("BONUS. A 50 : 1 fuel mix uses 2 gal (256 fl oz) of gasoline. How much oil?", "5.12 fl oz", 0)])),
+    ("Quiz 2.3", "The Percent Proportion", 3),
+    ("Quiz 3.1", "Standard Units of Measure", 4),
+    ("Quiz 3.2", "The Metric System", 5),
+    ("Quiz 3.3", "Rulers, Gauges and Tolerance (Sections 1.3 and 3.3)", 6),
+    ("Quiz 4.1", "Order of Operations", 7),
+    ("Quiz 4.2", "Evaluating Formulas", 8),
+    ("Quiz 4.3", "Solving Formulas", 9),
+    ("Quiz 5.1", "Perimeter and Area of Quadrilaterals", 10),
+    ("Quiz 5.2", "Triangles", 11),
+    ("Quiz 5.3", "Circles, Hexagons and Composite Figures", 12),
+    ("Quiz 6.1", "Solid Figures", 13),
+    ("Chapter 7 Test", "Triangle Trigonometry", ("SHOW THE RATIO OR LAW AND THE SUBSTITUTION. Sides to the nearest hundredth, angles to the nearest tenth.",
+        [("Change 36° 45′ to decimal degrees.", "36.75°", 6), ("Change 52.3° to degrees and minutes.", "52° 18′", 6),
+         ("A right triangle has an acute angle of 41.5°. Find the other acute angle.", "48.5°", 6),
+         ("Sides 5, 12, 13; θ is across from 5. Find sin θ, cos θ and tan θ to four places.", "0.3846; 0.9231; 0.4167", 12),
+         ("Angle 35°, hypotenuse 20 in. Find the side opposite 35°.", f"{20 * _S(35):.2f} in", 10),
+         ("Angle 28°, opposite side 9 ft. Find the adjacent side.", f"{9 / _m.tan(_m.radians(28)):.2f} ft", 10),
+         ("Angle 40°, adjacent side 15 cm. Find the hypotenuse.", f"{15 / _m.cos(_m.radians(40)):.2f} cm", 10),
+         ("Legs 7 in and 12 in. Find the angle across from the 7-in leg.", f"{_m.degrees(_m.atan(7 / 12)):.1f}°", 10),
+         ("A roof has a 6-in-12 pitch. Find the roof angle.", f"{_m.degrees(_m.atan(0.5)):.1f}°", 8),
+         ("A conduit offset of 8 in uses two 30° bends. Find the travel.", "16 in", 8),
+         ("a = 9, b = 14, C = 50°. Find c with the law of cosines.", f"{_m.sqrt(81 + 196 - 252 * _m.cos(_m.radians(50))):.2f}", 8),
+         ("A = 40°, B = 65°, a = 12. Find b with the law of sines.", f"{12 * _S(65) / _S(40):.2f}", 6),
+         ("BONUS. A 20-ft ladder stands at 75°. How high does it reach?", f"{20 * _S(75):.2f} ft", 0)])),
+]
+
+
+def add_tests():
+    pdf = ['<section class="appendix"><h1 id="tests">Quizzes, test and keys</h1>'
+           '<p>One quiz for each section and a test for Chapter 7, each followed by its key. They follow the wording and rounding instructions of the course exams. '
+           'Point values total 100 without the bonus. Permission is given to copy these pages for classroom use.</p></section>']
+    docx = ["<h1>Quizzes, test and keys</h1>"]
+    for label, title, spec in QUIZZES:
+        inst, items = TESTS[spec] if isinstance(spec, int) else spec
+        assert sum(p for _, _, p in items) == 100, (label, sum(p for _, _, p in items))
+        qs = "".join(f'<li>{fmt(_frac(q))}<span class="pts">({p} points)</span></li>' if p else f"<li>{fmt(_frac(q))}</li>" for q, a, p in items)
+        ks = "".join(f'<li><span class="ta" style="margin-left:0">{fmt(_frac(a))}</span></li>' for q, a, p in items)
+        head = f'<div class="thead"><h2>{label}: {fmt(title)}</h2><div class="sm">APPLIED TECHNICAL MATH</div></div>'
+        pdf.append(f'<section class="test">{head}<div class="nm">Name&nbsp;<span></span>Date&nbsp;<span></span>Score&nbsp;<span style="flex:0 0 60pt"></span></div>'
+                   f'<div class="inst">{fmt(inst)}</div><ol>{qs}</ol></section>')
+        pdf.append(f'<section class="test key">{head.replace(label + ":", label + " KEY:")}<ol style="column-count:2;column-gap:24pt">{ks}</ol></section>')
+        f = lambda x: fmt(_frac(x), "docx")  # noqa: E731
+        docx.append(f"<h2>{label}: {f(title)}</h2><p>Name ______________________   Date ____________   Score ______</p><p><b>{f(inst)}</b></p><ol>"
+                    + "".join(f"<li>{f(q)}" + (f" ({p} points)" if p else "") + "</li>" for q, a, p in items) + "</ol>"
+                    + f"<h3>{label}: key</h3><ol>" + "".join(f"<li>{f(a)}</li>" for q, a, p in items) + "</ol>")
+    book.raw("".join(pdf), "".join(docx), toc=("tests", "Quizzes, test and keys"))

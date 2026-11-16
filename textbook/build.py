@@ -15,9 +15,16 @@ SUB = "Numbers, Measurement, Algebra and Geometry for the Trades"
 OUT = os.path.join(HERE, "out")
 os.makedirs(OUT, exist_ok=True)
 
-for mod in ("ch_numbers", "ch_measure", "ch_algebra", "ch_geometry", "ch_solid", "ch_back"):
-    if os.path.exists(os.path.join(HERE, mod + ".py")):
-        importlib.import_module(mod)
+for mod in ("ch_numbers", "ch_measure", "ch_algebra", "ch_geometry", "ch_solid"):
+    importlib.import_module(mod)
+_n0 = len(book.BLOCKS)
+for mod in ("ch_ratio", "ch_trig"):          # new material, written with the new chapter numbers
+    importlib.import_module(mod)
+for _k, _b in book.BLOCKS[_n0:]:
+    _b["_fresh"] = True
+importlib.import_module("ch_back")
+import restructure  # noqa: E402
+restructure.build()
 
 TE = book.TEACHER
 if TE:
@@ -36,10 +43,10 @@ def node(*args):
 def toc_entries():
     ent = []
     for kind, b in book.BLOCKS:
-        if kind == "part":
-            ent.append(("part", b["title"], None, None))
-        elif kind == "chapter":
+        if kind == "chapter":
             ent.append(("ch", b["title"], f'ch{b["n"]}', (b["n"], b["color"])))
+        elif kind == "unit":
+            ent.append(("unit", b["title"], f'u{b["n"].replace(".", "_")}', b["n"]))
         elif kind == "raw" and b.get("toc"):
             ent.append(("back", b["toc"][1], b["toc"][0], None))
     ent.append(("back", "Answers to practice sets and reviews", "answers", None))
@@ -53,6 +60,10 @@ def toc_html(pages):
             rows.append(f'<span class="tpart">{book.fmt(title)}</span>')
             continue
         pg = pages.get(anchor, "")
+        if kind == "unit":
+            rows.append(f'<a class="tunit" href="#{anchor}"><span><i>{extra}</i>{book.fmt(title)}</span><span class="dots"></span>'
+                        f'<span class="pg">{pg}</span></a>')
+            continue
         lead = f'<b style="background:{extra[1]}">{extra[0]}</b>' if extra else ""
         rows.append(f'<a class="tch" href="#{anchor}"><span>{lead}{book.fmt(title)}</span><span class="dots"></span>'
                     f'<span class="pg">{pg}</span></a>')
@@ -75,8 +86,10 @@ def main_html(pages, markers=True):
 
 PREFACE = """
 <section class="front"><h1>How to use this book</h1>
-<p>This book follows one semester of applied technical math, in the order the course is taught: numbers first, then
-measurement, then algebra with formulas, then the geometry of flat shapes. Every topic is taught the same way.</p>
+<p>This book follows one semester of applied technical math in seven chapters that match the course: whole numbers, fractions and
+decimals (textbook Chapters 1 to 3); ratio, proportion and percent (Chapter 4); measurement and the metric stairs (Chapter 5); basic
+algebra; practical plane geometry (Chapter 8); solid figures (Chapter 9); and triangle trigonometry. Each chapter is divided into numbered
+sections, and every topic is taught the same way.</p>
 <div class="twocol">
 <div class="box rule"><div class="boxhead"><span class="tag">KEY RULE</span><span class="boxtitle">Blue boxes</span></div>
 <div class="boxbody"><p>The rule or formula to learn. If a page is read for one thing only, read these.</p></div></div>
@@ -91,8 +104,8 @@ measurement, then algebra with formulas, then the geometry of flat shapes. Every
 <div class="boxbody"><p>The instructor's own definitions and formulas, copied word for word from the class handouts.</p></div></div>
 <p><b>Worked examples</b> show the work on the left and the reason for each line on the right. Cover the right-hand
 column and explain each line yourself; that is the fastest way to find out what you do not yet understand.</p>
-<p><b>Practice sets</b> follow each section and a <b>chapter review</b> closes each chapter. Answers to every
-problem are at the back of the book.</p>
+<p><b>Practice sets</b> follow the topics in each section, a <b>section review</b> closes each section, and a <b>mixed review</b>
+closes most chapters. Answers to every problem are at the back of the book.</p>
 <h2><span class="secbar"></span>Conventions used in the course</h2>
 <ul class="plain">
 <li><b>Show the substitution.</b> When a formula is used, write the formula, then write it again with the numbers in
@@ -192,7 +205,7 @@ def build_docx():
     open(dh, "w").write(f'<!doctype html><html><head><meta charset="utf-8"><title>{TITLE}</title></head><body>{body}</body></html>')
     ref = os.path.join(HERE, "reference.docx")
     cmd = ["pandoc", dh, "-f", "html", "-t", "docx", "-o", os.path.join(HERE, NAME + ".docx"),
-           "--resource-path", OUT, "--toc", "--toc-depth=1",
+           "--resource-path", OUT, "--toc", "--toc-depth=2",
            "-M", f"title={TITLE}" + (": Teacher’s Edition" if TE else ""), "-M", f"subtitle={SUB}"]
     if os.path.exists(ref):
         cmd += ["--reference-doc", ref]
