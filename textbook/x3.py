@@ -49,7 +49,7 @@ def ch7():
              ("{38 − 8} ÷ 6", "Inside the braces, multiply first."), ("30 ÷ 6", "Finish the braces."), ("5", "")], "5", title="Three kinds of grouping symbols")
 
     sec("7.7 Showing the work")
-    p("On the chapter exam the instructions read: **“Must show 3 calculations before final evaluation.”** That means at least three lines of work, each a little simpler than the one above it, "
+    p("On the class exams the instructions read: **“Must show 3 calculations before final evaluation.”** That means at least three lines of work, each a little simpler than the one above it, "
       "before the answer. The surest way to earn that credit is the habit already described: one level of PEMDAS per line.")
     example("Evaluate  [[40 − 4(6² ÷ 3²) + 8|4² − 8]].  Round to the nearest hundredth if needed. Show at least three calculations.",
             [("[[40 − 4(36 ÷ 9) + 8|16 − 8]]", "Calculation 1: every exponent, top and bottom."), ("[[40 − 4(4) + 8|8]]", "Calculation 2: finish the parentheses on top; finish the bottom."),

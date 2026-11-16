@@ -288,8 +288,9 @@ def render_pdf(toc_pages=None):
                        f'<ol class="cols{_cols(b)}">{items}</ol></div>')
         elif kind == "review":
             items = _items(b)
-            out.append(f'<div class="review"><div class="rvhead">Section {b["n"]} review</div>'
-                       f'<ol class="cols2">{items}</ol></div>')
+            out.append(f'<div class="review"><div class="rvhead">Chapter {b["n"]} review</div>'
+                       f'<p class="printro">Practice problems from every section of the chapter. Answers are at the back of the book.</p>'
+                       f'<ol class="cols{_cols(dict(b, cols=2))}">{items}</ol></div>')
         elif kind == "summary":
             out.append('<div class="summary"><div class="sumhead">Section summary</div><ul>'
                        + "".join(f"<li>{fmt(x)}</li>" for x in b["points"]) + "</ul></div>")
@@ -308,7 +309,7 @@ def raw(pdf, docx=None, toc=None):
 
 
 def answers_pdf():
-    out = ['<section class="answers"><h1 id="answers">Answers to practice sets and reviews</h1>'
+    out = ['<section class="answers"><h1 id="answers">Answers to the chapter reviews</h1>'
            '<p>Every answer here was worked by the rules in its chapter. Rounded answers say how they were rounded '
            'in the question.</p>']
     last = None
@@ -393,13 +394,13 @@ def render_docx():
             out.append(f'<h4>{b["tag"].title()}: {f(b["title"])}</h4><p>{f(b["intro"])}</p><ol>'
                        + qa(b) + "</ol>")
         elif kind == "review":
-            out.append(f'<h3>Section {b["n"]} review</h3><ol>' + qa(b) + "</ol>")
+            out.append(f'<h2>Chapter {b["n"]} review</h2><p><i>Practice problems from every section of the chapter. Answers are at the back of the book.</i></p><ol>' + qa(b) + "</ol>")
         elif kind == "summary":
             out.append('<div custom-style="BoxRule"><p><b>Section summary</b></p><ul>'
                        + "".join(f"<li>{f(x)}</li>" for x in b["points"]) + "</ul></div>")
         elif kind == "raw":
             out.append(b["docx"])
-    out.append("<h1>Answers to practice sets and reviews</h1>")
+    out.append("<h1>Answers to the chapter reviews</h1>")
     last = None
     for ch, title, label, ans in ANSWERS:
         if ch != last:

@@ -4,7 +4,7 @@ A full-colour textbook covering the whole semester: place value and rounding, fr
 the percent proportion, standard and metric measurement, rulers/gauges/tolerance, order of operations,
 evaluating and solving formulas, and the perimeter and area of flat shapes.
 
-- `Applied_Technical_Math.pdf`: the print-ready book (about 270 pages, Letter size).
+- `Applied_Technical_Math.pdf`: the print-ready book (about 205 pages, Letter size).
 - `Applied_Technical_Math.docx`: the same text as an editable Word document.
 
 ## Rebuilding
@@ -28,8 +28,9 @@ tests are in `teacher.py`.
 
 ## Structure
 
-The book follows the course's seven chapters: 1 whole numbers, fractions and decimals (textbook Ch. 1-3);
-2 ratio, proportion and percent (Ch. 4); 3 measurement and the metric stairs (Ch. 5); 4 basic algebra;
-5 practical plane geometry (Ch. 8); 6 solid figures (Ch. 9); 7 triangle trigonometry. `restructure.py`
+The book is built on the class handouts, homework and quizzes, in seven chapters: 1 whole numbers, fractions
+and decimals; 2 ratio, proportion and percent; 3 measurement and the metric stairs; 4 basic algebra;
+5 practical plane geometry; 6 solid figures; 7 triangle trigonometry. Each chapter ends with one short
+chapter review (about 20 problems) chosen from the review questions written for each topic. `restructure.py`
 regroups the topic files into these chapters and renumbers every section, example, figure, table and
 practice set; `ch_ratio.py` and `ch_trig.py` hold Sections 2.1 and 7.1 to 7.4.

@@ -8,26 +8,26 @@ import re
 import book
 
 # ---------------------------------------------------------------- the plan
-# each chapter: number, title, textbook note, colour, intro, sections
+# each chapter: number, title, (unused note), colour, intro, sections
 # each section: (title, source chapter, which source sections (None = all), split filter or None)
 PCT = re.compile(r"%|percent|Percent")
-TOL = re.compile(r"[Ll]imit|[Tt]olerance|[Mm]issing|Overall|overall length|spaces|holes|spacing|acceptable|±|nominal")
+TOL = re.compile(r"^(?!.*(?:gauge|mark|[Rr]ule|scale|sixteenths|[Gg]raduation))(?:.|\n)*?(?:[Ll]imit|[Tt]olerance|[Mm]issing|Overall|overall length|spaces|holes|spacing|acceptable|±|nominal)")
 
 CHAPTERS = [
-    (1, "Whole Numbers, Fractions and Decimals", "Textbook Chapters 1 to 3", "#c8452f",
+    (1, "Whole Numbers, Fractions and Decimals", None, "#c8452f",
      "Every measurement, price and specification is a number written in the base ten system. This chapter makes sure those numbers "
      "are read, rounded and rewritten correctly, that fractions and decimals can be added, subtracted and compared, and that a "
      "toleranced dimension can be checked, before any formula work begins.",
      [("Place Value and Rounding", 1, None, None),
       ("Fractions and Decimals", 2, ["2.1", "2.2", "2.3", "2.6", "2.7", "2.8", "2.10"], ("not", PCT)),
       ("Tolerance and Missing Dimensions", 6, ["6.4", "6.5", "6.8", "6.9"], ("only", TOL))]),
-    (2, "Ratio, Proportion and Percent", "Textbook Chapter 4", "#d98a14",
+    (2, "Ratio, Proportion and Percent", None, "#d98a14",
      "Ratios compare two quantities, proportions say that two ratios are equal, and a percent is a ratio to 100. One idea, "
      "cross-multiplying, solves gear and pulley problems, scale drawings, mixtures and every kind of percent problem.",
      [("Ratio and Proportion", 14, None, None),
       ("Fractions, Decimals and Percents", 2, ["2.4", "2.5", "2.9"], ("only", PCT)),
       ("The Percent Proportion", 3, None, None)]),
-    (3, "Measurement", "Textbook Chapter 5", "#2f8f4e",
+    (3, "Measurement", None, "#2f8f4e",
      "Measuring is counting units. This chapter covers the two systems of units used in American shops, the metric stairs, "
      "conversions between the systems, and how to read the rules, meters and gauges that do the measuring.",
      [("Standard Units of Measure", 4, None, None),
@@ -39,13 +39,13 @@ CHAPTERS = [
      [("Order of Operations", 7, None, None),
       ("Evaluating Formulas", 8, None, None),
       ("Solving Formulas", 9, None, None)]),
-    (5, "Practical Plane Geometry", "Textbook Chapter 8", "#7453b8",
+    (5, "Practical Plane Geometry", None, "#7453b8",
      "How much trim goes around it? How much material covers it? This chapter answers those two questions, perimeter and area, "
      "for every flat shape met in the trades, from the rectangle to the hexagon and the composite figure.",
      [("Perimeter and Area of Quadrilaterals", 10, None, None),
       ("Triangles", 11, None, None),
       ("Circles, Hexagons and Composite Figures", 12, None, None)]),
-    (6, "Solid Figures", "Textbook Chapter 9", "#0f8a8a",
+    (6, "Solid Figures", None, "#0f8a8a",
      "Tanks, ducts, hoppers, pipe and bar stock are not flat. This chapter stands the flat shapes of Chapter 5 up into solids "
      "and finds how much material covers them, how much they hold, and how much they weigh.",
      [("Solid Geometry", 13, None, None)]),
@@ -127,6 +127,7 @@ def build():
     out = []
     for cn, ctitle, tnote, color, intro, sections in CHAPTERS:
         units = []
+        pool = []
         for i, (stitle, s, ids, filt) in enumerate(sections, start=1):
             units.append((f"{cn}.{i}", stitle))
         out.append(("chapter", dict(n=cn, title=ctitle, textbook=tnote, color=color, intro=intro, units=units,
@@ -139,25 +140,25 @@ def build():
             intro_u = SPLIT_INTRO.get((stitle, s), op["intro"]) or op["intro"]
             out.append(("unit", dict(n=sid, title=stitle, intro=intro_u, color=color, src=s,
                                      objectives=_split(op["objectives"], filt), terms=_split(op["terms"], filt))))
-            out += c["pre"] if ids is None or i == 1 else []
+            out += _keep(c["pre"]) if ids is None or i == 1 else []
             for secid, blocks in c["secs"]:
                 if ids is None or secid in ids:
                     k, b0 = blocks[0]
                     out.append(("sec", dict(b0, title=SEC_ID.sub("", b0["title"]))))
-                    out += blocks[1:]
+                    out += _keep(blocks[1:])
             if c["summary"]:
                 pts = _split(c["summary"]["points"], filt)
                 if pts:
                     out.append(("summary", dict(points=pts, n=sid)))
             if c["review"]:
                 rv = c["review"]
-                pairs = [(q, a) for q, a in zip(rv["items"], rv["answers"]) if not filt or _split([q], filt)]
-                out.append(("review", dict(n=sid, items=[q for q, _ in pairs], answers=[a for _, a in pairs])))
-        for k, b in src.get("mixed", []):
-            ch, title, intro_m = MIXED[b["title"]]
-            if ch == cn:
-                out.append(("practice", dict(b, title=title, intro=intro_m, label=title, _fresh=True)))
+                pool.append([(q, a) for q, a in zip(rv["items"], rv["answers"])
+                             if (not filt or _split([q], filt)) and not ALONE.search(q)])
+        out.append(("review", dict(n=cn, items=[], answers=[], _pool=pool, _fresh=True)))
     out += src.get("back", [])
+    for kind, b in out:
+        if kind == "review":
+            b["items"], b["answers"] = _choose(b.pop("_pool"))
     _renumber(out)
     book.BLOCKS[:] = out
     _answers()
@@ -247,6 +248,34 @@ def _rewrite(o):
     return o
 
 
+# questions that only make sense next to the question before them, or that need a practice-set figure
+ALONE = re.compile(r"previous|Same |that gauge|problem \d|above|Figure|\bthat (prism|cylinder|gauge)")
+REVIEW_SIZE = 20
+
+
+def _keep(blocks):
+    """drop section practice sets and the figures drawn only for them"""
+    return [(k, b) for k, b in blocks
+            if k != "practice" and not (k == "fig" and "for Practice" in b.get("caption", ""))]
+
+
+def _choose(pools):
+    """a short chapter review: questions spread evenly through each section's review"""
+    pools = [p for p in pools if p]
+    per = -(-REVIEW_SIZE // max(1, len(pools)))
+    out = []
+    for p in pools:
+        k = min(per, len(p))
+        idx = sorted({round(i * (len(p) - 1) / max(1, k - 1)) for i in range(k)}) if k > 1 else [0]
+        out += [p[i] for i in idx]
+    seen, uniq = set(), []
+    for q, a in out:
+        if q not in seen:
+            seen.add(q)
+            uniq.append((q, a))
+    return [q for q, _ in uniq], [a for _, a in uniq]
+
+
 def _answers():
     book.ANSWERS[:] = []
     title = ""
@@ -254,8 +283,5 @@ def _answers():
     for kind, b in book.BLOCKS:
         if kind == "chapter":
             ch, title = b["n"], b["title"]
-        elif kind == "practice":
-            lab = f"Practice {b['label']}: {b['title']}" if b["tag"] != "CUMULATIVE REVIEW" else b["title"]
-            book.ANSWERS.append((ch, title, lab, b["answers"]))
         elif kind == "review":
-            book.ANSWERS.append((ch, title, f"Section {b['n']} review", b["answers"]))
+            book.ANSWERS.append((ch, title, f"Chapter {b['n']} review", b["answers"]))

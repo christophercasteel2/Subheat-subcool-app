@@ -49,7 +49,7 @@ def toc_entries():
             ent.append(("unit", b["title"], f'u{b["n"].replace(".", "_")}', b["n"]))
         elif kind == "raw" and b.get("toc"):
             ent.append(("back", b["toc"][1], b["toc"][0], None))
-    ent.append(("back", "Answers to practice sets and reviews", "answers", None))
+    ent.append(("back", "Answers to the chapter reviews", "answers", None))
     return ent
 
 
@@ -86,10 +86,9 @@ def main_html(pages, markers=True):
 
 PREFACE = """
 <section class="front"><h1>How to use this book</h1>
-<p>This book follows one semester of applied technical math in seven chapters that match the course: whole numbers, fractions and
-decimals (textbook Chapters 1 to 3); ratio, proportion and percent (Chapter 4); measurement and the metric stairs (Chapter 5); basic
-algebra; practical plane geometry (Chapter 8); solid figures (Chapter 9); and triangle trigonometry. Each chapter is divided into numbered
-sections, and every topic is taught the same way.</p>
+<p>This book is built entirely on the class handouts, homework and quizzes of one semester of applied technical math. It has seven
+chapters: whole numbers, fractions and decimals; ratio, proportion and percent; measurement and the metric stairs; basic algebra; practical
+plane geometry; solid figures; and triangle trigonometry. Each chapter is divided into numbered sections, and every topic is taught the same way.</p>
 <div class="twocol">
 <div class="box rule"><div class="boxhead"><span class="tag">KEY RULE</span><span class="boxtitle">Blue boxes</span></div>
 <div class="boxbody"><p>The rule or formula to learn. If a page is read for one thing only, read these.</p></div></div>
@@ -104,8 +103,7 @@ sections, and every topic is taught the same way.</p>
 <div class="boxbody"><p>The instructor's own definitions and formulas, copied word for word from the class handouts.</p></div></div>
 <p><b>Worked examples</b> show the work on the left and the reason for each line on the right. Cover the right-hand
 column and explain each line yourself; that is the fastest way to find out what you do not yet understand.</p>
-<p><b>Practice sets</b> follow the topics in each section, a <b>section review</b> closes each section, and a <b>mixed review</b>
-closes most chapters. Answers to every problem are at the back of the book.</p>
+<p>A short <b>chapter review</b> of practice problems closes each chapter. Answers to every review problem are at the back of the book.</p>
 <h2><span class="secbar"></span>Conventions used in the course</h2>
 <ul class="plain">
 <li><b>Show the substitution.</b> When a formula is used, write the formula, then write it again with the numbers in

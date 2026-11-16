@@ -28,7 +28,7 @@ NOTES = {
         "Core: Practice 2.1, 2.2, 2.3. Extra: 2.4 to 2.7. The mixed decimal-and-fraction subtraction in 2.3 (problems 9 to 12) prepares for the missing-length exam question."),
     3: ("4 sessions", "Every percent problem is one sentence, the part is a percent of the whole, with one number missing.",
         ["Teach the percent proportion exactly as on the handout: PART (is) over (of) WHOLE equals PCT# over 100; cross-multiply and divide.",
-         "Spend a full session on Practice 3.3, naming the pieces without solving. Setup is where the errors are.",
+         "Spend a full session naming the pieces without solving. Setup is where the errors are.",
          "Show the three board examples in order: What is 30% of 400? 30 is what % of 400? 400 is 30% of what number?",
          "Offer the decimal shortcut (3.3) as an alternative only after the proportion is secure."],
         ["Putting the bigger number on the bottom automatically.", "Moving the decimal again after the proportion has already given a percent (0.375% becomes 37.5%).",
@@ -59,7 +59,7 @@ NOTES = {
     6: ("4 sessions", "Reading any scale starts with one question: what is each small space worth?",
         ["Use real rules. Have students find 1/2, 1/4, 1/8 and 1/16 marks by length before reading any point.",
          "For gauges, insist on the four steps in the Key Rule box and on counting by the scale value to check it.",
-         "Spend extra time on the dual-scale gauge: one needle, two rings, two scale values. This is a known trouble spot on the Chapter 5 exam.",
+         "Spend extra time on the dual-scale gauge: one needle, two rings, two scale values. This is a known trouble spot on the measurement exam.",
          "For tolerance, always write the nominal size with the same number of decimal places as the tolerance (0.810 ± 0.003)."],
         ["Counting marks instead of spaces.", "Leaving 2 6/16 unreduced.", "Reading the psi needle position against the kPa numbers.",
          "0.81 + 0.003 = 0.84.", "Counting holes instead of spaces in equal-spacing problems."],
@@ -92,14 +92,14 @@ NOTES = {
         ["Use the balance picture (Figure 9.1) and the two-way PEMDAS diagram (Figure 9.2).",
          "Always substitute and simplify before undoing anything.",
          "Teach two-step equations as: undo the add or subtract, then undo the multiply or divide.",
-         "Work the lock-seam problem, A = 2w + 3/16 with A = 7/8, slowly and twice. It is the most-missed item on the Chapter 7 exam (answer 11/32)."],
+         "Work the lock-seam problem, A = 2w + 3/16 with A = 7/8, slowly and twice. It is the most-missed item on the formula exam (answer 11/32)."],
         ["Adding instead of subtracting the 3/16.", "Multiplying by 2 instead of dividing (answer 1 3/8).", "Dividing before clearing the added number.",
          "Dropping the negative sign with −0.002H.", "Not checking the answer in the original formula."],
         "Pairs: one student evaluates a formula for a chosen value and passes only the result; the partner solves backward to recover the value. Swap roles.",
         [("Solve 3200 = 2L + 2(450) for L.", "1150"), ("V = LWH: V = 3882, L = 52.6, W = 9. Find H to the nearest tenth.", "8.2"), ("A = 2w + 3/16 with A = 7/8. Find w.", "11/32")],
         "Core: Practice 9.1, 9.2. Extra: 9.3 to 9.6. The cumulative review for Part 3 follows this chapter."),
     10: ("4 sessions", "Perimeter is a length found by adding; area is a count of squares found by multiplying a base by a height.",
-         ["Give out the Chapter 8 handout, page 1 (rectangle, square, parallelogram, trapezoid). The teal boxes reproduce its wording.",
+         ["Give out the plane geometry handout, page 1 (rectangle, square, parallelogram, trapezoid). The teal boxes reproduce its wording.",
           "Use the slide picture (Figure 10.3) and the two-trapezoid picture (Figure 10.5) so the formulas are understood, not just memorized.",
           "Make students say the unit with every answer: inches or square inches.",
           "Run each formula backward once the forward direction is secure (section 10.8)."],
@@ -109,7 +109,7 @@ NOTES = {
          [("Trapezoid: bases 12 in and 20 in, height 9 in. Find A.", "144 sq in"), ("Rectangle: P = 76 ft, L = 23 ft. Find W.", "15 ft"), ("Parallelogram: b = 18 in, a = 10 in, h = 8 in. Find P and A.", "P = 56 in; A = 144 sq in")],
          "Core: Practice 10.1. Extra: 10.2, 10.3, 10.4."),
     11: ("4 sessions", "Any triangle’s area is bh ÷ 2; when the height is missing, Hero’s Formula or the Pythagorean theorem supplies what is needed.",
-         ["Give out the Chapter 8 handout, page 2 (triangles, Hero’s Formula, right triangle).",
+         ["Give out the plane geometry handout, page 2 (triangles, Hero’s Formula, right triangle).",
           "Teach Hero’s Formula as two lines: semi-perimeter first, then the root. Have students write s down before keying the root.",
           "For the Pythagorean theorem, find the right angle first, then label c across from it.",
           "The 3-4-5 check with a tape measure makes the theorem real."],
@@ -119,7 +119,7 @@ NOTES = {
          [("Hero’s Formula: sides 15, 20, 25 m. Find A.", "150 m²"), ("Right triangle: legs 5 ft and 12 ft. Find c.", "13 ft"), ("Equilateral triangle: s = 8 in. Find A.", "27.712 sq in")],
          "Core: Practice 11.1. Extra: 11.2, 11.3, 11.4."),
     12: ("5 sessions", "Circles use π = 3.14 with the radius squared for area; composite figures are taken apart into shapes already known, and the trapezoid is the most useful of them.",
-         ["Give out the Chapter 8 handout, pages 3 and 4 (regular hexagon, circles, composite figures).",
+         ["Give out the plane geometry handout, pages 3 and 4 (regular hexagon, circles, composite figures).",
           "Use π = 3.14 throughout, and have students type 3.14 rather than the π key so answers match the key.",
           "For composite figures, require a sketch with the cut lines drawn and each part labeled before any arithmetic.",
           "Teach the L as two trapezoids (Figure 12.3): one cut from the inside corner to the far corner. Then check with rectangles.",
@@ -131,7 +131,7 @@ NOTES = {
           ("An L is 20 ft by 14 ft overall with an 8 ft by 6 ft corner missing. Find its area.", "232 sq ft")],
          "Core: Practice 12.1, 12.2, 12.5. Extra: 12.3, 12.4. The cumulative review for Part 4 follows this chapter and works as a final-exam review for geometry."),
     13: ("5 sessions", "Every solid starts from a flat base: find the base area A and perimeter p first, then LSA, TSA and volume follow from one short formula.",
-         ["Give out the Chapter 9 solid-geometry handout. The teal boxes in the chapter reproduce it, including the gallon conversions and the density example.",
+         ["Give out the solid geometry handout. The teal boxes in the chapter reproduce it, including the gallon conversions and the density example.",
           "Unfold a cereal box to show that LSA = ph: the sides open into one rectangle p long and h high (Figure 13.2).",
           "Require students to write A and p beside every drawing before using any formula; the classwork packet works the same way.",
           "For pyramids, keep the two lengths apart on the board: slant length for LSA, height for volume.",
@@ -171,7 +171,7 @@ def notes_pdf(ch):
     return (f'<div class="tnotes"><div class="th"><span>TEACHER’S NOTES · CHAPTER {ch}</span><span>{t[0]}</span></div><div class="tb">'
             f'<h4>The big idea</h4><p>{fmt(t[1])}</p><h4>Teaching the chapter</h4><ul>{li(t[2])}</ul>'
             f'<h4>Errors to watch for</h4><ul>{li(t[3])}</ul><h4>Activity</h4><p>{fmt(t[4])}</p>'
-            f'<h4>Exit ticket</h4><ol>{exit_}</ol><h4>Assigning the practice</h4><p>{fmt(t[6])}</p></div></div>')
+            f'<h4>Exit ticket</h4><ol>{exit_}</ol></div></div>')
 
 
 def notes_docx(ch):
@@ -181,27 +181,27 @@ def notes_docx(ch):
     return (f'<div custom-style="TeacherNote"><p><b>TEACHER’S NOTES, CHAPTER {ch} ({t[0]})</b></p><p><b>The big idea.</b> {f(t[1])}</p>'
             f'<p><b>Teaching the chapter</b></p><ul>{li(t[2])}</ul><p><b>Errors to watch for</b></p><ul>{li(t[3])}</ul>'
             f'<p><b>Activity.</b> {f(t[4])}</p><p><b>Exit ticket</b></p><ol>' + "".join(f"<li>{f(q)}  <b>[{f(a)}]</b></li>" for q, a in t[5])
-            + f'</ol><p><b>Assigning the practice.</b> {f(t[6])}</p></div>')
+            + '</ol></div>')
 
 
 USING = [("Answers beside every question", "In practice sets, chapter reviews and cumulative reviews, the answer is printed in red directly after each question. The complete key also remains at the back, as in the student book."),
-         ("Teacher’s notes", "Each chapter opens with a dark box giving the number of class sessions, the big idea, a teaching sequence, the errors students make most often, a hands-on activity, a three-question exit ticket and advice on which practice sets to assign."),
+         ("Teacher’s notes", "Each chapter opens with a dark box giving the number of class sessions, the big idea, a teaching sequence, the errors students make most often, a hands-on activity, and a three-question exit ticket."),
          ("Class handout boxes", "Teal boxes reproduce the wording of the class handouts word for word, so the book and the handouts never disagree."),
          ("Chapter tests", "A one-page test for every chapter, with a full key, is at the back. The tests follow the style of the course exams: show the work, show all substitutions, and round as each question directs."),
-         ("Section and problem numbers", "Chapter, section, example, figure and practice numbers are identical in the student and teacher’s editions. Page numbers differ, because the notes and printed answers take space; assign work by practice number, not page.")]
+         ("Section and problem numbers", "Chapter, section, example, figure and review-problem numbers are identical in the student and teacher’s editions. Page numbers differ, because the notes and printed answers take space; assign work by chapter and problem number, not page.")]
 
 
 def front_pdf():
-    rows = "".join(f"<tr><td>{w}</td><td>{fmt(c)}</td><td>{fmt(t)}</td><td>{fmt(a)}</td></tr>" for w, c, t, a in PACING)
+    rows = "".join(f"<tr><td>{w}</td><td>{fmt(c)}</td><td>{fmt(t)}</td></tr>" for w, c, t in PACING)
     use = "".join(f"<li><b>{fmt(h)}.</b> {fmt(x)}</li>" for h, x in USING)
     return ('<section class="front"><h1>Using the teacher’s edition</h1>'
             '<p>This edition contains the complete student text. Everything added for the instructor is listed below.</p>'
             f'<ul class="plain">{use}</ul>'
             '<h2><span class="secbar"></span>A sixteen-week pacing guide</h2>'
-            '<p>The guide assumes two or three class meetings a week and follows the order of the course textbook. Practice sets marked Extra in the teacher’s notes, '
-            'and Section 7.4, are enrichment; a class that is short of time can skip them without losing anything later sections need.</p>'
-            '<div class="tablewrap"><table class="data small"><colgroup><col style="width:8%"><col style="width:17%"><col style="width:47%"><col style="width:28%"></colgroup>'
-            f'<tr><th>Week</th><th>Section</th><th>Topics</th><th>Assign</th></tr>{rows}</table></div>'
+            '<p>The guide assumes two or three class meetings a week and follows the order of the chapters. Section 7.4 '
+            'is enrichment; a class that is short of time can skip them without losing anything later sections need.</p>'
+            '<div class="tablewrap"><table class="data small"><colgroup><col style="width:9%"><col style="width:16%"><col style="width:75%"></colgroup>'
+            f'<tr><th>Week</th><th>Section</th><th>Topics</th></tr>{rows}</table></div>'
             '<h2><span class="secbar"></span>Grading the work shown</h2>'
             '<p>The course exams give credit for work, not only for answers. A workable scheme for a formula problem worth 10 points: '
             '2 points for writing the formula, 3 for a correct substitution, 3 for the evaluation or solving steps, 1 for rounding as directed and 1 for the unit.</p>'
@@ -210,9 +210,9 @@ def front_pdf():
 
 def front_docx():
     f = lambda x: fmt(x, "docx")  # noqa: E731
-    rows = "".join(f"<tr><td>{w}</td><td>{f(c)}</td><td>{f(t)}</td><td>{f(a)}</td></tr>" for w, c, t, a in PACING)
+    rows = "".join(f"<tr><td>{w}</td><td>{f(c)}</td><td>{f(t)}</td></tr>" for w, c, t in PACING)
     return ("<h1>Using the teacher’s edition</h1><ul>" + "".join(f"<li><b>{f(h)}.</b> {f(x)}</li>" for h, x in USING) + "</ul>"
-            f"<h2>A sixteen-week pacing guide</h2><table><tr><th>Week</th><th>Section</th><th>Topics</th><th>Assign</th></tr>{rows}</table>")
+            f"<h2>A sixteen-week pacing guide</h2><table><tr><th>Week</th><th>Section</th><th>Topics</th></tr>{rows}</table>")
 
 
 # ---------------------------------------------------------------- chapter tests
@@ -516,7 +516,7 @@ def notes_pdf(u):
     return (f'<div class="tnotes"><div class="th"><span>TEACHER’S NOTES · SECTION {u}</span><span>{t[0]}</span></div><div class="tb">'
             f'<h4>The big idea</h4><p>{fmt(t[1])}</p><h4>Teaching the section</h4><ul>{li(t[2])}</ul>'
             f'<h4>Errors to watch for</h4><ul>{li(t[3])}</ul><h4>Activity</h4><p>{fmt(t[4])}</p>'
-            f'<h4>Exit ticket</h4><ol>{exit_}</ol><h4>Assigning the practice</h4><p>{fmt(t[6])}</p></div></div>')
+            f'<h4>Exit ticket</h4><ol>{exit_}</ol></div></div>')
 
 
 def notes_docx(u):
@@ -528,31 +528,31 @@ def notes_docx(u):
     return (f'<div custom-style="TeacherNote"><p><b>TEACHER’S NOTES, SECTION {u} ({t[0]})</b></p><p><b>The big idea.</b> {f(t[1])}</p>'
             f'<p><b>Teaching the section</b></p><ul>{li(t[2])}</ul><p><b>Errors to watch for</b></p><ul>{li(t[3])}</ul>'
             f'<p><b>Activity.</b> {f(t[4])}</p><p><b>Exit ticket</b></p><ol>' + "".join(f"<li>{f(q)}  <b>[{f(a)}]</b></li>" for q, a in t[5])
-            + f'</ol><p><b>Assigning the practice.</b> {f(t[6])}</p></div>')
+            + '</ol></div>')
 
 
-PACING = [("1", "1.1", "Place value; rounding; The Basic Rules", "Practice 1.1, 1.2"),
-          ("2", "1.2", "Fractions and decimals; mixed measurements", "Practice 1.8, 1.9"),
-          ("3", "1.3", "Tolerance and missing dimensions; Quizzes 1.1 and 1.2", "Practice 1.13"),
-          ("4", "2.1", "Ratios, rates, proportions, gears and pulleys", "Practice 2.1 to 2.3"),
-          ("5", "2.2, 2.3", "Fractions, decimals and percents; the percent proportion", "Practice 2.4, 2.6 to 2.8"),
-          ("6", "Chapters 1, 2", "Percent applications; mixed review; Quizzes 2.1 and 2.3", "Practice 2.7; mixed review"),
-          ("7", "3.1", "Standard units: length, weight, capacity, area, volume", "Practice 3.1, 3.2"),
-          ("8", "3.2", "The metric stairs; standard and metric conversions", "Practice 3.6 to 3.8"),
-          ("9", "3.3", "Rulers, meters and gauges; mixed review; Quizzes 3.1 to 3.3", "Practice 3.13, 3.14"),
-          ("10", "4.1", "Order of operations (PEMDAS)", "Practice 4.1"),
-          ("11", "4.2, 4.3", "Evaluating and solving formulas", "Practice 4.4, 4.6, 4.7"),
-          ("12", "Chapter 4", "Equations with fractions; mixed review; Quizzes 4.1 to 4.3", "Practice 4.11; mixed review"),
-          ("13", "5.1, 5.2", "Quadrilaterals; triangles; Hero’s Formula; right triangles", "Practice 5.1, 5.5"),
-          ("14", "5.3", "Circles, hexagons, composite figures; Quizzes 5.1 to 5.3", "Practice 5.9, 5.10, 5.13"),
-          ("15", "6.1", "Solid figures: prisms, cylinders, spheres, pyramids, frustums, density; mixed review; Quiz 6.1", "Practice 6.1 to 6.3"),
-          ("16", "7.1 to 7.4", "Triangle trigonometry; Chapter 7 test; final exam", "Practice 7.1 to 7.3")]
+PACING = [("1", "1.1", "Place value; rounding; The Basic Rules"),
+          ("2", "1.2", "Fractions and decimals; mixed measurements"),
+          ("3", "1.3", "Tolerance and missing dimensions; Chapter 1 review; Quizzes 1.1 and 1.2"),
+          ("4", "2.1", "Ratios, rates, proportions, gears and pulleys"),
+          ("5", "2.2, 2.3", "Fractions, decimals and percents; the percent proportion"),
+          ("6", "2.3", "Percent applications; Chapter 2 review; Quizzes 2.1 and 2.3"),
+          ("7", "3.1", "Standard units: length, weight, capacity, area, volume"),
+          ("8", "3.2", "The metric stairs; standard and metric conversions"),
+          ("9", "3.3", "Rulers, meters and gauges; Chapter 3 review; Quizzes 3.1 to 3.3"),
+          ("10", "4.1", "Order of operations (PEMDAS)"),
+          ("11", "4.2, 4.3", "Evaluating and solving formulas"),
+          ("12", "4.3", "Equations with fractions; Chapter 4 review; Quizzes 4.1 to 4.3"),
+          ("13", "5.1, 5.2", "Quadrilaterals; triangles; Hero’s Formula; right triangles"),
+          ("14", "5.3", "Circles, hexagons, composite figures; Chapter 5 review; Quizzes 5.1 to 5.3"),
+          ("15", "6.1", "Solid figures: prisms, cylinders, spheres, pyramids, frustums, density; Chapter 6 review; Quiz 6.1"),
+          ("16", "7.1 to 7.4", "Triangle trigonometry; Chapter 7 review; Chapter 7 test; final exam")]
 
-USING = [("Answers beside every question", "In practice sets, section reviews and mixed reviews, the answer is printed in red directly after each question. The complete key also remains at the back, as in the student book."),
-         ("Teacher’s notes", "Each section opens with a dark box giving the number of class sessions, the big idea, a teaching sequence, the errors students make most often, a hands-on activity, a three-question exit ticket and advice on which practice sets to assign."),
+USING = [("Answers beside every question", "In each chapter review, the answer is printed in red directly after each question. The complete key also remains at the back, as in the student book."),
+         ("Teacher’s notes", "Each section opens with a dark box giving the number of class sessions, the big idea, a teaching sequence, the errors students make most often, a hands-on activity, and a three-question exit ticket."),
          ("Class handout boxes", "Teal boxes reproduce the wording of the class handouts word for word, so the book and the handouts never disagree."),
          ("Quizzes", "A one-page quiz for each section, and a test for Chapter 7, each with a full key, are at the back. They follow the style of the course exams: show the work, show all substitutions, and round as each question directs."),
-         ("Section and problem numbers", "Chapter, section, example, figure and practice numbers are identical in the student and teacher’s editions. Page numbers differ, because the notes and printed answers take space; assign work by practice number, not page.")]
+         ("Section and problem numbers", "Chapter, section, example, figure and review-problem numbers are identical in the student and teacher’s editions. Page numbers differ, because the notes and printed answers take space; assign work by chapter and problem number, not page.")]
 
 _S = lambda d: _m.sin(_m.radians(d))  # noqa: E731
 QUIZZES = [  # (label, title, old test number or new items)

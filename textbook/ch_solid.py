@@ -1,4 +1,4 @@
-"""Chapter 13: solid geometry (the class's Chapter 9 handout and classwork)."""
+"""Solid geometry (the class handout and classwork)."""
 from math import sqrt
 from book import *  # noqa: F401,F403
 from util import n, r
@@ -78,7 +78,7 @@ chapter("Solid Geometry",
 sec("13.1 Three measurements of a solid")
 p("A box can be measured three ways, and each answers a different question. How much metal covers its **sides**? How much metal "
   "covers the whole thing, **sides and ends**? How much does it **hold**? The class handout names the three.")
-handout("CHAPTER 9: SOLID GEOMETRY",
+handout("SOLID GEOMETRY",
         "**LSA = Lateral Surface Area**..... this is the area of the *sides* of the solid figure",
         "**TSA = Total Surface Area**.....this is the area of the *sides* AND the *Base(s)*",
         "**V = Volume**.....this represents the amount of space *contained* by the solid figure")
