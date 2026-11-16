@@ -15,7 +15,7 @@ SUB = "Numbers, Measurement, Algebra and Geometry for the Trades"
 OUT = os.path.join(HERE, "out")
 os.makedirs(OUT, exist_ok=True)
 
-for mod in ("ch_numbers", "ch_measure", "ch_algebra", "ch_geometry", "ch_back"):
+for mod in ("ch_numbers", "ch_measure", "ch_algebra", "ch_geometry", "ch_solid", "ch_back"):
     if os.path.exists(os.path.join(HERE, mod + ".py")):
         importlib.import_module(mod)
 

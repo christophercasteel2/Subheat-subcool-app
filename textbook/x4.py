@@ -386,8 +386,8 @@ def ch12():
 
 
 # =====================================================================  cumulative
-def part4():
-    cumulative("Part 4 · Geometry", "Mixed problems from Chapters 10, 11 and 12. Use π = 3.14. Round only where told to.",
+def part4(extra=()):
+    cumulative("Part 4 · Geometry", "Mixed problems from Chapters 10 to 13. Use π = 3.14. Round only where told to.",
                [("Rectangle 26 in by 15 in: find P and A.", "P = 82 in; A = 390 sq in"), ("Square with s = 12.5 ft: find P and A.", "P = 50 ft; A = 156.25 sq ft"),
                 ("Parallelogram with b = 24 cm, a = 13 cm, h = 12 cm: find P and A.", "P = 74 cm; A = 288 cm²"),
                 ("Trapezoid with bases 11 in and 19 in, height 8 in: find A.", "120 sq in"),
@@ -403,4 +403,4 @@ def part4():
                 ("A roof rises 8 ft over a run of 15 ft. Find the rafter length.", "17 ft"),
                 ("A window is a rectangle 3 ft by 5 ft with a trapezoid on top (bases 3 ft and 2 ft, height 1 ft). Find its area.", n(15 + 2.5) + " sq ft"),
                 ("An isosceles triangle has sides 25, 25 and a base of 14 in. Find its height and area.", "h = 24 in; A = 168 sq in"),
-                ("A tank is 31.4 ft around. Find its diameter.", "10 ft")], cols=1)
+                ("A tank is 31.4 ft around. Find its diameter.", "10 ft")] + list(extra), cols=1)

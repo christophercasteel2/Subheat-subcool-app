@@ -130,6 +130,20 @@ NOTES = {
          [("Circle: d = 14 in. Find A.", "153.86 sq in"), ("Hexagon: s = 4 in. Find A.", "41.6 sq in"),
           ("An L is 20 ft by 14 ft overall with an 8 ft by 6 ft corner missing. Find its area.", "232 sq ft")],
          "Core: Practice 12.1, 12.2, 12.5. Extra: 12.3, 12.4. The cumulative review for Part 4 follows this chapter and works as a final-exam review for geometry."),
+    13: ("5 sessions", "Every solid starts from a flat base: find the base area A and perimeter p first, then LSA, TSA and volume follow from one short formula.",
+         ["Give out the Chapter 9 solid-geometry handout. The teal boxes in the chapter reproduce it, including the gallon conversions and the density example.",
+          "Unfold a cereal box to show that LSA = ph: the sides open into one rectangle p long and h high (Figure 13.2).",
+          "Require students to write A and p beside every drawing before using any formula; the classwork packet works the same way.",
+          "For pyramids, keep the two lengths apart on the board: slant length for LSA, height for volume.",
+          "Teach the frustum through the trapezoid: each side face is a trapezoid, so LSA is the Chapter 10 formula applied to every side.",
+          "Finish with density and solving, which pull volume and Chapter 9 algebra together."],
+         ["Writing TSA or LSA in cubic units.", "Using the diameter in πr²h, or forgetting to halve it.", "Multiplying cubic inches by 7.48, or dividing cubic feet by 231.",
+          "Using the slant length in a pyramid’s volume formula.", "Adding 2A to a pyramid’s TSA (a pyramid has one base).",
+          "Leaving a length in feet when the density is per cubic inch.", "Taking the square root of only A in √(A × a)."],
+         "Bring a coffee can, a shoe box and a ball. Groups measure each one, find LSA, TSA and volume, convert the volume to gallons, and check the can by filling it with a measured quart of water.",
+         [("Rectangular prism 4 ft by 2 ft base, 3 ft high: find TSA.", "52 sq ft"), ("Cylinder d = 20 in, h = 48 in: find V.", "15,072 cu in"),
+          ("15,072 cu in = ____ gallons, to the nearest tenth.", "65.2 gal")],
+         "Core: Practice 13.1, 13.2, 13.3. Extra: 13.4, 13.5, 13.6. The cumulative review for Part 4 follows this chapter."),
 }
 
 PACING = [("1", "Chapter 1", "Place value; rounding; The Basic Rules", "Practice 1.1, 1.2"),
@@ -146,8 +160,8 @@ PACING = [("1", "Chapter 1", "Place value; rounding; The Basic Rules", "Practice
           ("12", "Chapter 9", "Substitute and solve; equations with fractions", "Practice 9.1, 9.2"),
           ("13", "Chapters 7 to 9", "Cumulative review, Part 3; Tests 7, 8, 9 (the Chapter 7 exam)", "review"),
           ("14", "Chapters 10, 11", "Quadrilaterals; triangles; Hero’s Formula; right triangles", "Practice 10.1, 11.1"),
-          ("15", "Chapter 12", "Circles, hexagons, composite figures", "Practice 12.1, 12.2, 12.5"),
-          ("16", "All", "Cumulative review, Part 4; Tests 10, 11, 12; final exam", "review")]
+          ("15", "Chapter 12", "Circles, hexagons, composite figures; Tests 10, 11, 12", "Practice 12.1, 12.2, 12.5"),
+          ("16", "Chapter 13", "Solid geometry: prisms, cylinders, spheres, pyramids, frustums, gallons, density; cumulative review, Part 4; Test 13; final exam", "Practice 13.1 to 13.3")]
 
 
 def notes_pdf(ch):
@@ -328,6 +342,19 @@ TESTS = {
           ("A window is a rectangle 4 ft wide and 5 ft tall with a semicircle on top. Find its area.", "26.28 sq ft", 9),
           ("Find the perimeter of the L-shaped floor above.", "68 ft", 5),
           ("BONUS. A nut measures 1.5 in across the flats. Find the length of a side to the nearest hundredth.", "0.87 in", 0)]),
+    13: ("SHOW THE BASE AREA, THE FORMULA AND THE SUBSTITUTION. Use π = 3.14.",
+         [("Rectangular prism: base 5 ft by 3 ft, height 4 ft. Find LSA, TSA and VOL.", "LSA = 64 sq ft; TSA = 94 sq ft; V = 60 cu ft", 12),
+          ("Convert the volume in question 1 to gallons.", "448.8 gal", 6),
+          ("Equilateral triangle prism: base sides 10 in, length 30 in. Find LSA, TSA and VOL.", "LSA = 900 sq in; TSA = 986.6 sq in; V = 1,299 cu in", 12),
+          ("Hexagonal prism: base sides 5 in, height 20 in. Find VOL.", "1,300 cu in", 8),
+          ("Cylinder: d = 12 in, h = 40 in. Find LSA, TSA and V.", "LSA = 1,507.2 sq in; TSA = 1,733.28 sq in; V = 4,521.6 cu in", 12),
+          ("Convert the volume in question 5 to gallons, to the nearest tenth.", "19.6 gal", 6),
+          ("Sphere: d = 6 ft. Find SA and V.", "SA = 113.04 sq ft; V = 113.04 cu ft", 10),
+          ("Square pyramid: base sides 12 in, height 8 in, slant length 10 in. Find LSA, TSA and V.", "LSA = 240 sq in; TSA = 384 sq in; V = 384 cu in", 12),
+          ("Frustum: bottom square 14 in, top square 8 in, height 4 in, slant length 5 in. Find LSA and V.", "LSA = 220 sq in; V = 496 cu in", 10),
+          ("A steel bar (0.284 lb per cu in) is 2 in in diameter and 4 ft long. Find its weight to the nearest tenth.", "42.8 lb", 6),
+          ("What is the height of a cylinder with a volume of 12,000 cubic feet and a radius of 15 feet? Round to the tenth.", "17.0 ft", 6),
+          ("BONUS. What is the radius of a cylinder with a volume of 9,420 cubic feet and a height of 30 feet?", "10.0 ft", 0)]),
 }
 
 

@@ -13,7 +13,7 @@ FIGS = []            # svg text of every figure (for the Word copy's pictures)
 _state = {"ch": 0, "title": "", "color": "#1f5fbf", "fig": 0, "ex": 0, "set": 0}
 
 COLORS = ["#c8452f", "#d98a14", "#2f8f4e", "#1f6fb5", "#7453b8", "#0f8a8a",
-          "#b5376d", "#3f51b5", "#8a5a2b", "#2e7d6b", "#a63d40", "#4a6fa5"]
+          "#b5376d", "#3f51b5", "#8a5a2b", "#2e7d6b", "#a63d40", "#4a6fa5", "#37474f"]
 
 
 # ---------------------------------------------------------------- text

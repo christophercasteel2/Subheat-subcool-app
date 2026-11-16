@@ -732,3 +732,196 @@ def right_tri_dims(a, b_, c, unit="ft", note=""):
     if note:
         b.append(T(180, 190, note, 11.5, "#555"))
     return svg(360, 196, "".join(b))
+
+
+# ---------------------------------------------------------------- solids (oblique view, hidden edges dashed)
+
+def _proj(p, c=0.42):
+    x, d, z = p
+    return (x + c * d, -(z + c * d))
+
+
+def solid(bottom, top, H, color=BLUE, fill=None, labels=(), extra=(), scale=1.0, pad=46):
+    """a prism, pyramid or frustum: bottom and top are plan polygons [(x, depth)] counter-clockwise,
+    top at height H (a single point for a pyramid). labels: [((x, d, z), text, anchor, dx, dy)].
+    extra: [((x,d,z), (x,d,z), dashed)] lines such as a height or a slant length"""
+    B = [(x * scale, d * scale, 0) for x, d in bottom]
+    if len(top) == 1:
+        Tp = [(top[0][0] * scale, top[0][1] * scale, H * scale)] * len(bottom)
+    else:
+        Tp = [(x * scale, d * scale, H * scale) for x, d in top]
+    v = (-0.42, 1, -0.42)
+    n_ = len(B)
+
+    def cross(a, b):
+        return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+
+    def sub(a, b):
+        return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+    def vis(nrm):
+        return nrm[0] * v[0] + nrm[1] * v[1] + nrm[2] * v[2] < -1e-9
+
+    side_vis = []
+    for i in range(n_):
+        j = (i + 1) % n_
+        nrm = cross(sub(B[j], B[i]), sub(Tp[i] if Tp[i] != B[i] else Tp[j], B[i]))
+        if Tp[i] == Tp[j] and len(top) == 1:
+            nrm = cross(sub(B[j], B[i]), sub(Tp[i], B[i]))
+        side_vis.append(vis(nrm))
+    top_vis = len(top) > 1
+    pts = [_proj(p) for p in B + Tp]
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    ox, oy = pad - min(xs), pad - min(ys)
+    P2 = lambda p: (_proj(p)[0] + ox, _proj(p)[1] + oy)  # noqa: E731
+    pale = fill or PALE["blue"]
+    body = []
+    for i in range(n_):
+        if side_vis[i]:
+            j = (i + 1) % n_
+            poly = [B[i], B[j], Tp[j]] + ([Tp[i]] if len(top) > 1 else [])
+            body.append(P([P2(p) for p in poly], pale, "none", 0))
+    if top_vis:
+        body.append(P([P2(p) for p in Tp], "#ffffff", "none", 0))
+        body.append(P([P2(p) for p in Tp], pale, "none", 0))
+    edges = []
+    for i in range(n_):
+        j, k = (i + 1) % n_, (i - 1) % n_
+        edges.append((B[i], B[j], side_vis[i]))
+        if len(top) > 1:
+            edges.append((Tp[i], Tp[j], True))
+        edges.append((B[i], Tp[i], side_vis[i] or side_vis[k]))
+    hidden = [L(*P2(a), *P2(b), color, 1.3, "5 4") for a, b, s in edges if not s]
+    shown = [L(*P2(a), *P2(b), color, 2.1) for a, b, s in edges if s]
+    for a, b, dashed in extra:
+        body.append(L(*P2(tuple(t * scale for t in a)), *P2(tuple(t * scale for t in b)), RED, 1.6, "5 4" if dashed else None))
+    body = body[:1] + body[1:]
+    out = body[:]
+    out[0:0] = []
+    labs = []
+    for p, text, anchor, dx, dy in labels:
+        x, y = P2(tuple(t * scale for t in p))
+        labs.append(T(x + dx, y + dy, text, 13, INK, anchor=anchor, weight="700"))
+    w, h = max(xs) - min(xs) + 2 * pad, max(ys) - min(ys) + 2 * pad
+    return svg(w, h, "".join(out[:len(out) - len(extra)] + hidden + shown + out[len(out) - len(extra):] + labs))
+
+
+def rect_prism(L_, W_, H_, lab=("L", "W", "H"), s=None):
+    s = s or 170 / max(L_, H_, W_ * 0.8)
+    return solid([(0, 0), (L_, 0), (L_, W_), (0, W_)], [(0, 0), (L_, 0), (L_, W_), (0, W_)], H_, BLUE, PALE["blue"],
+                 [((L_ / 2, 0, 0), lab[0], "middle", 0, 18), ((L_, W_ / 2, 0), lab[1], "start", 10, 12), ((0, 0, H_ / 2), lab[2], "end", -8, 4)], scale=s)
+
+
+def tri_prism(s_, len_, lab=("s", "h")):
+    """an equilateral-triangle prism lying on its side (the length is the prism's height)"""
+    k = 240 / max(len_, s_ * 2)
+    ht = s_ * 0.866
+    # build in a rotated frame: triangle in the x-z plane at depth 0 and depth len_
+    tri = [(0, 0), (s_, 0), (s_ / 2, ht)]
+    lines, fillp = [], []
+    def pp(x, d, z):
+        X, Y = _proj((x * k, d * k * 0.9, z * k))
+        return X, Y
+    front = [pp(x, 0, z) for x, z in tri]
+    back = [pp(x, len_, z) for x, z in tri]
+    xs = [p[0] for p in front + back]; ys = [p[1] for p in front + back]
+    ox, oy = 40 - min(xs), 40 - min(ys)
+    F = [(x + ox, y + oy) for x, y in front]; Bk = [(x + ox, y + oy) for x, y in back]
+    b = [P([F[1], Bk[1], Bk[2], F[2]], PALE["green"], "none", 0), P([F[2], Bk[2], Bk[0], F[0]], "#cfead7", "none", 0), P(F, PALE["green"], "none", 0)]
+    b.append(L(*F[0], *Bk[0], GREEN, 1.3, "5 4")); b.append(L(*Bk[0], *Bk[1], GREEN, 1.3, "5 4"))
+    for a_, c_ in [(F[0], F[1]), (F[1], F[2]), (F[2], F[0]), (F[1], Bk[1]), (F[2], Bk[2]), (Bk[1], Bk[2]), (Bk[2], Bk[0])]:
+        b.append(L(*a_, *c_, GREEN, 2.1))
+    b.append(T((F[0][0] + F[1][0]) / 2, F[0][1] + 18, lab[0], 13, INK, weight="700"))
+    b.append(T((F[1][0] + Bk[1][0]) / 2 + 14, (F[1][1] + Bk[1][1]) / 2 + 12, lab[1], 13, INK, anchor="start", weight="700"))
+    w, h = max(xs) - min(xs) + 80, max(ys) - min(ys) + 80
+    return svg(w, h, "".join(b))
+
+
+def hex_prism(s_, H_, lab=("s", "h")):
+    import math as m
+    hexp = [(s_ * m.cos(m.radians(60 * i + 30)), s_ * m.sin(m.radians(60 * i + 30)) * 1.25) for i in range(6)]
+    k = 120 / max(H_, 2 * s_)
+    return solid(hexp, hexp, H_, PURPLE, PALE["purple"],
+                 [((s_ * 0.43, -s_ * 0.85, 0), lab[0], "middle", 0, 18), ((s_, 0, H_ / 2), lab[1], "start", 10, 4)], scale=k)
+
+
+def cylinder3d(d_label="d", h_label="h", r=60, hh=150, color=RED, fill=None, show_r=True):
+    cx, top, ry = r + 40, 30, r * 0.32
+    bot = top + hh
+    fill = fill or PALE["red"]
+    b = [f'<path d="M{cx - r} {top} L{cx - r} {bot} A{r} {ry} 0 0 0 {cx + r} {bot} L{cx + r} {top} Z" fill="{fill}"/>',
+         f'<ellipse cx="{cx}" cy="{top}" rx="{r}" ry="{ry}" fill="#fff" stroke="{color}" stroke-width="2.1"/>',
+         f'<ellipse cx="{cx}" cy="{top}" rx="{r}" ry="{ry}" fill="{fill}" opacity="0.6"/>',
+         L(cx - r, top, cx - r, bot, color, 2.1), L(cx + r, top, cx + r, bot, color, 2.1),
+         f'<path d="M{cx - r} {bot} A{r} {ry} 0 0 0 {cx + r} {bot}" fill="none" stroke="{color}" stroke-width="2.1"/>',
+         f'<path d="M{cx - r} {bot} A{r} {ry} 0 0 1 {cx + r} {bot}" fill="none" stroke="{color}" stroke-width="1.3" stroke-dasharray="5 4"/>',
+         L(cx - r, bot, cx + r, bot, INK, 1.2, "5 4"), T(cx, bot + ry + 18, d_label, 13, INK, weight="700"),
+         T(cx + r + 10, (top + bot) / 2 + 4, h_label, 13, INK, anchor="start", weight="700")]
+    if show_r:
+        b += [C(cx, top, 2.5, INK, INK), L(cx, top, cx + r, top, INK, 1.2), T(cx + r / 2, top - 6, "r", 12, INK, weight="700", italic=True)]
+    return svg(2 * r + 130, bot + ry + 34, "".join(b))
+
+
+def sphere3d(label="d", r=80, color=GOLD):
+    cx, cy = r + 30, r + 20
+    b = [f'<defs><radialGradient id="sg{r}" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#fff"/>'
+         f'<stop offset="1" stop-color="{PALE["gold"]}"/></radialGradient></defs>',
+         C(cx, cy, r, f"url(#sg{r})", color, 2.2),
+         f'<path d="M{cx - r} {cy} A{r} {r * 0.28} 0 0 0 {cx + r} {cy}" fill="none" stroke="{color}" stroke-width="1.6"/>',
+         f'<path d="M{cx - r} {cy} A{r} {r * 0.28} 0 0 1 {cx + r} {cy}" fill="none" stroke="{color}" stroke-width="1.2" stroke-dasharray="5 4"/>',
+         L(cx - r, cy, cx + r, cy, INK, 1.2, "5 4"), C(cx, cy, 2.5, INK, INK), T(cx, cy - 8, label, 13, INK, weight="700")]
+    return svg(2 * r + 60, 2 * r + 44, "".join(b))
+
+
+def square_pyramid(a, H_, s_lab="s", h_lab="h", base_lab="b", k=None):
+    H_ = max(H_, a * 1.1)          # drawn taller than true scale so the height and slant can be seen
+    k = k or 150 / max(a, H_)
+    sq = [(0, 0), (a, 0), (a, a), (0, a)]
+    ap = (a / 2, a / 2)
+    return solid(sq, [ap], H_, BLUE, PALE["blue"],
+                 [((a / 2, 0, 0), base_lab, "middle", 0, 18), ((a / 2, a / 2, H_ * 0.45), h_lab, "start", 6, 0),
+                  ((a / 2, a / 4, H_ / 2), s_lab, "end", -16, 4)],
+                 extra=[((a / 2, a / 2, H_), (a / 2, a / 2, 0), True), ((a / 2, a / 2, H_), (a / 2, 0, 0), False)], scale=k)
+
+
+def tri_pyramid(a, H_, k=None):
+    H_ = max(H_, a * 1.1)
+    k = k or 150 / max(a, H_)
+    tri = [(0, 0), (a, 0), (a / 2, a * 0.866)]
+    cen = (a / 2, a * 0.2887)
+    return solid(tri, [cen], H_, GREEN, PALE["green"],
+                 [((a / 2, 0, 0), "side", "middle", 0, 18), ((cen[0], cen[1], H_ * 0.55), "h", "end", -6, 0),
+                  ((a / 2, cen[1] / 2, H_ * 0.3), "s", "start", 14, 0)],
+                 extra=[((cen[0], cen[1], H_), (cen[0], cen[1], 0), True), ((cen[0], cen[1], H_), (a / 2, 0, 0), False)], scale=k)
+
+
+def frustum3d(A_, a_, H_, labs=("bottom side", "top side", "h", "s")):
+    H_ = max(H_, A_ * 0.75)        # drawn taller than true scale
+    k = 150 / max(A_, H_)
+    off = (A_ - a_) / 2
+    bot = [(0, 0), (A_, 0), (A_, A_), (0, A_)]
+    tp = [(off, off), (off + a_, off), (off + a_, off + a_), (off, off + a_)]
+    return solid(bot, tp, H_, GOLD, PALE["gold"],
+                 [((A_ / 2, 0, 0), labs[0], "middle", 0, 18), ((A_ / 2, off + a_, H_), labs[1], "middle", 0, -8),
+                  ((A_ / 2, A_ / 2, H_ * 0.2), labs[2], "start", 6, 0), ((A_ * 0.67, off / 2, H_ * 0.62), labs[3], "start", 10, 4)],
+                 extra=[((A_ / 2, A_ / 2, H_), (A_ / 2, A_ / 2, 0), True), ((A_ * 0.65, off, H_), (A_ * 0.65, 0, 0), False)], scale=k)
+
+
+def unfolded_prism(L_, W_, H_):
+    """the net of a box: the four sides form one long rectangle p wide and h tall"""
+    k = 30
+    b = []
+    x = 40
+    for i, w_ in enumerate([L_, W_, L_, W_]):
+        b.append(R(x, 70, w_ * k, H_ * k, PALE["blue"], BLUE, 1.8))
+        b.append(T(x + w_ * k / 2, 70 + 18, f"{w_}", 12, INK, weight="600"))
+        x += w_ * k
+    b.append(R(40, 70 - W_ * k, L_ * k, W_ * k, PALE["gold"], GOLD, 1.8))
+    b.append(R(40, 70 + H_ * k, L_ * k, W_ * k, PALE["gold"], GOLD, 1.8))
+    b.append(T(40 + L_ * k / 2, 70 - W_ * k / 2 + 5, "base A", 12, "#8a5a00", weight="700"))
+    b.append(T(40 + L_ * k / 2, 70 + H_ * k + W_ * k / 2 + 5, "base A", 12, "#8a5a00", weight="700"))
+    b.append(T(x + 10, 70 + H_ * k / 2 + 4, f"h = {H_}", 12, INK, anchor="start", weight="700"))
+    b.append(arrow(40 + L_ * k + 4, 58, x, 58, RED, 1.6))
+    b.append(L(40 + L_ * k + 4, 58, 40 + L_ * k + 4, 66, RED, 1.2))
+    b.append(T((40 + L_ * k + x) / 2, 50, f"p = {2 * L_ + 2 * W_}  (the perimeter of the base)", 12, RED, weight="700"))
+    return svg(x + 90, 70 + H_ * k + W_ * k + 20, "".join(b))

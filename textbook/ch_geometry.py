@@ -408,4 +408,3 @@ review([("Circle: r = 9 in. Find d and C.", f"d = 18 in; C = {n(PI * 18)} in"), 
         ("A gable end is 24 ft wide, 8 ft to the eaves and 5 ft more to the peak. Find its area.", n(192 + 60) + " sq ft"),
         ("Why is the area of a ring with radii 10 and 7 not the area of a circle with radius 3?",
          "Areas depend on the square of the radius: 10² − 7² = 51, but 3² = 9. Subtract the areas, not the radii.")])
-x4.part4()
