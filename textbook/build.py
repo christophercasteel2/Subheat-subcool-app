@@ -12,6 +12,7 @@ import book  # noqa: E402
 
 TITLE = "Applied Technical Math"
 SUB = "Numbers, Measurement, Algebra and Geometry for the Trades"
+SCHOOL = "University of Arkansas Community College at Morrilton"
 OUT = os.path.join(HERE, "out")
 os.makedirs(OUT, exist_ok=True)
 
@@ -129,13 +130,16 @@ body {{ margin: 0; font-family: Inter, sans-serif; color: #fff; }}
 h1 {{ font-size: 62pt; line-height: 0.98; font-weight: 800; margin: 14pt 0 18pt; letter-spacing: -0.01em; }}
 .s {{ font-size: 16pt; font-weight: 400; color: #cfd6ea; max-width: 5.4in; line-height: 1.35; }}
 svg {{ position: absolute; left: 0; bottom: 0.9in; }}
+.sch {{ margin-top: 26pt; }}
+.sch span {{ display: inline-block; border-top: 2pt solid #f2b84b; padding-top: 9pt; font-size: 14pt; font-weight: 700; letter-spacing: 0.02em;
+     color: #fff; max-width: 5.6in; line-height: 1.3; }}
 .f {{ position: absolute; left: 0.9in; right: 0.9in; bottom: 0.55in; font-size: 10pt; color: #9fa9c6; display: flex;
      justify-content: space-between; letter-spacing: 0.06em; }}
 </style></head><body><div class="cv">
 <div class="band"><i style="background:#c8452f"></i><i style="background:#d98a14"></i><i style="background:#2f8f4e"></i>
 <i style="background:#1f6fb5"></i><i style="background:#7453b8"></i><i style="background:#0f8a8a"></i></div>
 <div class="t"><div class="k">A FULL-COLOR COURSE TEXT</div><h1>Applied<br>Technical<br>Math</h1>
-<div class="s">{SUB}</div></div>
+<div class="s">{SUB}</div><div class="sch"><span>{SCHOOL}</span></div></div>
 <svg width="816" height="400" viewBox="0 0 816 400">
 <g fill="none" stroke-width="3">
 <rect x="70" y="150" width="210" height="150" stroke="#1f6fb5" fill="rgba(31,111,181,.22)"/>
@@ -149,7 +153,7 @@ svg {{ position: absolute; left: 0; bottom: 0.9in; }}
 <g fill="#cfd6ea" font-family="Inter" font-size="15" font-weight="600">
 <text x="150" y="232">A = LW</text><text x="300" y="262">a² + b² = c²</text><text x="520" y="190">A = πr²</text>
 <text x="622" y="330">A = 2.6s²</text></g></svg>
-<div class="f"><span>NUMBERS · MEASUREMENT · ALGEBRA · GEOMETRY</span><span>FALL 2026</span></div>
+<div class="f"><span>NUMBERS · MEASUREMENT · ALGEBRA · GEOMETRY · TRIGONOMETRY</span><span>UACCM</span></div>
 </div></body></html>"""
 
 
@@ -177,8 +181,8 @@ def build_pdf():
     if TE:
         cover = cover.replace("A FULL-COLOR COURSE TEXT", "TEACHER’S EDITION").replace(
             '<div class="s">', '<div style="display:inline-block;background:#f2b84b;color:#1c2440;font-weight:800;letter-spacing:.14em;'
-            'font-size:13pt;padding:7pt 14pt;border-radius:5pt;margin-bottom:16pt">TEACHER’S EDITION</div>'
-            '<div class="s">Answers beside every question · teaching notes · pacing guide · chapter tests with keys<br><br>', 1)
+            'font-size:13pt;padding:7pt 14pt;border-radius:5pt;margin-bottom:12pt">TEACHER’S EDITION</div>'
+            '<div class="s">Answers beside every question · teaching notes · pacing guide · quizzes and tests with keys</div><div class="s" style="display:none">', 1)
     open(os.path.join(OUT, "cover.html"), "w").write(cover)
     node("pdf", os.path.join(OUT, "cover.html"), os.path.join(OUT, "cover.pdf"))
     w = PdfWriter()
@@ -204,7 +208,7 @@ def build_docx():
     ref = os.path.join(HERE, "reference.docx")
     cmd = ["pandoc", dh, "-f", "html", "-t", "docx", "-o", os.path.join(HERE, NAME + ".docx"),
            "--resource-path", OUT, "--toc", "--toc-depth=2",
-           "-M", f"title={TITLE}" + (": Teacher’s Edition" if TE else ""), "-M", f"subtitle={SUB}"]
+           "-M", f"title={TITLE}" + (": Teacher’s Edition" if TE else ""), "-M", f"subtitle={SUB}", "-M", f"author={SCHOOL}"]
     if os.path.exists(ref):
         cmd += ["--reference-doc", ref]
     subprocess.run(cmd, check=True, cwd=OUT)
