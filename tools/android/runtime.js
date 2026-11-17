@@ -131,6 +131,11 @@ function makeRuntime(host) {
   B.SIZE = (s) => s.length;
   B.LEFT = (s, n) => s.slice(0, Math.max(0, Math.trunc(n)));
   B.RIGHT = (s, n) => (Math.trunc(n) > 0 ? s.slice(Math.max(0, s.length - Math.trunc(n))) : "");
+  B.MID = (s, k, n) => {
+    const a = Math.max(Math.trunc(k), 1) - 1;
+    return n === undefined ? s.slice(a) : s.slice(a, a + Math.max(Math.trunc(n), 0));
+  };
+  B.INSTRING = (s, t) => s.indexOf(t) + 1;
   B.TYPE = (v) => (typeof v === "string" ? 2 : Array.isArray(v) ? (v.mat ? 4 : 6) : 0);
   B.RGB = (r, g, b) => ((Math.trunc(r) << 16) | (Math.trunc(g) << 8) | Math.trunc(b));
 

@@ -66,9 +66,9 @@ cHiY:=RGB(255,236,120);
 cHiG:=RGB(150,232,214);
 cHole:=RGB(206,196,176);
 cCov:=RGB(38,52,92);
-gTabC:={RGB(226,96,74),RGB(236,160,40),RGB(88,170,84),RGB(54,140,200),RGB(138,104,196),RGB(120,128,140)};
+gTabC:={RGB(226,96,74),RGB(236,160,40),RGB(88,170,84),RGB(54,140,200),RGB(138,104,196),RGB(120,128,140),RGB(22,150,150)};
 // ---- where you are ----
-gTab:=0;        // 0 the cover, 1-6 the divider tabs
+gTab:=0;        // 0 the cover, 1-7 the divider tabs
 gPg:=0;         // page in the tab (0: its contents page)
 gSel:=1;        // the blank being filled in
 gTy:=0;         // 1 while typing in it
@@ -94,6 +94,9 @@ gBd:={};        // what each letter is
 gUk:={};        // 1 a length, 2 an area (for the unit after the blank)
 gEx:={};        // the class example for the blanks
 gNt:={};        // notes written before the work
+gEs:={};        // the formulas as they are shown (when not as typed)
+gAn:={};        // letters shown under a longer name: letter, name, ...
+gExU:=0;        // the unit of the class example (0: leave the unit)
 gDrw:=0;        // its drawing
 gSingle:=0;     // 1: typing in one blank empties the others
 gNB:=0;         // number of blanks
@@ -1452,18 +1455,19 @@ BEGIN
   IF t==3 THEN RETURN 2; END;
   IF t==4 THEN RETURN 2+fmN(); END;
   IF t==5 THEN RETURN 11; END;
-  RETURN 8;
+  IF t==6 THEN RETURN 9; END;
+  RETURN 11;
 END;
 
 tabNm(t)
 BEGIN
-  LOCAL n:={"Numbers","Measurement","Percent","Algebra and formulas","Geometry","Reference sheets"};
+  LOCAL n:={"Numbers","Measurement","Percent","Algebra and formulas","Geometry","Reference sheets","Solid figures"};
   RETURN n(t);
 END;
 
 tabSh(t)
 BEGIN
-  LOCAL n:={"NUM","MEA","%","ALG","GEO","REF"};
+  LOCAL n:={"NUM","MEA","%","ALG","GEO","REF","SOL"};
   RETURN n(t);
 END;
 
@@ -1545,7 +1549,11 @@ BEGIN
     n:={"Rectangle","Square","Parallelogram","Trapezoid","Triangle","Hero's formula","Equilateral triangle","Right triangle","Regular hexagon","Circle","Composite figure"};
     RETURN n(p);
   END;
-  n:={"How to use this notebook","Order of operations","Percent","Place value and rounding","Standard units","Metric and conversions","Geometry formulas","Exam checklist"};
+  IF t==7 THEN
+    n:={"Rectangular prism","Square base prism","Triangle prism","Hexagon prism","Cylinder","Sphere","Pyramid, rectangle base","Pyramid, triangle base","Frustum of a pyramid","Density and weight","Gallons"};
+    RETURN n(p);
+  END;
+  n:={"How to use this notebook","Order of operations","Percent","Place value and rounding","Standard units","Metric and conversions","Geometry formulas","Exam checklist","Solid geometry formulas"};
   RETURN n(p);
 END;
 
@@ -1561,6 +1569,7 @@ BEGIN
   IF t==3 THEN RETURN IFTE(p==2,1,3); END;
   IF t==4 THEN RETURN IFTE(p>=3,1,3); END;
   IF t==5 THEN RETURN IFTE(p<=10,1,3); END;
+  IF t==7 THEN RETURN 1; END;
   RETURN 3;
 END;
 
@@ -1576,6 +1585,9 @@ BEGIN
   gUk:={};
   gEx:={};
   gNt:={};
+  gEs:={};
+  gAn:={};
+  gExU:=0;
   gDrw:=0;
   IF t==4 THEN
     f:=fmDef(p-2);
@@ -1676,6 +1688,121 @@ BEGIN
       gEx:={"","30","",""};
     END;
   END;
+  IF t==7 THEN
+    IF p<=9 THEN gDrw:=30+p; END;
+    gAn:={"S","LSA","T","TSA","G","GAL"};
+    IF p<=4 THEN
+      // every prism: LSA = ph, TSA = LSA + 2A, VOL = Ah
+      gAn:={"S","LSA","T","TSA","G","GAL","V","VOL"};
+      IF p==1 THEN
+        gEq:={"A = LW","p = 2L + 2W"};
+        gBl:={"L","W","h"};
+        gUk:={1,1,1};
+        gEx:={"3","2","5"};
+        gExU:=2;
+      END;
+      IF p==2 THEN
+        gEq:={"A = s²","p = 4s"};
+        gBl:={"s","h"};
+        gUk:={1,1};
+        gEx:={"12","54"};
+        gExU:=1;
+      END;
+      IF p==3 THEN
+        gEq:={"A = 0.433s²","p = 3s"};
+        gBl:={"s","h"};
+        gUk:={1,1};
+        gEx:={"6","24"};
+        gExU:=1;
+      END;
+      IF p==4 THEN
+        gEq:={"A = 2.6s²","p = 6s"};
+        gBl:={"s","h"};
+        gUk:={1,1};
+        gEx:={"12","30"};
+        gExU:=1;
+      END;
+      gEq(3):="S = ph";
+      gEq(4):="T = S + 2A";
+      gEq(5):="V = Ah";
+      k:=SIZE(gBl);
+      gBl(k+1):="A";
+      gBl(k+2):="p";
+      gBl(k+3):="S";
+      gBl(k+4):="T";
+      gBl(k+5):="V";
+      gUk(k+1):=2;
+      gUk(k+2):=1;
+      gUk(k+3):=2;
+      gUk(k+4):=2;
+      gUk(k+5):=3;
+    END;
+    IF p==5 THEN
+      gEq:={"r = d ÷ 2","S = πdh","T = S + 2πr²","V = πr²h"};
+      gBl:={"d","h","r","S","T","V"};
+      gUk:={1,1,1,2,2,3};
+      gEx:={"18","42"};
+      gExU:=1;
+    END;
+    IF p==6 THEN
+      gAn:={"S","SA","G","GAL"};
+      gEq:={"r = d ÷ 2","S = πd²","V = πd³ ÷ 6"};
+      gEs:={"r = d ÷ 2","SA = πd²  (or 4πr²)","V = πd³ ÷ 6"};
+      gBl:={"d","r","S","V"};
+      gUk:={1,1,2,3};
+      gEx:={"12"};
+      gExU:=1;
+    END;
+    // gallons: cubic inches ÷ 231, cubic feet × 7.48
+    IF p<=6 AND (gOpt(2)==1 OR gOpt(2)==2) THEN
+      k:=SIZE(gEq)+1;
+      IF gOpt(2)==1 THEN
+        gEq(k):="G = V ÷ 231";
+        IF p==6 THEN gEs(k):="GAL = V ÷ 231"; END;
+      ELSE
+        gEq(k):="G = V × 7.48";
+        IF p==6 THEN gEs(k):="GAL = V × 7.48"; END;
+      END;
+      k:=SIZE(gBl)+1;
+      gBl(k):="G";
+      gUk(k):=4;
+    END;
+    IF p==7 THEN
+      gEq:={"A = LW","p = 2L + 2W","S = ps ÷ 2","T = S + A","V = Ah ÷ 3"};
+      gBl:={"L","W","s","h","A","p","S","T","V"};
+      gUk:={1,1,1,1,2,1,2,2,3};
+      gEx:={"18","12","27","24"};
+      gExU:=1;
+    END;
+    IF p==8 THEN
+      gEq:={"A = 0.433b²","p = 3b","S = ps ÷ 2","T = S + A","V = Ah ÷ 3"};
+      gBl:={"b","s","h","A","p","S","T","V"};
+      gUk:={1,1,1,2,1,2,2,3};
+      gEx:={"300","120","100"};
+      gExU:=2;
+    END;
+    IF p==9 THEN
+      gEq:={"P = 4B","p = 4b","A = B²","a = b²","S = (P + p)s ÷ 2","T = S + A + a","V = h(A + a + √(Aa)) ÷ 3"};
+      gBl:={"B","b","s","h","P","p","A","a","S","T","V"};
+      gUk:={1,1,1,1,1,1,2,2,2,2,3};
+      gEx:={"12","8","14","12"};
+      gExU:=1;
+    END;
+    IF p==10 THEN
+      gAn:={};
+      gEq:={"r = d ÷ 2","V = πr²h","W = VD"};
+      gBl:={"d","h","D","r","V","W"};
+      gBd:={"diameter of the bar","its length (the height h)","density, lb per cubic inch","radius","volume, cubic inches","WEIGHT, lb"};
+      gEx:={"4","60","0.285"};
+    END;
+    IF p==11 THEN
+      gAn:={};
+      gEq:={"G = C ÷ 231","G = F × 7.48"};
+      gBl:={"C","F","G"};
+      gBd:={"volume in CUBIC INCHES","volume in CUBIC FEET","GALLONS"};
+      gEx:={"7776"};
+    END;
+  END;
   // what each letter is, when nothing was said
   FOR k FROM 1 TO SIZE(gBl) DO
     IF SIZE(gBd)<k THEN gBd(k):=""; END;
@@ -1692,6 +1819,7 @@ BEGIN
     RETURN f(5);
   END;
   IF t==2 AND p<=5 THEN RETURN 2; END;
+  IF t==7 AND p==10 THEN RETURN 2; END;
   RETURN 0;
 END;
 // ================= blanks and written work =================
@@ -1814,13 +1942,16 @@ BEGIN
   RETURN y;
 END;
 
-// the unit written after a length (k 1) or an area (k 2)
+// the unit written after a length (k 1), an area (k 2), a volume (k 3)
+// or gallons (k 4)
 unitTx(k)
 BEGIN
   LOCAL n:={"","in","ft","yd","mm","cm","m"};
   LOCAL u:=n(gOpt(2)+1);
+  IF k==4 THEN RETURN "gal"; END;
   IF k==0 OR u=="" THEN RETURN ""; END;
   IF k==2 THEN RETURN "sq "+u; END;
+  IF k==3 THEN RETURN "cu "+u; END;
   RETURN u;
 END;
 
@@ -1854,6 +1985,11 @@ BEGIN
   gEl:={};
   gEr:={};
   FOR k FROM 1 TO SIZE(gEq) DO eqAdd(gEq(k)); END;
+  // letters that are shown under a longer name (S is written LSA)
+  FOR k FROM 1 TO SIZE(gAn)/2 DO
+    v:=vIdx(gAn(2*k-1));
+    gVs(v):=gAn(2*k);
+  END;
   n0:=gTn;
   anyF:=0;
   unkN:=0;
@@ -1894,6 +2030,9 @@ BEGIN
   ELSE
     IF unkN>0 AND SIZE(gWk)==0 THEN wkAdd("Not enough yet: fill in another blank.",3); END;
   END;
+  IF gTab==7 AND gPg<=6 AND gOpt(2)<>1 AND gOpt(2)<>2 THEN
+    wkAdd("Gallons: set the unit to in or ft (foot of the page). Cubic inches ÷ 231, cubic feet × 7.48.",3);
+  END;
 END;
 
 // the tolerance page: does the size to check fit
@@ -1916,6 +2055,29 @@ BEGIN
 END;
 // ================= drawings =================
 
+// the name letter c is shown under on this page (LSA for S)
+nmOf(c)
+BEGIN
+  LOCAL j;
+  FOR j FROM 1 TO SIZE(gAn)/2 DO
+    IF gAn(2*j-1)==c THEN RETURN gAn(2*j); END;
+  END;
+  RETURN c;
+END;
+
+// formula k of the page the way it is shown
+eqSh(k)
+BEGIN
+  LOCAL j, t, s;
+  IF SIZE(gEs)>=k THEN RETURN gEs(k); END;
+  s:=gEq(k);
+  IF SIZE(gAn)==0 THEN RETURN s; END;
+  // write the longer names (LSA for S) in place of the letters
+  t:="";
+  FOR j FROM 1 TO DIM(s) DO t:=t+nmOf(MID(s,j,1)); END;
+  RETURN t;
+END;
+
 // a letter on a drawing, centred at x, y; the letter of the blank being
 // filled in is highlighted
 drawLab(s,x,y)
@@ -1934,6 +2096,163 @@ sqMark(x,y,dx,dy)
 BEGIN
   pLine(x+6*dx,y,x+6*dx,y+6*dy,cPen);
   pLine(x,y+6*dy,x+6*dx,y+6*dy,cPen);
+END;
+
+// part of an ellipse centred at cx, cy from angle a0 to a1 (dashed if ds)
+pEll(cx,cy,rx,ry,a0,a1,ds)
+BEGIN
+  LOCAL a, x1, y1, x2, y2;
+  FOR a FROM a0 TO a1-15 STEP 15 DO
+    x1:=ROUND(cx+rx*COS(a),0);
+    y1:=ROUND(cy-ry*SIN(a),0);
+    x2:=ROUND(cx+rx*COS(a+15),0);
+    y2:=ROUND(cy-ry*SIN(a+15),0);
+    IF ds THEN
+      IF (a/15) MOD 2==0 THEN pLine(x1,y1,x2,y2,cPen); END;
+    ELSE
+      pLine(x1,y1,x2,y2,cInk);
+    END;
+  END;
+END;
+
+// the solid of worksheet d (31 to 39) in the corner of the page
+solDraw(d)
+BEGIN
+  LOCAL x:=178;
+  LOCAL y:=34;
+  LOCAL k, a, b, c;
+  IF d==31 OR d==32 THEN
+    // a box
+    pLine(x+6,y+24,x+66,y+24,cInk);
+    pLine(x+66,y+24,x+66,y+84,cInk);
+    pLine(x+66,y+84,x+6,y+84,cInk);
+    pLine(x+6,y+84,x+6,y+24,cInk);
+    pLine(x+6,y+24,x+28,y+8,cInk);
+    pLine(x+28,y+8,x+88,y+8,cInk);
+    pLine(x+88,y+8,x+66,y+24,cInk);
+    pLine(x+88,y+8,x+88,y+68,cInk);
+    pLine(x+88,y+68,x+66,y+84,cInk);
+    pdash(x+28,y+8,x+28,y+68,cPen);
+    pdash(x+28,y+68,x+6,y+84,cPen);
+    pdash(x+28,y+68,x+88,y+68,cPen);
+    IF d==31 THEN
+      drawLab("L",x+36,y+92);
+      drawLab("W",x+86,y+84);
+    ELSE
+      drawLab("s",x+36,y+92);
+      drawLab("s",x+86,y+84);
+    END;
+    drawLab("h",x+98,y+38);
+  END;
+  IF d==33 THEN
+    // a triangle prism lying on its side
+    pLine(x+6,y+84,x+50,y+84,cInk);
+    pLine(x+50,y+84,x+28,y+46,cInk);
+    pLine(x+28,y+46,x+6,y+84,cInk);
+    pLine(x+28,y+46,x+66,y+12,cInk);
+    pLine(x+50,y+84,x+88,y+50,cInk);
+    pLine(x+66,y+12,x+88,y+50,cInk);
+    pdash(x+6,y+84,x+44,y+50,cPen);
+    pdash(x+44,y+50,x+88,y+50,cPen);
+    pdash(x+44,y+50,x+66,y+12,cPen);
+    drawLab("s",x+28,y+92);
+    drawLab("h",x+80,y+74);
+  END;
+  IF d==34 THEN
+    // a hexagon prism standing up
+    FOR k FROM 0 TO 5 DO
+      a:=ROUND(x+46+36*COS(60*k),0);
+      b:=ROUND(12*SIN(60*k),0);
+      c:=ROUND(x+46+36*COS(60*k+60),0);
+      pLine(a,y+16-b,c,y+16-ROUND(12*SIN(60*k+60),0),cInk);
+      IF k>=3 THEN
+        pLine(a,y+72-b,c,y+72-ROUND(12*SIN(60*k+60),0),cInk);
+      ELSE
+        pdash(a,y+72-b,c,y+72-ROUND(12*SIN(60*k+60),0),cPen);
+      END;
+      IF k==1 OR k==2 THEN
+        pdash(a,y+16-b,a,y+72-b,cPen);
+      ELSE
+        pLine(a,y+16-b,a,y+72-b,cInk);
+      END;
+    END;
+    drawLab("s",x+46,y+92);
+    drawLab("h",x+94,y+44);
+  END;
+  IF d==35 THEN
+    // a cylinder
+    pEll(x+46,y+16,32,10,0,360,0);
+    pEll(x+46,y+72,32,10,180,360,0);
+    pEll(x+46,y+72,32,10,0,180,1);
+    pLine(x+14,y+16,x+14,y+72,cInk);
+    pLine(x+78,y+16,x+78,y+72,cInk);
+    pLine(x+46,y+16,x+78,y+16,cPen);
+    pdash(x+14,y+72,x+78,y+72,cPen);
+    drawLab("r",x+62,y+35);
+    drawLab("d",x+46,y+92);
+    drawLab("h",x+92,y+44);
+  END;
+  IF d==36 THEN
+    // a sphere
+    pcirc(x+50,y+46,38,cInk);
+    pEll(x+50,y+46,38,10,180,360,0);
+    pEll(x+50,y+46,38,10,0,180,1);
+    pdash(x+12,y+46,x+88,y+46,cPen);
+    drawLab("d",x+30,y+28);
+    drawLab("r",x+70,y+28);
+  END;
+  IF d==37 THEN
+    // a pyramid on a rectangle
+    pLine(x+6,y+80,x+62,y+80,cInk);
+    pLine(x+62,y+80,x+88,y+62,cInk);
+    pLine(x+47,y+6,x+6,y+80,cInk);
+    pLine(x+47,y+6,x+62,y+80,cInk);
+    pLine(x+47,y+6,x+88,y+62,cInk);
+    pdash(x+6,y+80,x+32,y+62,cPen);
+    pdash(x+32,y+62,x+88,y+62,cPen);
+    pdash(x+47,y+6,x+32,y+62,cPen);
+    pdash(x+47,y+6,x+47,y+71,cPen);
+    pLine(x+47,y+6,x+34,y+80,cRed);
+    drawLab("L",x+34,y+90);
+    drawLab("W",x+86,y+78);
+    drawLab("h",x+57,y+58);
+    drawLab("s",x+27,y+42);
+  END;
+  IF d==38 THEN
+    // a pyramid on a triangle
+    pLine(x+6,y+80,x+74,y+80,cInk);
+    pLine(x+44,y+6,x+6,y+80,cInk);
+    pLine(x+44,y+6,x+74,y+80,cInk);
+    pdash(x+6,y+80,x+56,y+60,cPen);
+    pdash(x+74,y+80,x+56,y+60,cPen);
+    pdash(x+44,y+6,x+56,y+60,cPen);
+    pdash(x+44,y+6,x+45,y+73,cPen);
+    pLine(x+44,y+6,x+40,y+80,cRed);
+    drawLab("b",x+40,y+90);
+    drawLab("h",x+54,y+46);
+    drawLab("s",x+30,y+48);
+  END;
+  IF d==39 THEN
+    // the frustum of a square pyramid
+    pLine(x+4,y+80,x+64,y+80,cInk);
+    pLine(x+64,y+80,x+90,y+62,cInk);
+    pLine(x+27,y+25,x+55,y+25,cInk);
+    pLine(x+55,y+25,x+67,y+17,cInk);
+    pLine(x+67,y+17,x+39,y+17,cInk);
+    pLine(x+39,y+17,x+27,y+25,cInk);
+    pLine(x+27,y+25,x+4,y+80,cInk);
+    pLine(x+55,y+25,x+64,y+80,cInk);
+    pLine(x+67,y+17,x+90,y+62,cInk);
+    pdash(x+4,y+80,x+30,y+62,cPen);
+    pdash(x+30,y+62,x+90,y+62,cPen);
+    pdash(x+39,y+17,x+30,y+62,cPen);
+    pdash(x+47,y+21,x+47,y+71,cPen);
+    pLine(x+41,y+25,x+34,y+80,cRed);
+    drawLab("B",x+34,y+90);
+    drawLab("b",x+47,y+8);
+    drawLab("h",x+56,y+52);
+    drawLab("s",x+26,y+54);
+  END;
 END;
 
 // the drawing of worksheet d in the corner of the page
@@ -3127,6 +3446,39 @@ BEGIN
     wkAdd("Separate into simple shapes, find each area,",2);
     wkAdd("then add or subtract.",2);
   END;
+  IF p==9 THEN
+    wkAdd("Chapter 9: solid geometry",5);
+    wkAdd("LSA = Lateral Surface Area: the area of the sides",2);
+    wkAdd("TSA = Total Surface Area: the sides AND the base(s)",2);
+    wkAdd("V = Volume: the amount of space contained",2);
+    wkAdd("Area of bases",5);
+    wkAdd("Square/rectangle  A = L x W",2);
+    wkAdd("Equilateral triangle  A = .433s²",2);
+    wkAdd("Hexagon  A = 2.6s²      Circle  A = πr²",2);
+    wkAdd("Prisms (use these for ALL prisms)",5);
+    wkAdd("LSA = ph    TSA = LSA + 2A    VOL = Ah",2);
+    wkAdd("p: perimeter of the base, A: area of the base",3);
+    wkAdd("Cylinders",5);
+    wkAdd("LSA = πdh   TSA = LSA + 2πr²   V = πr²h",2);
+    wkAdd("Spheres",5);
+    wkAdd("SA = 4πr² or πd²      V = πd³ ÷ 6",2);
+    wkAdd("Pyramids",5);
+    wkAdd("LSA = ps ÷ 2    TSA = LSA + A    V = Ah ÷ 3",2);
+    wkAdd("s: slant length of a side, h: the height",3);
+    wkAdd("Frustum of a pyramid",5);
+    wkAdd("LSA = (P + p)s ÷ 2     TSA = LSA + A + a",2);
+    wkAdd("V = h(A + a + √(A × a)) ÷ 3",2);
+    wkAdd("P, A: the larger base.  p, a: the smaller base",3);
+    wkAdd("How to convert to gallons",5);
+    wkAdd("1 cubic foot = 1728 cubic inches ≈ 7.48 gallons",2);
+    wkAdd("1 gallon = 231 cubic inches",2);
+    wkAdd("cubic inches: divide by 231",2);
+    wkAdd("cubic feet: multiply by 7.48",2);
+    wkAdd("Density",5);
+    wkAdd("weight = volume × density",2);
+    wkAdd("Rod 4 in across, 60 in long, 0.285 lb/cu in:",3);
+    wkAdd("V = 3.14 × 2² × 60 = 753.6;  753.6 × .285 = 214.8 lb",3);
+  END;
   IF p==8 THEN
     wkAdd("On the final",5);
     wkAdd("Show the substitution: every letter replaced",2);
@@ -3218,15 +3570,15 @@ BEGIN
   LOCAL k, y, s;
   RECT_P(G1,296,0,319,239,cPap,cPap);
   LINE_P(G1,296,0,296,239,cHole);
-  FOR k FROM 1 TO 6 DO
-    y:=2+(k-1)*37;
+  FOR k FROM 1 TO 7 DO
+    y:=2+(k-1)*34;
     IF k==gTab THEN
-      RECT_P(G1,292,y,319,y+34,gTabC(k),gTabC(k));
+      RECT_P(G1,292,y,319,y+31,gTabC(k),gTabC(k));
     ELSE
-      RECT_P(G1,299,y,319,y+34,gTabC(k),gTabC(k));
+      RECT_P(G1,299,y,319,y+31,gTabC(k),gTabC(k));
     END;
     s:=tabSh(k);
-    TEXTOUT_P(s,G1,IFTE(k==gTab,306,309)-textw(s,1)/2,y+11,1,RGB(255,255,255));
+    TEXTOUT_P(s,G1,IFTE(k==gTab,306,309)-textw(s,1)/2,y+10,1,RGB(255,255,255));
   END;
 END;
 
@@ -3275,7 +3627,7 @@ BEGIN
       s:="round: "+rndNm(gOpt(1));
       TEXTOUT_P(s,G1,140,227,1,cBlue);
     END;
-    IF gTab==5 THEN
+    IF gTab==5 OR (gTab==7 AND gPg<=9) THEN
       s:="unit: "+IFTE(gOpt(2)==0,"none",unitTx(1));
       TEXTOUT_P(s,G1,236,227,1,cBlue);
     END;
@@ -3289,16 +3641,17 @@ END;
 drawSheet()
 BEGIN
   LOCAL k, y, nm, s, ye, yb, rp;
+  LOCAL lx:=58;
   y:=28;
   IF gDrw==0 THEN
     // the formulas, then a blank for each letter
     FOR k FROM 1 TO SIZE(gEq) DO
-      inkTx(gEq(k),28,y,2,cBlue);
+      inkTx(eqSh(k),28,y,2,cBlue);
       y:=y+16;
     END;
     y:=y+4;
     FOR k FROM 1 TO gNB DO
-      inkR(gBl(k)+" =",58,y,2,cInk);
+      inkR(nmOf(gBl(k))+" =",58,y,2,cInk);
       blankLn(k,62,y,104,1);
       inkTx(gBd(k),174,y+3,1,cPen);
       y:=y+19;
@@ -3307,20 +3660,27 @@ BEGIN
   ELSE
     rp:=19;
     IF gDrw==20 THEN rp:=29; END;
+    // the solids have longer names (LSA =), so their blanks start further in
+    IF gDrw>30 THEN lx:=66; END;
     FOR k FROM 1 TO gNB DO
-      inkR(gBl(k)+" =",58,y,2,cInk);
-      blankLn(k,62,y,86,1);
+      inkR(nmOf(gBl(k))+" =",lx,y,2,cInk);
+      blankLn(k,lx+4,y,144-lx,1);
       s:=unitTx(gUk(k));
       IF s<>"" THEN inkTx(s,152,y+3,1,cPen); END;
       IF gDrw==20 THEN inkTx(gBd(k),30,y+17,1,cPen); END;
       y:=y+rp;
     END;
     yb:=y;
-    shapeDraw(gDrw);
+    IF gDrw>30 THEN
+      solDraw(gDrw);
+    ELSE
+      shapeDraw(gDrw);
+    END;
     ye:=130;
-    IF gDrw<20 THEN
+    IF gDrw>30 THEN ye:=136; END;
+    IF gDrw<>20 THEN
       FOR k FROM 1 TO SIZE(gEq) DO
-        inkTx(gEq(k),178,ye,1,cBlue);
+        inkTx(eqSh(k),178,ye,1,cBlue);
         ye:=ye+13;
       END;
     END;
@@ -3360,10 +3720,10 @@ BEGIN
   LINE_P(G1,48,120,262,120,cRule);
   TEXTOUT_P("APPLIED",G1,60,54,5,cInk);
   TEXTOUT_P("TECHNICAL MATH",G1,60,76,5,cInk);
-  TEXTOUT_P("Fall 2026  -  class notebook",G1,60,102,2,cBlue);
+  TEXTOUT_P("UACCM  -  class notebook",G1,60,102,2,cBlue);
   TEXTOUT_P("everything from the semester",G1,60,126,1,cPen);
   TEXTOUT_P("Tap a coloured tab  >",G1,150,170,2,RGB(255,255,255));
-  TEXTOUT_P("or press 1 to 6.   Help: how to use it",G1,60,196,1,RGB(200,206,226));
+  TEXTOUT_P("or press 1 to 7.   Help: how to use it",G1,60,196,1,RGB(200,206,226));
   TEXTOUT_P("Esc: close the notebook",G1,60,212,1,RGB(200,206,226));
 END;
 // ================= turning pages =================
@@ -3403,6 +3763,8 @@ BEGIN
     gBt:={"","","","","","","","","","","",""};
     gOpt:={pgRnd(t,p),0,0,0,0,0,0,0};
     IF t==5 AND p==11 THEN gOpt:={0,0,1,1,0,0,0,0}; END;
+    // the solids start in inches, so that gallons can be worked out
+    IF t==7 AND p<=9 THEN gOpt(2):=1; END;
   END;
   gKind:=pgKind(t,p);
   gTit:=pgName(t,p);
@@ -3682,6 +4044,7 @@ BEGIN
     // the class example
     FOR k FROM 1 TO 12 DO gBt(k):=""; END;
     FOR k FROM 1 TO SIZE(gEx) DO gBt(k):=gEx(k); END;
+    IF gExU>0 THEN gOpt(2):=gExU; END;
     gTy:=0;
     gDirty:=1;
   END;
@@ -3715,7 +4078,7 @@ BEGIN
   LOCAL k, py, j;
   IF x>=296 THEN
     keepTy();
-    k:=MIN(6,IP((y-2)/37)+1);
+    k:=MIN(7,IP((y-2)/34)+1);
     openPage(k,0);
     RETURN 1;
   END;
@@ -3742,7 +4105,7 @@ BEGIN
     IF x<96 THEN doAct(1); END;
     IF x>=96 AND x<136 THEN doAct(2); END;
     IF x>=136 AND x<232 THEN doAct(4); END;
-    IF x>=232 AND gTab==5 THEN doAct(3); END;
+    IF x>=232 AND (gTab==5 OR (gTab==7 AND gPg<=9)) THEN doAct(3); END;
     RETURN 1;
   END;
   IF y<22 THEN
@@ -3784,7 +4147,7 @@ BEGIN
   END;
   IF gTab==0 THEN
     d:=keyDigit(k);
-    IF d>=1 AND d<=6 THEN openPage(d,0); END;
+    IF d>=1 AND d<=7 THEN openPage(d,0); END;
     IF k==3 THEN openPage(6,1); END;
     IF k==30 OR k==8 THEN openPage(1,0); END;
     IF k==4 THEN RETURN 0; END;
@@ -3800,8 +4163,8 @@ BEGIN
     gSh:=0;
     keepTy();
     n:=gTab+IFTE(k==8,1,-1);
-    IF n<1 THEN n:=6; END;
-    IF n>6 THEN n:=1; END;
+    IF n<1 THEN n:=7; END;
+    IF n>7 THEN n:=1; END;
     openPage(n,0);
     RETURN 1;
   END;
@@ -3846,7 +4209,7 @@ BEGIN
     doAct(4);
     RETURN 1;
   END;
-  IF k==14 AND gAl==0 AND gTab==5 THEN
+  IF k==14 AND gAl==0 AND (gTab==5 OR (gTab==7 AND gPg<=9)) THEN
     keepTy();
     doAct(3);
     RETURN 1;
@@ -3900,11 +4263,11 @@ BEGIN
   HAngle:=1;
   DIMGROB_P(G1,320,240);
   DIMGROB_P(G9,320,30);
-  n:=pageId(6,tabN(6));
+  // room to remember every page (pages added later go on the end, so
+  // what was typed on the old ones is kept)
+  n:=pageId(7,tabN(7));
   IF SIZE(gSt)<n THEN
-    gSt:={};
-    gSo:={};
-    FOR k FROM 1 TO n DO
+    FOR k FROM SIZE(gSt)+1 TO n DO
       gSt(k):={};
       gSo(k):={0,0,0,0,0,0,0,0};
     END;

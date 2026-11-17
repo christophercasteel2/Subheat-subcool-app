@@ -39,7 +39,7 @@ def keys(text):
 
 
 def tabxy(k):
-    return 308, 2 + (k - 1) * 37 + 17
+    return 308, 2 + (k - 1) * 34 + 15
 
 
 def close(a, b, rel=0.0001):
@@ -324,6 +324,60 @@ def main():
         page(it, 5, 11, {1: "20", 4: "20"}, opt={3: 7, 4: 2, 5: 0, 6: 0, 7: 1})
         return ok and var(it, "T") == 640
 
+    def t_solids(it):
+        """the Chapter 9 classwork packet and the handout's density example"""
+        def g(p, texts, unit=1):
+            page(it, 7, p, texts, opt={2: unit})
+            return lambda nm: var(it, nm)
+        v = g(1, {1: "3", 2: "2", 3: "5"}, unit=2)                     # rectangular base prism, feet
+        ok = v("A") == 6 and v("p") == 10 and v("S") == 50 and v("T") == 62 and v("V") == 30 and close(v("G"), 224.4)
+        w = list(it.g["gWk"])
+        ok &= "LSA = ph" in w and "LSA = (10)(5)" in w and "TSA = LSA + 2A" in w and "VOL = Ah" in w
+        ok &= "GAL = VOL × 7.48" in w and it.g["gBv"][5:9] == ["50", "62", "30", "224.4"]
+        v = g(2, {1: "12", 2: "54"})                                    # square base prism
+        ok &= v("A") == 144 and v("p") == 48 and v("V") == 7776 and close(v("G"), 7776 / 231)
+        ok &= "GAL = VOL ÷ 231" in it.g["gWk"]
+        v = g(3, {1: "6", 2: "24"})                                     # equilateral triangle prism
+        ok &= close(v("A"), 15.588) and v("S") == 432 and close(v("T"), 463.176) and close(v("V"), 374.112)
+        v = g(4, {1: "12", 2: "30"})                                    # hexagon prism
+        ok &= close(v("A"), 374.4) and v("p") == 72 and v("S") == 2160 and close(v("T"), 2908.8) and close(v("V"), 11232)
+        v = g(5, {1: "18", 2: "42"})                                    # cylinders
+        ok &= v("r") == 9 and close(v("S"), 2373.84) and close(v("T"), 2882.52) and close(v("V"), 10682.28)
+        ok &= close(v("G"), 10682.28 / 231)
+        v = g(5, {1: "60", 2: "20"}, unit=2)
+        ok &= close(v("V"), 56520) and close(v("G"), 56520 * 7.48)
+        v = g(5, {3: "20", 6: "20000"}, unit=2)                         # solving: the height
+        ok &= close(v("h"), 20000 / (3.14 * 400)) and v("d") == 40
+        v = g(5, {2: "30", 6: "30000"}, unit=2)                         # solving: the radius
+        ok &= close(v("r"), math.sqrt(30000 / (3.14 * 30)))
+        v = g(6, {1: "12"})                                             # spheres
+        ok &= close(v("S"), 452.16) and close(v("V"), 904.32) and close(v("G"), 904.32 / 231)
+        ok &= "SA = πd²" in it.g["gWk"]
+        v = g(6, {1: "4"}, unit=2)
+        ok &= close(v("S"), 50.24) and close(v("V"), 3.14 * 64 / 6) and close(v("G"), 3.14 * 64 / 6 * 7.48)
+        v = g(7, {1: "18", 2: "12", 3: "27", 4: "24"})                  # pyramids
+        ok &= v("p") == 60 and v("S") == 810 and v("A") == 216 and v("T") == 1026 and v("V") == 1728
+        v = g(8, {1: "300", 2: "120", 3: "100"}, unit=2)
+        ok &= v("p") == 900 and v("S") == 54000 and close(v("A"), 38970) and close(v("T"), 92970) and close(v("V"), 1299000)
+        v = g(9, {1: "12", 2: "8", 3: "14", 4: "12"})                   # frustums
+        ok &= v("P") == 48 and v("p") == 32 and v("S") == 560 and v("T") == 768 and close(v("V"), 1216)
+        v = g(9, {1: "30", 2: "24", 3: "21", 4: "18"})
+        ok &= close(v("V"), 13176)
+        b, w = page(it, 7, 10, {1: "4", 2: "60", 3: "0.285"}, rnd=2)    # the handout's stainless-steel rod
+        ok &= close(var(it, "V"), 753.6) and b[5] == "214.8"
+        b, _ = page(it, 7, 10, {1: "6", 2: "48", 3: "0.16"}, rnd=2)     # titanium bar
+        ok &= b[5] == "217.0"
+        b, _ = page(it, 7, 10, {1: "8", 2: "96", 3: "0.69"}, rnd=2)     # uranium bar, 8 feet = 96 in
+        ok &= b[5] == "3327.9"
+        page(it, 7, 11, {1: "7776"})                                    # gallons
+        ok &= close(var(it, "G"), 7776 / 231) and close(var(it, "F"), 7776 / 231 / 7.48)
+        page(it, 7, 11, {2: "30"})
+        ok &= close(var(it, "G"), 224.4)
+        page(it, 7, 1, {1: "3", 2: "2", 3: "5"}, opt={2: 0})            # no unit: no gallons blank
+        ok &= it.g["gNB"] == 8 and any("Gallons: set the unit" in x for x in it.g["gWk"])
+        _, w = page(it, 6, 9)
+        return ok and "LSA = ph    TSA = LSA + 2A    VOL = Ah" in w
+
     tests = [("Ch. 7 exam: every problem, with the substitutions shown", t_exam7),
              ("all 34 class formulas give the class answers", t_formulas),
              ("rounding the way each question asks (hundred, inch)", t_rounding_asked),
@@ -337,17 +391,18 @@ def main():
              ("conversions: the practice key, the Ch. 5 exam, metric stairs", t_convert),
              ("ruler and gauge readings", t_ruler),
              ("percent proportion and percent change", t_percent),
-             ("geometry handout formulas, homework answers, composite", t_geometry)]
+             ("geometry handout formulas, homework answers, composite", t_geometry),
+             ("Ch. 9 solid geometry: the classwork packet, density, solving, gallons", t_solids)]
 
     ev = [shot("tm_cover.png"), check("the cover", lambda it: it.g["gTab"] == 0)]
     ev += [check(d, f) for d, f in tests]
     ev += [("check", home)]
     # every page opens, draws and has a contents line
-    for t in range(1, 7):
+    for t in range(1, 8):
         ev += [*tap(*tabxy(t)), shot(f"tm_tab{t}.png"),
                check(f"tab {t}: its contents page", lambda it, t=t: it.g["gTab"] == t and it.g["gPg"] == 0)]
         ev += [RIGHT]
-        n = {1: 5, 2: 8, 3: 2, 4: 36, 5: 11, 6: 8}[t]
+        n = {1: 5, 2: 8, 3: 2, 4: 36, 5: 11, 6: 9, 7: 11}[t]
         for p in range(1, n + 1):
             ev += [VIEW, shot(f"tm_{t}_{p}.png") if (t != 4 or p <= 9) else ("check", lambda it: None),
                    check(f"tab {t} page {p} draws", lambda it, t=t, p=p: it.g["gTab"] == t and it.g["gPg"] == p),

@@ -350,7 +350,18 @@ Notes and key terms (four long scrolling pages: Up/Down or drag to scroll, + / -
 Source and instructions: """ + REPO),
 ]
 
-APPS.append(dict(name="TECHMATH", icon=icon_notebook, android=False,
+# the phone keypad for TECHMATH: the keys its pages type with
+TECHMATH_KEYS = [
+    ["Help", 3, "fn"], ["Esc", 4, "fn"], ["round", 13, "fn sm"], ["example", 9, "fn sm"], ["unit", 14, "fn sm"],
+    ["◀", 7, "ar"], ["▲", 2, "ar"], ["▼", 12, "ar"], ["▶", 8, "ar"], ["Shift", 41, "fn"],
+    ["x²", 26], ["^", 20], ["( )", 28], ["×", 40], ["÷", 35],
+    ["7", 32], ["8", 33], ["9", 34], ["Del", 19, "fn"], ["−", 45],
+    ["4", 37], ["5", 38], ["6", 39], ["space", 49, "fn sm"], ["+", 50],
+    ["1", 42], ["2", 43], ["3", 44], ["0", 47], [".", 48],
+    ["Enter", 30, "en wide"],
+]
+
+APPS.append(dict(name="TECHMATH", icon=icon_notebook, keys=TECHMATH_KEYS,
                  test=os.path.join(ROOT, "tools", "test_techmath.py"),
                  note="""TECHMATH - Applied Technical Math, the whole semester as a notebook
 

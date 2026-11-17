@@ -26,6 +26,8 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 #pad button.ar { background: #2c3550; }
 #pad button.en { background: var(--enter); font-weight: 700; }
 #pad button.dn { filter: brightness(1.6); }
+#pad button.wide { grid-column: span 5; }
+#pad button.sm { font-size: clamp(11px, 3.4vw, 17px); }
 @media (orientation: landscape) {
   #app { flex-direction: row; }
   #scr { height: min(100%, 47vw); width: auto; margin: auto 0 auto auto; }
@@ -67,13 +69,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 "use strict";
 (function () {
   // calculator key codes
-  const KEYS = [
-    ["Help", 3, "fn"], ["Symb", 1, "fn"], ["Plot", 6, "fn"], ["Num", 11, "fn"], ["Menu", 13, "fn"],
-    ["Esc", 4, "fn"], ["◀", 7, "ar"], ["▲", 2, "ar"], ["▼", 12, "ar"], ["▶", 8, "ar"],
-    ["7", 32], ["8", 33], ["9", 34], ["Del", 19, "fn"], ["−", 45],
-    ["4", 37], ["5", 38], ["6", 39], [".", 48], ["+", 50],
-    ["1", 42], ["2", 43], ["3", 44], ["0", 47], ["Enter", 30, "en"],
-  ];
+  const KEYS = {{KEYS}};
   const REPEAT = new Set([2, 12, 7, 8, 19]);
   const scr = document.getElementById("scr");
   const dpr = window.devicePixelRatio || 1;
@@ -135,6 +131,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     const b = document.createElement("button");
     b.textContent = label;
     if (cls) b.className = cls;
+    if (code < 0) b.style.visibility = "hidden";
     let timer = null;
     const stop = () => { clearTimeout(timer); clearInterval(timer); timer = null; b.classList.remove("dn"); };
     b.addEventListener("pointerdown", (e) => {
@@ -179,6 +176,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     const b = document.createElement("button");
     b.textContent = text;
     if (cls) b.className = cls;
+    if (code < 0) b.style.visibility = "hidden";
     b.addEventListener("click", fn);
     btns.appendChild(b);
     return b;

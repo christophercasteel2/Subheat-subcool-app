@@ -19,6 +19,7 @@ the repository (the script makes one if it is missing).  Android installs
 an update over an app only when both have the same key.
 """
 import base64
+import json
 import os
 import shutil
 import subprocess
@@ -131,14 +132,25 @@ def run(*cmd, **kw):
     return p.stdout
 
 
-def page(name):
+# the calculator keys on screen: label, key code, style
+KEYS = [
+    ["Help", 3, "fn"], ["Symb", 1, "fn"], ["Plot", 6, "fn"], ["Num", 11, "fn"], ["Menu", 13, "fn"],
+    ["Esc", 4, "fn"], ["◀", 7, "ar"], ["▲", 2, "ar"], ["▼", 12, "ar"], ["▶", 8, "ar"],
+    ["7", 32], ["8", 33], ["9", 34], ["Del", 19, "fn"], ["−", 45],
+    ["4", 37], ["5", 38], ["6", 39], [".", 48], ["+", 50],
+    ["1", 42], ["2", 43], ["3", 44], ["0", 47], ["Enter", 30, "en"],
+]
+
+
+def page(name, keys=None):
     """the app as one self-contained HTML page"""
     src = open(os.path.join(ROOT, "hp-prime", name + ".txt"), encoding="utf-8").read()
     program = translate(src).replace("</", "<\\/")
     runtime = open(os.path.join(HERE, "runtime.js"), encoding="utf-8").read()
     font = base64.b64encode(open(FONT_FILE, "rb").read()).decode()
     html = open(os.path.join(HERE, "shell.html"), encoding="utf-8").read()
-    parts = {"{{TITLE}}": name, "{{FONT}}": font, "{{RUNTIME}}": runtime, "{{PROGRAM}}": program}
+    parts = {"{{TITLE}}": name, "{{FONT}}": font, "{{RUNTIME}}": runtime, "{{PROGRAM}}": program,
+             "{{KEYS}}": json.dumps(keys or KEYS, ensure_ascii=False)}
     out, pos = [], 0
     while True:
         k = html.find("{{", pos)
@@ -160,7 +172,7 @@ def keystore():
 def build(app):
     name = app["name"]
     pkg = "io.github.christophercasteel2." + name.lower()
-    html = page(name)
+    html = page(name, app.get("keys"))
     os.makedirs(os.path.join(OUT, "web"), exist_ok=True)
     with open(os.path.join(OUT, "web", name + ".html"), "w", encoding="utf-8") as f:
         f.write(html)

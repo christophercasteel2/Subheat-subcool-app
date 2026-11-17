@@ -27,8 +27,8 @@ from ppl_sim import Parser, PPLError, check_names, check_order, tokenize, walk_c
 
 BLOCKING = {"WAIT", "INPUT", "CHOOSE", "MSGBOX"}
 BUILTINS = {"ABS", "ATAN", "BLIT_P", "CEILING", "CHAR", "CHOOSE", "COS", "DIM", "DIMGROB_P",
-            "EXP", "FLOOR", "IFTE", "INPUT", "IP", "LEFT", "LINE_P", "LN", "LOG", "MAX", "MIN",
-            "MSGBOX", "RECT_P", "RIGHT", "ROUND", "RGB", "SIN", "SIZE", "TEXTOUT_P",
+            "EXP", "FLOOR", "IFTE", "INPUT", "INSTRING", "IP", "LEFT", "LINE_P", "LN", "LOG", "MAX", "MIN",
+            "MID", "MSGBOX", "RECT_P", "RIGHT", "ROUND", "RGB", "SIN", "SIZE", "TEXTOUT_P",
             "TRIANGLE_P", "TYPE", "WAIT"}
 SYSVARS = {"HAngle"}
 GROBS = {f"G{k}" for k in range(10)}

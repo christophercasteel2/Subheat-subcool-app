@@ -12,12 +12,12 @@ Color, touchscreen apps for HVAC/R and electricity classes on the **HP Prime G1*
 | **[REFCYCLE](#refcycle-refrigeration-cycle-and-service)** | The refrigeration cycle from saturation temperatures or gauge pressures (enthalpy at each point, refrigeration effect, COP, mass flow), refrigerant property look-ups, compressors, walk-in box loads, the 2026 EPA leak repair and evacuation rules, and service paperwork | [`REFCYCLE.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/REFCYCLE.zip) |
 | **[CIRCUITS](#circuits-dc-circuits-for-electricity-class)** | DC circuits for electricity class: series, parallel, series-parallel and combination circuits (RT, IT, ET and every resistor's voltage, current and power), finding an open or shorted resistor, Kirchhoff's voltage and current laws, a two-source network, Ohm's law and power, dividers, the color code and metric prefixes | [`CIRCUITS.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/CIRCUITS.zip) |
 | **[GEOMETRY](#geometry-practical-plane-geometry)** | Chapter 8 of a trades math class, Practical Plane Geometry: angles in degrees-minutes-seconds, angle facts, parallel lines, rectangles, squares, parallelograms, trapezoids, triangles (base and height, right, Hero's, isosceles, equilateral), circles, semicircles, rings, sectors, hexagons, polygons, two shapes combined, cost of materials and feet and inches. Big labeled drawings you tap to enter sizes, and the work shown step by step | [`GEOMETRY.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/GEOMETRY.zip) |
-| **[TECHMATH](#techmath-applied-technical-math-notebook)** | Applied Technical Math, the whole semester as a ruled notebook with divider tabs: place value, rounding, fractions-decimals-percents, tolerance, unit conversions, reading rulers and gauges, percent, order of operations, 34 trade formulas, any formula you type, and Chapter 8 geometry. Each page writes out the substitution and every step | [`TECHMATH.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/TECHMATH.zip) |
+| **[TECHMATH](#techmath-applied-technical-math-notebook)** | Applied Technical Math, the whole semester as a ruled notebook with divider tabs: place value, rounding, fractions-decimals-percents, tolerance, unit conversions, reading rulers and gauges, percent, order of operations, 34 trade formulas, any formula you type, Chapter 8 geometry and Chapter 9 solid figures. Each page writes out the substitution and every step. Also an Android app | [`TECHMATH.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/TECHMATH.zip) |
 | **[ELECREV](#elecrev-electricity-exam-review)** | Exam review for electricity class Units 9, 11 and 13: 64 pages of notes, key terms and review answers, and 18 calculators for every equation in the units (Kirchhoff, Thevenin, Norton, superposition, wire resistance, voltage drop, ampacity, batteries). A separate app you can delete after the exam | [`ELECREV.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/ELECREV.zip) |
 
 They all install the same way (see [Install](#install-drag-and-drop-no-typing)), and you can have all of them on the calculator at once.
 
-**On an Android phone:** the HVACR and electrical apps are also Android apps: [SUPERSUB](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/SUPERSUB.apk) · [HVACAIR](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACAIR.apk) · [NECCALC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/NECCALC.apk) · [HVACELEC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACELEC.apk) · [HVACGAS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) · [REFCYCLE](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) · [CIRCUITS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk). See [Android apps](#android-apps).
+**On an Android phone:** the HVACR and electrical apps are also Android apps: [SUPERSUB](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/SUPERSUB.apk) · [HVACAIR](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACAIR.apk) · [NECCALC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/NECCALC.apk) · [HVACELEC](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACELEC.apk) · [HVACGAS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) · [REFCYCLE](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) · [CIRCUITS](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk) · [TECHMATH](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/TECHMATH.apk). See [Android apps](#android-apps).
 
 # SUPERSUB: superheat and subcooling for the HP Prime
 
@@ -490,14 +490,14 @@ They also play through the screens: tapping labels, feet-and-inches boxes, keypa
 
 # TECHMATH: Applied Technical Math notebook
 
-One app for the whole semester of Applied Technical Math, built from the class handouts, classwork, practice sheets and the graded Chapter 5 and Chapter 7 exams. It looks and works like a binder of ruled paper, not a grid of boxes or a list of menus. Calculator only.
+One app for the whole semester of Applied Technical Math, built from the class handouts, classwork, practice sheets and the graded Chapter 5 and Chapter 7 exams. It looks and works like a binder of ruled paper, not a grid of boxes or a list of menus. On the calculator and as an Android app ([`TECHMATH.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/TECHMATH.apk)).
 
-![Cover](docs/screens/tm_cover.png) ![Pittsburgh lock](docs/screens/tm_4_9.png) ![Order of operations](docs/screens/tm_order.png)
+![Cover](docs/screens/tm_cover.png) ![Pittsburgh lock](docs/screens/tm_4_9.png) ![Order of operations](docs/screens/tm_order.png) ![Cylinder](docs/screens/tm_7_5.png)
 
 Download [`TECHMATH.zip`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/calculator/TECHMATH.zip), unzip it, and drag `TECHMATH.hpappdir` onto **Application Library** (or `TECHMATH.hpprgm` onto **Programs**).
 
 **Getting around.**
-- Six coloured divider tabs run down the right edge. Tap one for its contents page, then tap a line or press its number.
+- Seven coloured divider tabs run down the right edge. Tap one for its contents page, then tap a line or press its number.
 - Left/Right or a swipe turns the pages. Esc goes back to the contents, then to the cover.
 - Shift then Left/Right goes to the next tab. Help opens the how-to page.
 
@@ -515,7 +515,8 @@ Download [`TECHMATH.zip`](https://github.com/christophercasteel2/Subheat-subcool
 | **Percent** | "__ is __ % of __" solved as the class proportion (cross-multiply and divide), and percent change |
 | **Algebra and formulas** | Order of operations worked a PEMDAS pass at a time. Any formula you type, solved for whichever letter is left empty. The 34 formulas from the classwork and exams (pipes, feeder belt, piston, capacitors, Pittsburgh lock, grinding wheel, crushing load, Ohm's law ...) |
 | **Geometry** | Rectangle, square, parallelogram, trapezoid, triangle, Hero's formula, equilateral (.433s²), right triangle, hexagon (2.6s²), circle (π = 3.14) and composite figures of up to three shapes |
-| **Reference sheets** | How to use it, PEMDAS, percent, place value and rounding, standard units, metric and conversions, the Chapter 8 formulas, and an exam checklist |
+| **Reference sheets** | How to use it, PEMDAS, percent, place value and rounding, standard units, metric and conversions, the Chapter 8 formulas, an exam checklist, and the Chapter 9 solid geometry formulas |
+| **Solid figures** | The Chapter 9 handout and classwork: rectangular, square base, triangle and hexagon prisms (LSA = ph, TSA = LSA + 2A, VOL = Ah, with the base area worked out first), cylinders, spheres, pyramids on a rectangle or triangle (slant length for LSA, height for volume), the frustum of a pyramid, density and weight (the stainless-steel rod: 214.8 lb), and gallons (cubic inches ÷ 231, cubic feet × 7.48). Each page has a drawing with its letters, works backward for a missing height or radius, and adds a gallons line when the unit is set to in or ft |
 
 **How the work is written.** Solving works on both sides the way it is done by hand, and fractions stay fractions:
 
@@ -528,7 +529,7 @@ divide both sides by 2
 W = 11/32
 ```
 
-The tests (`tools/test_techmath.py`, 113 checks) rework the class's own answers: every problem on the Chapter 7 exam, the Chapter 5 exam's place value, rounding, tolerance, conversions and missing length, the conversion practice key, all 34 formulas with the classwork numbers, the percent handout, and the Chapter 8 homework figures. They also open and draw every page and play through typing, turning pages, swiping and the letter keys.
+The tests (`tools/test_techmath.py`, 128 checks) rework the class's own answers: every problem on the Chapter 7 exam, the Chapter 5 exam's place value, rounding, tolerance, conversions and missing length, the conversion practice key, all 34 formulas with the classwork numbers, the percent handout, the Chapter 8 homework figures, and every figure in the Chapter 9 classwork packet (prisms, cylinders, spheres, pyramids, frustums, density and the two solving problems). They also open and draw every page and play through typing, turning pages, swiping and the letter keys.
 
 # ELECREV: electricity exam review
 
@@ -557,6 +558,7 @@ Every app except GEOMETRY and ELECREV also runs on an Android phone or tablet (A
 | HVACGAS | [`HVACGAS.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/HVACGAS.apk) |
 | REFCYCLE | [`REFCYCLE.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/REFCYCLE.apk) |
 | CIRCUITS | [`CIRCUITS.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/CIRCUITS.apk) |
+| TECHMATH | [`TECHMATH.apk`](https://github.com/christophercasteel2/Subheat-subcool-app/raw/ccr-d1b6c2f8-hvvb6p/android/TECHMATH.apk) (its keypad adds x², ^, ( ), ×, ÷, space, Shift and the round, example and unit keys) |
 
 **Installing:** on the phone, tap the APK link above (or open the file you downloaded). Android asks to allow installs from that app (Chrome, Files or Drive); allow it, then tap **Install**. The apps are not from the Play Store, so Play Protect may ask you to confirm; tap **More details → Install anyway** (or **Install without scanning**). The apps need no permissions and work without internet. A newer APK installs over the old one.
 

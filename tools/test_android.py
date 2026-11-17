@@ -27,8 +27,8 @@ from ppl_sim import FONT_FILE, Interp, PPLError, StopSim  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DRIVER = os.path.join(ROOT, "tools", "android", "fuzz_driver.js")
-APPS = ["SUPERSUB", "HVACAIR", "NECCALC", "HVACELEC", "HVACGAS", "REFCYCLE", "CIRCUITS"]
-KEYS = [2, 12, 7, 8, 30, 4, 3, 13, 19, 1, 6, 11, 45, 50, 27,
+APPS = ["SUPERSUB", "HVACAIR", "NECCALC", "HVACELEC", "HVACGAS", "REFCYCLE", "CIRCUITS", "TECHMATH"]
+KEYS = [2, 12, 7, 8, 30, 4, 3, 13, 19, 1, 6, 11, 45, 50, 27, 9, 14, 20, 26, 28, 35, 40, 41, 49,
         47, 42, 43, 44, 37, 38, 39, 32, 33, 34, 48]
 INPUT_VALUES = [0, 1, 2.5, 12, 40, 75, 100, 350, 1000, -5, 0.015, 7]
 
